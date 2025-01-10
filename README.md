@@ -24,13 +24,22 @@ To do so, you can follow this guide : https://www.raspberrypi.com/documentation/
 
 Then, you can connect to your rasp using SSH without having to plug a screen and a keyboard.
 
-### Update the system and install pip
+### Update the system and install necessary stuff
 
 ```bash
 sudo apt update
 sudo apt upgrade
+sudo apt install git
 sudo apt install python3-pip
-TODO virtualenvwrapper 
+sudo apt install python3-virtualenvwrapper
+```
+
+Add this to the end of the `.bashrc`:
+
+```bash
+export WORKON_HOME=$HOME/.virtualenvs
+export PROJECT_HOME=$HOME/Devel
+source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
 ```
 
 ### Enable UART
@@ -60,8 +69,12 @@ TODO
 
 ## Install the runtime
 
-### Make a virtual environment
+### Make a virtual environment and activate it 
 
+```bash
+mkvirtualenv -p python3 open-duck-mini-runtime
+workon open-duck-mini-runtime
+```
 
 Clone this repository on your rasp, cd into the repo, then :
 
