@@ -67,6 +67,11 @@ SUBSYSTEM=="usb-serial", DRIVER=="ftdi_sio", ATTR{latency_timer}="1"
 TODO
 
 
+### Setup xbox one controller over bluetooth
+
+TODO
+
+
 ## Install the runtime
 
 ### Make a virtual environment and activate it 
@@ -79,8 +84,12 @@ workon open-duck-mini-runtime
 Clone this repository on your rasp, cd into the repo, then :
 
 ```bash
+git clone https://github.com/apirrone/Open_Duck_Mini_Runtime
+cd Open_Duck_Mini_Runtime
+git checkout v2
 pip install -e .
 ```
+
 
 ## Test the IMU
 
