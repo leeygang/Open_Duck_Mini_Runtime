@@ -12,6 +12,8 @@ Follow the instructions here to install the OS on the SD card : https://www.rasp
 
 With the Raspberry Pi Imager, you can pre-configure session, wifi and ssh. Do it like below :
 
+![imager_setup](https://github.com/user-attachments/assets/7a4987b2-de83-41dd-ab7f-585259685f16)
+
 > Tip: I configure the rasp to connect to my phone's hotspot, this way I can connect to it from anywhere.
 
 ### Setup SSH (If not setup during the installation)
