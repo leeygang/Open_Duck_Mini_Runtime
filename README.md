@@ -10,6 +10,10 @@ Download Raspberry Pi OS Lite (64-bit) from here : https://www.raspberrypi.com/s
 
 Follow the instructions here to install the OS on the SD card : https://www.raspberrypi.com/documentation/computers/getting-started.html
 
+With the Raspberry Pi Imager, you can pre-configure session, wifi and ssh. Do it like below :
+
+> Tip: I configure the rasp to connect to my phone's hotspot, this way I can connect to it from anywhere.
+
 ### Setup SSH
 
 When first booting on the rasp, you will need to connect a screen and a keyboard. The first thing you should do is connect to a wifi network and enable SSH.
