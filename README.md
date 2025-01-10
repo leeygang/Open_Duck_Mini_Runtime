@@ -24,7 +24,7 @@ To do so, you can follow this guide : https://www.raspberrypi.com/documentation/
 
 Then, you can connect to your rasp using SSH without having to plug a screen and a keyboard.
 
-### Update the system and install necessary stuff
+### Update the system and install necessary stuff
 
 ```bash
 sudo apt update
@@ -74,7 +74,7 @@ TODO
 
 ## Install the runtime
 
-### Make a virtual environment and activate it 
+### Make a virtual environment and activate it
 
 ```bash
 mkvirtualenv -p python3 open-duck-mini-runtime
