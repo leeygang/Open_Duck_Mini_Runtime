@@ -14,13 +14,22 @@ With the Raspberry Pi Imager, you can pre-configure session, wifi and ssh. Do it
 
 > Tip: I configure the rasp to connect to my phone's hotspot, this way I can connect to it from anywhere.
 
-### Setup SSH
+### Setup SSH (If not setup during the installation)
 
 When first booting on the rasp, you will need to connect a screen and a keyboard. The first thing you should do is connect to a wifi network and enable SSH.
 
 To do so, you can follow this guide : https://www.raspberrypi.com/documentation/computers/configuration.html#setting-up-wifi
 
 Then, you can connect to your rasp using SSH without having to plug a screen and a keyboard.
+
+### Update the system and install pip
+
+```bash
+sudo apt update
+sudo apt upgrade
+sudo apt install python3-pip
+TODO virtualenvwrapper 
+```
 
 ### Enable UART
 
@@ -42,8 +51,15 @@ sudo nano 99-usb-serial.rules
 SUBSYSTEM=="usb-serial", DRIVER=="ftdi_sio", ATTR{latency_timer}="1"
 ```
 
+### Set the udev rules for the motor control boards
+
+TODO
+
 
 ## Install the runtime
+
+### Make a virtual environment
+
 
 Clone this repository on your rasp, cd into the repo, then :
 
