@@ -1,6 +1,7 @@
 from pypot.feetech import FeetechSTS3215IO
 import time
 
+
 joints = {
     "right_hip_yaw": 10,
     "right_hip_roll": 11,
@@ -20,7 +21,7 @@ joints = {
 
 
 io = FeetechSTS3215IO(
-    args.usb_port,
+    "/dev/ttyACM0"
     baudrate=1000000,
     use_sync_read=True,
 )
