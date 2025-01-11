@@ -27,17 +27,21 @@ joints = {
     "head_roll": 33,
 }
 
-id = int(sys.argv[1])
-print("id : ",  id)
+# id = int(sys.argv[1])
+# print("id : ",  id)
 
-# for name, id in joints.items():
-#     print(name)
-#     print("present position before: ", io.get_present_position([id])[0])
-#     io.set_offset({id:0})
-#     time.sleep(1)
-#     print("present position after: ", io.get_present_position([id])[0])
-#     print("==")
+# print(io.get_offset([id]))
 # exit()
+
+for name, id in joints.items():
+    io.set_lock({id: 0})
+    print(name)
+    print("present position before: ", io.get_present_position([id])[0])
+    io.set_offset({id:0})
+    time.sleep(1)
+    print("present position after: ", io.get_present_position([id])[0])
+    print("==")
+exit()
 
 # print("offset : ", io.get_offset([id]))
 try:
