@@ -69,7 +69,30 @@ TODO
 
 ### Setup xbox one controller over bluetooth
 
-TODO
+Turn your xbox one controller on and set it in pairing mode by long pressing the sync button on the top of the controller.
+
+Run the following commands on the rasp :
+
+```bash
+bluetoothctl
+scan on
+```
+
+Wait for the controller to appear in the list, then run :
+
+```bash
+pair <controller_mac_address>
+trust <controller_mac_address>
+connect <controller_mac_address>
+```
+
+The led on the controller should stop blinking and stay on.
+
+You can test that it's working by running
+
+```bash
+python3 scripts/test_xbox_controller.py
+```
 
 
 ## Install the runtime
