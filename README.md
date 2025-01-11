@@ -62,7 +62,7 @@ sudo nano 99-usb-serial.rules
 SUBSYSTEM=="usb-serial", DRIVER=="ftdi_sio", ATTR{latency_timer}="1"
 ```
 
-### Set the udev rules for the motor control boards
+### Set the udev rules for the motor control board
 
 TODO
 
