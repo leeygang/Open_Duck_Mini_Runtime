@@ -70,7 +70,7 @@ class HWI:
             # "right_antenna": 0,
         }
 
-        # self.init_pos = self.zero_pos  # TODO REMOVE
+        self.init_pos = self.zero_pos  # TODO REMOVE
 
         self.joints_offsets = {
             "right_hip_yaw": 0,
