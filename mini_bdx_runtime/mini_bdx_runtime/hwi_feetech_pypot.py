@@ -90,23 +90,23 @@ class HWI:
             # "right_antenna": 0,
         }
 
-        self.joints_offsets = {
-            "right_hip_yaw": 0.15,
-            "right_hip_roll": -0.1,
-            "right_hip_pitch": 0.05,
-            "right_knee": 0.05,
-            "right_ankle": 0.1,
-            "left_hip_yaw": -0.1,
-            "left_hip_roll": 0.07,
-            "left_hip_pitch": 0.05,
-            "left_knee": 0.1,
-            "left_ankle": 0.1,
-            # "neck_pitch": 0,
-            # "head_pitch": 0.0,
-            # "head_yaw": 0,
-            # "left_antenna": 0,
-            # "right_antenna": 0,
-        }
+        # self.joints_offsets = {
+        #     "right_hip_yaw": 0.15,
+        #     "right_hip_roll": -0.1,
+        #     "right_hip_pitch": 0.05,
+        #     "right_knee": 0.05,
+        #     "right_ankle": 0.1,
+        #     "left_hip_yaw": -0.1,
+        #     "left_hip_roll": 0.07,
+        #     "left_hip_pitch": 0.05,
+        #     "left_knee": 0.1,
+        #     "left_ankle": 0.1,
+        #     # "neck_pitch": 0,
+        #     # "head_pitch": 0.0,
+        #     # "head_yaw": 0,
+        #     # "left_antenna": 0,
+        #     # "right_antenna": 0,
+        # }
 
         self.joints_sign = {
             "right_hip_yaw": -1,
