@@ -26,6 +26,7 @@ io = FeetechSTS3215IO(
 )
 
 for joint_name, joint_id in joints.items():
+    print(f"Setting up {joint_name}")
     io.set_lock({joint_id: 1})
 
     io.enable_torque([joint_id])
