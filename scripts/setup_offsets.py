@@ -1,6 +1,8 @@
 from pypot.feetech import FeetechSTS3215IO
 import time
 
+# WARNING does not work, does weird things, you can break your robot
+# TODO understand
 
 joints = {
     "right_hip_yaw": 10,
@@ -28,7 +30,7 @@ io = FeetechSTS3215IO(
 
 for joint_name, joint_id in joints.items():
     print(f"Setting up {joint_name}")
-    io.set_lock({joint_id: 1})
+    io.set_lock({joint_id: 0})
 
     io.enable_torque([joint_id])
     io.set_offset({joint_id: 0})
@@ -50,4 +52,12 @@ for joint_name, joint_id in joints.items():
     io.set_offset({joint_id: offset})
     time.sleep(1)
 
-    io.set_lock({joint_id: 0})
+    time.sleep(1)
+
+res = input("Goto zero position ? (y/N)")
+if res.lower() == "y":
+    io.enable_torque(joints.values())
+    io.set_goal_position({joint_id: 0 for joint_id in joints.values()})
+    time.sleep(1)
+
+print("Done")

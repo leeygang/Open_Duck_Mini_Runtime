@@ -15,5 +15,6 @@ io = FeetechSTS3215IO(
 
 
 print(io.get_present_position([args.id])[0])
+print(io.get_offset([args.id])[0])
 
 exit()

@@ -52,61 +52,45 @@ class HWI:
         }
 
         self.init_pos = {
-            "right_hip_yaw": -0.001171696610228082,
-            "right_hip_roll": -0.006726989242258406,
-            "right_hip_pitch": -1.0129772861831692,
-            "right_knee": 1.4829304760981399,
-            "right_ankle": -0.6444901047812701,
-            "left_hip_yaw": 0.002853397830292128,
-            "left_hip_roll": -0.01626303761810685,
-            "left_hip_pitch": 1.0105624704499077,
-            "left_knee": 1.4865015965817336,
-            "left_ankle": -0.6504953719748071,
-            "neck_pitch": 0.17453292519943295,
-            "head_pitch": 0.17453292519943295,
+            "right_hip_yaw": 0,
+            "right_hip_roll": 0,
+            "right_hip_pitch": -0.95,
+            "right_knee": 1.5,
+            "right_ankle": -0.6,
+            "left_hip_yaw": 0,
+            "left_hip_roll": 0,
+            "left_hip_pitch": 0.95,
+            "left_knee": 1.5,
+            "left_ankle": -0.6,
+            "neck_pitch": 0.5,
+            "head_pitch": -0.5,
             "head_yaw": 0,
             "head_roll": 0,
             # "left_antenna": 0,
             # "right_antenna": 0,
         }
 
-        self.init_pos = self.zero_pos  # TODO REMOVE
+        # self.init_pos = self.zero_pos  # TODO REMOVE
+
 
         self.joints_offsets = {
-            "right_hip_yaw": 0,
-            "right_hip_roll": 0,
-            "right_hip_pitch": 0,
-            "right_knee": 0,
-            "right_ankle": 0,
-            "left_hip_yaw": 0,
-            "left_hip_roll": 0,
-            "left_hip_pitch": 0,
-            "left_knee": 0,
-            "left_ankle": 0,
-            "neck_pitch": 0,
-            "head_pitch": 0,
+            "right_hip_yaw": 0.15,
+            "right_hip_roll": -0.1,
+            "right_hip_pitch": 0.05,
+            "right_knee": 0.05,
+            "right_ankle": 0.1,
+            "left_hip_yaw": -0.1,
+            "left_hip_roll": 0.07,
+            "left_hip_pitch": 0.05,
+            "left_knee": -0.05,
+            "left_ankle": 0.1,
+            "neck_pitch": -0.05,
+            "head_pitch": -0.05,
             "head_yaw": 0,
+            "head_roll": -0.1
             # "left_antenna": 0,
             # "right_antenna": 0,
         }
-
-        # self.joints_offsets = {
-        #     "right_hip_yaw": 0.15,
-        #     "right_hip_roll": -0.1,
-        #     "right_hip_pitch": 0.05,
-        #     "right_knee": 0.05,
-        #     "right_ankle": 0.1,
-        #     "left_hip_yaw": -0.1,
-        #     "left_hip_roll": 0.07,
-        #     "left_hip_pitch": 0.05,
-        #     "left_knee": 0.1,
-        #     "left_ankle": 0.1,
-        #     # "neck_pitch": 0,
-        #     # "head_pitch": 0.0,
-        #     # "head_yaw": 0,
-        #     # "left_antenna": 0,
-        #     # "right_antenna": 0,
-        # }
 
         self.joints_sign = {
             "right_hip_yaw": -1,
@@ -159,10 +143,12 @@ class HWI:
     def turn_on(self):
         # self.set_low_torque()
         self.dxl_io.enable_torque(self.joints.values())
+        self.dxl_io.set_acceleration({id: 16 for id in self.joints.values()})
         time.sleep(1)
         # self.goto_zero()
         self.set_position_all(self.init_pos)
         time.sleep(1)
+        self.dxl_io.set_acceleration({id: 254 for id in self.joints.values()})
         # self.set_high_torque()
 
     def turn_off(self):
