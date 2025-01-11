@@ -47,7 +47,7 @@ for joint_name, joint_id in joints.items():
     new_zero_pos = io.get_present_position([joint_id])[0]
     offset = zero_pos - new_zero_pos
     print("Offset: ", offset)
-    io.set_offset({id: offset})
+    io.set_offset({joint_id: offset})
     time.sleep(1)
 
     io.set_lock({joint_id: 0})
