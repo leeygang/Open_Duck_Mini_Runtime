@@ -31,7 +31,7 @@ for joint_name, joint_id in joints.items():
     io.set_lock({joint_id: 1})
 
     io.enable_torque([joint_id])
-    io.set_offset(joint_id, 0)
+    io.set_offset({joint_id: 0})
 
     print("Going to zero. Press enter to continue.")
     input()
