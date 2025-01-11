@@ -148,8 +148,13 @@ class HWI:
         # self.goto_zero()
         self.set_position_all(self.init_pos)
         time.sleep(1)
-        self.dxl_io.set_acceleration({id: 254 for id in self.joints.values()})
-        # self.set_high_torque()
+        for name, id in self.joints.items():
+            if "neck" in name or "head" in name:
+                self.dxl_io.set_acceleration({id:32})
+            else:
+                self.dxl_io.set_acceleration({id:254})
+
+        # self.dxl_io.set_acceleration({id: 254 for id in self.joints.values()})
 
     def turn_off(self):
         self.dxl_io.disable_torque(self.joints.values())

@@ -51,8 +51,16 @@ while True:
     head_roll_deg = r_x * (limits["head_roll"][1] - limits["head_roll"][0]) / 2 + (limits["head_roll"][1] + limits["head_roll"][0]) / 2
     head_roll_pos_rad = np.deg2rad(head_roll_deg)
 
+
     head_pitch_deg = l_y * (limits["head_pitch"][1] - limits["head_pitch"][0]) / 2 + (limits["head_pitch"][1] + limits["head_pitch"][0]) / 2
     head_pitch_pos_rad = np.deg2rad(head_pitch_deg)
+    head_pitch_pos_rad -= hwi.init_pos["head_pitch"]
+    head_pitch_pos_rad = np.clip(head_pitch_pos_rad, limits["head_pitch"][0], limits["head_pitch"][1])
+
+    neck_pitch_deg = -r_y * (limits["neck_pitch"][1] - limits["neck_pitch"][0]) / 2 + (limits["neck_pitch"][1] + limits["neck_pitch"][0]) / 2
+    neck_pitch_pos_rad = np.deg2rad(neck_pitch_deg)
+    # neck_pitch_pos_rad -= hwi.init_pos["neck_pitch"]
+    neck_pitch_pos_rad = np.clip(neck_pitch_pos_rad, limits["neck_pitch"][0], limits["neck_pitch"][1])
 
 
     # Convert from degrees to radians
@@ -61,6 +69,7 @@ while True:
     hwi.set_position("head_yaw", head_yaw_pos_rad)
     hwi.set_position("head_roll", head_roll_pos_rad)
     hwi.set_position("head_pitch", head_pitch_pos_rad)
+    hwi.set_position("neck_pitch", neck_pitch_pos_rad)
 
 
     pygame.event.pump()  # process event queue
