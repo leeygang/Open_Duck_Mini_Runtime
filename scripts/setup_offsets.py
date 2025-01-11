@@ -21,7 +21,7 @@ joints = {
 
 
 io = FeetechSTS3215IO(
-    "/dev/ttyACM0"
+    "/dev/ttyACM0",
     baudrate=1000000,
     use_sync_read=True,
 )
