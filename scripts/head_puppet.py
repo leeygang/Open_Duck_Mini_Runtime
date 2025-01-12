@@ -54,13 +54,9 @@ while True:
 
     head_pitch_deg = l_y * (limits["head_pitch"][1] - limits["head_pitch"][0]) / 2 + (limits["head_pitch"][1] + limits["head_pitch"][0]) / 2
     head_pitch_pos_rad = np.deg2rad(head_pitch_deg)
-    head_pitch_pos_rad -= hwi.init_pos["head_pitch"]
-    head_pitch_pos_rad = np.clip(head_pitch_pos_rad, limits["head_pitch"][0], limits["head_pitch"][1])
 
     neck_pitch_deg = -r_y * (limits["neck_pitch"][1] - limits["neck_pitch"][0]) / 2 + (limits["neck_pitch"][1] + limits["neck_pitch"][0]) / 2
     neck_pitch_pos_rad = np.deg2rad(neck_pitch_deg)
-    # neck_pitch_pos_rad -= hwi.init_pos["neck_pitch"]
-    neck_pitch_pos_rad = np.clip(neck_pitch_pos_rad, limits["neck_pitch"][0], limits["neck_pitch"][1])
 
 
     # Convert from degrees to radians

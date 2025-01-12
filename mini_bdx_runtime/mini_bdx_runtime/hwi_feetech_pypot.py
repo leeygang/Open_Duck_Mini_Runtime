@@ -72,34 +72,33 @@ class HWI:
 
         # self.init_pos = self.zero_pos  # TODO REMOVE
 
-
         self.joints_offsets = {
-            "right_hip_yaw": 0.15,
-            "right_hip_roll": -0.1,
-            "right_hip_pitch": 0.05,
-            "right_knee": 0.05,
-            "right_ankle": 0.1,
-            "left_hip_yaw": -0.1,
-            "left_hip_roll": 0.07,
-            "left_hip_pitch": 0.05,
-            "left_knee": -0.05,
-            "left_ankle": 0.1,
-            "neck_pitch": -0.05,
-            "head_pitch": -0.05,
+            "right_hip_yaw": -0.15,
+            "right_hip_roll": -0.12,
+            "right_hip_pitch": -0.05,
+            "right_knee": -0.05,
+            "right_ankle": -0.08,
+            "left_hip_yaw": 0.07,
+            "left_hip_roll": 0.1,
+            "left_hip_pitch": 0.0,
+            "left_knee": 0.05,
+            "left_ankle": -0.1,
+            "neck_pitch": 0.1,
+            "head_pitch": 0.1,
             "head_yaw": 0,
-            "head_roll": -0.1
+            "head_roll": 0.1,
             # "left_antenna": 0,
             # "right_antenna": 0,
         }
 
         self.joints_sign = {
             "right_hip_yaw": -1,
-            "right_hip_roll": -1,
+            "right_hip_roll": 1,  # was -1
             "right_hip_pitch": 1,
             "right_knee": -1,
             "right_ankle": -1,
             "left_hip_yaw": -1,
-            "left_hip_roll": -1,
+            "left_hip_roll": 1,  # was -1
             "left_hip_pitch": 1,
             "left_knee": -1,
             "left_ankle": -1,
@@ -109,14 +108,14 @@ class HWI:
             "head_roll": -1,
         }
 
-        self.init_pos = {
-            joint: position - offset
-            for joint, position, offset in zip(
-                self.init_pos.keys(),
-                self.init_pos.values(),
-                self.joints_offsets.values(),
-            )
-        }
+        # self.init_pos = {
+        #     joint: position - offset
+        #     for joint, position, offset in zip(
+        #         self.init_pos.keys(),
+        #         self.init_pos.values(),
+        #         self.joints_offsets.values(),
+        #     )
+        # }
 
         # current based position : 0x5
         # self.dxl_io.set_operating_mode({id: 0x3 for id in self.joints.values()})
@@ -150,9 +149,9 @@ class HWI:
         time.sleep(1)
         for name, id in self.joints.items():
             if "neck" in name or "head" in name:
-                self.dxl_io.set_acceleration({id:32})
+                self.dxl_io.set_acceleration({id: 32})
             else:
-                self.dxl_io.set_acceleration({id:254})
+                self.dxl_io.set_acceleration({id: 254})
 
         # self.dxl_io.set_acceleration({id: 254 for id in self.joints.values()})
 
@@ -170,8 +169,8 @@ class HWI:
         Warning: expects radians
         """
         ids_positions = {
-            self.joints[joint]: self.joints_sign[joint] * np.rad2deg(-position)
-            + self.joints_offsets[joint]
+            self.joints[joint]: self.joints_sign[joint]
+            * np.rad2deg(-position - self.joints_offsets[joint])
             for joint, position in joints_positions.items()
         }
 

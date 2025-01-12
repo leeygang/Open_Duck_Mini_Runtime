@@ -8,6 +8,8 @@ print(f"Loaded joystick with {_p1.get_numaxes()} axes.")
 
 while True:
     for event in pygame.event.get():
-        print(_p1.get_axis(0), _p1.get_axis(1), _p1.get_axis(2), _p1.get_axis(3))
+        for i in range(_p1.get_numaxes()):
+            print(i, _p1.get_axis(i))
+        print("===")
 
     pygame.event.pump()  # process event queue
