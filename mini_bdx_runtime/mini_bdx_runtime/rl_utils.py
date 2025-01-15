@@ -21,6 +21,7 @@ mujoco_joints_order = [
     "neck_pitch",
     "head_pitch",
     "head_yaw",
+    "head_roll",
     "left_antenna",
     "right_antenna",
 ]
@@ -34,6 +35,7 @@ isaac_joints_order = [
     "neck_pitch",
     "head_pitch",
     "head_yaw",
+    "head_roll",
     "left_antenna",
     "right_antenna",
     "right_hip_yaw",
@@ -47,11 +49,11 @@ isaac_joints_order = [
 def isaac_to_mujoco(joints):
     new_joints = [
         # right leg
-        joints[10],
         joints[11],
         joints[12],
         joints[13],
         joints[14],
+        joints[15],
         # left leg
         joints[0],
         joints[1],
@@ -64,8 +66,8 @@ def isaac_to_mujoco(joints):
         joints[7],
         joints[8],
         joints[9],
+        joints[10],
     ]
-
     return new_joints
 
 
@@ -83,6 +85,7 @@ def mujoco_to_isaac(joints):
         joints[12],
         joints[13],
         joints[14],
+        joints[15],
         # right leg
         joints[0],
         joints[1],

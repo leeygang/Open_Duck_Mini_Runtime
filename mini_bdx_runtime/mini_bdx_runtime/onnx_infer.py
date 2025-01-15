@@ -30,9 +30,9 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--onnx_model_path", type=str, required=True)
     args = parser.parse_args()
 
-    oi = OnnxInfer(args.onnx_model_path)
+    oi = OnnxInfer(args.onnx_model_path, awd=True)
     inputs = np.random.uniform(size=54).astype(np.float32)
-    inputs = np.arange(55).astype(np.float32)
+    inputs = np.arange(47).astype(np.float32)
     times = []
     for i in range(1000):
         start = time.time()
