@@ -98,13 +98,14 @@ class HWI:
         pass
 
     def set_pid_all(self, pid):
+        # TODO WEIRD THINGS HERE
         # P = np.uint8(pid[0])
         # I = np.uint8(pid[1])
         # D = np.uint8(pid[2])
 
-        self.dxl_io.set_P_coefficient({id: int(pid[0]) for id in self.joints.values()})
-        self.dxl_io.set_I_coefficient({id: int(pid[1]) for id in self.joints.values()})
-        self.dxl_io.set_D_coefficient({id: int(pid[2]) for id in self.joints.values()})
+        self.dxl_io.set_P_coefficient({id: 32 for id in self.joints.values()})
+        self.dxl_io.set_I_coefficient({id: 0 for id in self.joints.values()})
+        self.dxl_io.set_D_coefficient({id: 0 for id in self.joints.values()})
 
     def get_pid_all(self):
         Ps = self.dxl_io.get_P_coefficient(self.joints.values())
