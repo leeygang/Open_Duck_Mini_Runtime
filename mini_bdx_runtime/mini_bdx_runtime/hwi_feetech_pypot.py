@@ -98,9 +98,9 @@ class HWI:
         pass
 
     def set_pid_all(self, pid):
-        P = np.int8(pid[0])
-        I = np.int8(pid[1])
-        D = np.int8(pid[2])
+        P = np.uint8(pid[0])
+        I = np.uint8(pid[1])
+        D = np.uint8(pid[2])
 
         self.dxl_io.set_P_coefficient({id: P for id in self.joints.values()})
         self.dxl_io.set_I_coefficient({id: I for id in self.joints.values()})
