@@ -1,7 +1,9 @@
-import pickle
 import time
+starttt = time.time()
+import pickle
 from queue import Queue
 from threading import Thread
+import pygame
 
 import adafruit_bno055
 import numpy as np
@@ -16,7 +18,8 @@ from mini_bdx_runtime.rl_utils import (
     make_action_dict,
     quat_rotate_inverse,
 )
-import pygame
+
+print("Importing python modules took ", time.time() - starttt)
 
 # Commands
 X_RANGE = [-0.2, 0.3]
@@ -122,9 +125,9 @@ class RLWalk:
 
     def add_fake_antennas(self, pos):
         # takes in position without antennas, adds position 0 for both antennas at the right place
-        assert len(pos) == (self.num_obs - 2)
+        assert len(pos) == 14
         pos_with_antennas = np.insert(pos, 9, [0, 0])
-        return np.array(pos_with_antennas))
+        return np.array(pos_with_antennas)
 
 
     def commands_worker(self):
@@ -137,7 +140,7 @@ class RLWalk:
         for event in pygame.event.get():
             lin_vel_y = -1 * self._p1.get_axis(0)
             lin_vel_x = -1 * self._p1.get_axis(1)
-            ang_vel = -1 * self._p1.get_axis(3)
+            ang_vel = -1 * self._p1.get_axis(2)
             if lin_vel_x >= 0:
                 lin_vel_x *= np.abs(X_RANGE[1])
             else:
@@ -212,7 +215,7 @@ class RLWalk:
 
         if self.commands:
             self.last_commands = self.get_last_command()
-            print(self.last_commands)
+            # print(self.last_commands)
 
         # dof_pos, dof_vel = self.hwi.get_present_positions_and_velocities()
         dof_pos = self.hwi.get_present_positions()  # rad
@@ -226,7 +229,7 @@ class RLWalk:
 
         projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
 
-        feet_contacts = get_feet_contacts()
+        feet_contacts = self.get_feet_contacts()
 
         cmds = list(
             np.array(self.last_commands).copy()
@@ -296,7 +299,7 @@ class RLWalk:
                     action = self.action_filter.get_filtered_action()
 
                 action_dict = make_action_dict(robot_action, joints_order) # Removes antennas
-                self.hwi.set_position_all(action_dict)
+                # self.hwi.set_position_all(action_dict)
 
                 i += 1
 
@@ -319,7 +322,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", type=int, default=1100)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
-    parser.add_argument("-c", "--control_freq", type=int, default=30)
+    parser.add_argument("-c", "--control_freq", type=int, default=60)
     parser.add_argument("--cutoff_frequency", type=int, default=None)
     parser.add_argument("--pitch_bias", type=float, default=0.0, help="deg")
     parser.add_argument(
@@ -333,6 +336,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
+    print("Done parsing args")
     rl_walk = RLWalk(
         args.onnx_model_path,
         action_scale=args.action_scale,
@@ -343,5 +347,6 @@ if __name__ == "__main__":
         pitch_bias=args.pitch_bias,
         replay_obs=args.replay_obs,
     )
+    print("Done instantiating RLWalk")
     rl_walk.start()
     rl_walk.run()
