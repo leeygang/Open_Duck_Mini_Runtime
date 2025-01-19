@@ -7,6 +7,7 @@ import adafruit_bno055
 import numpy as np
 import serial
 from scipy.spatial.transform import Rotation as R
+import RPi.GPIO as GPIO
 
 from mini_bdx_runtime.hwi_feetech_pypot import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
@@ -25,6 +26,12 @@ X_RANGE = [-0.2, 0.3]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-0.3, 0.3]
 
+LEFT_FOOT_PIN = 27
+RIGHT_FOOT_PIN = 22
+GPIO.setwarnings(False) # Ignore warning for now
+GPIO.setmode(GPIO.BCM) # Use physical pin numbering
+GPIO.setup(LEFT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(RIGHT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 class RLWalk:
     def __init__(
@@ -166,8 +173,15 @@ class RLWalk:
         return self.last_commands
 
     def get_feet_contacts(self):
-        # TODO
-        pass
+        left = False
+        right = False
+        if GPIO.input(LEFT_FOOT_PIN) == GPIO.LOW:
+            left = True
+            print("LEFT!")
+        if GPIO.input(RIGHT_FOOT_PIN) == GPIO.LOW:
+            right = True
+            print("RIGHT! ")
+        return [left, right]
 
     def get_obs(self):
         orientation_quat = self.get_imu_data()
