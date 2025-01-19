@@ -21,15 +21,17 @@ class HWI:
             "left_hip_pitch": 22,
             "left_knee": 23,
             "left_ankle": 24,
+            "neck_pitch": 30,
+            "head_pitch": 31,
+            "head_yaw": 32,
+            "head_roll": 33,
+            # "left_antenna": None,
+            # "right_antenna": None,
             "right_hip_yaw": 10,
             "right_hip_roll": 11,
             "right_hip_pitch": 12,
             "right_knee": 13,
             "right_ankle": 14,
-            "neck_pitch": 30,
-            "head_pitch": 31,
-            "head_yaw": 32,
-            "head_roll": 33,
         }
 
         self.zero_pos = {
@@ -38,74 +40,97 @@ class HWI:
             "left_hip_pitch": 0,
             "left_knee": 0,
             "left_ankle": 0,
-            "right_hip_yaw": 0,
-            "right_hip_roll": 0,
-            "right_hip_pitch": 0,
-            "right_knee": 0,
-            "right_ankle": 0,
             "neck_pitch": 0,
             "head_pitch": 0,
             "head_yaw": 0,
             "head_roll": 0,
             # "left_antenna":0,
             # "right_antenna":0,
-        }
-
-        self.init_pos = {
-            "left_hip_yaw": 0,
-            "left_hip_roll": 0,
-            "left_hip_pitch": 0.95,
-            "left_knee": 1.5,
-            "left_ankle": -0.6,
             "right_hip_yaw": 0,
             "right_hip_roll": 0,
-            "right_hip_pitch": -0.95,
-            "right_knee": 1.5,
-            "right_ankle": -0.6,
-            "neck_pitch": 0.5,
-            "head_pitch": -0.5,
+            "right_hip_pitch": 0,
+            "right_knee": 0,
+            "right_ankle": 0,
+        }
+
+        # init_pos = np.array(
+        # [
+        #     0.002,
+        #     0.053,
+        #     -0.63,
+        #     1.368,
+        #     -0.784,
+        #     0.002,
+        #     0,
+        #     0,
+        #     0,
+        #     0,
+        #     0,
+        #     -0.003,
+        #     -0.065,
+        #     0.635,
+        #     1.379,
+        #     -0.796,
+        # ]
+        # )
+
+        self.init_pos = {
+            "left_hip_yaw": 0.002,
+            "left_hip_roll": 0.053,
+            "left_hip_pitch": -0.63,
+            "left_knee": 1.368,
+            "left_ankle": -0.784,
+            "neck_pitch": 0.002,
+            "head_pitch": 0.0,
             "head_yaw": 0,
             "head_roll": 0,
             # "left_antenna": 0,
             # "right_antenna": 0,
+            "right_hip_yaw": -0.003,
+            "right_hip_roll": -0.065,
+            "right_hip_pitch": 0.635,
+            "right_knee": 1.379,
+            "right_ankle": -0.796,
         }
 
         # self.init_pos = self.zero_pos  # TODO REMOVE
 
         self.joints_offsets = {
             "left_hip_yaw": 0.07,
-            "left_hip_roll": 0.1,
+            "left_hip_roll": -0.1,
             "left_hip_pitch": 0.0,
             "left_knee": 0.05,
             "left_ankle": -0.1,
-            "right_hip_yaw": -0.15,
-            "right_hip_roll": -0.12,
-            "right_hip_pitch": -0.05,
-            "right_knee": -0.05,
-            "right_ankle": -0.08,
             "neck_pitch": 0.1,
             "head_pitch": 0.1,
             "head_yaw": 0,
             "head_roll": 0.1,
             # "left_antenna": 0,
             # "right_antenna": 0,
+            "right_hip_yaw": -0.15,
+            "right_hip_roll": 0.12,
+            "right_hip_pitch": 0.05,
+            "right_knee": -0.05,
+            "right_ankle": -0.08,
         }
 
         self.joints_sign = {
             "left_hip_yaw": -1,
-            "left_hip_roll": 1,  # was -1
-            "left_hip_pitch": 1,
+            "left_hip_roll": -1,  # was -1
+            "left_hip_pitch": -1,
             "left_knee": -1,
             "left_ankle": -1,
-            "right_hip_yaw": -1,
-            "right_hip_roll": 1,  # was -1
-            "right_hip_pitch": 1,
-            "right_knee": -1,
-            "right_ankle": -1,
             "neck_pitch": -1,
             "head_pitch": -1,
             "head_yaw": -1,
             "head_roll": -1,
+            # "left_antenna": -1,
+            # "right_antenna": -1,
+            "right_hip_yaw": -1,
+            "right_hip_roll": -1,  # was -1
+            "right_hip_pitch": -1,
+            "right_knee": -1,
+            "right_ankle": -1,
         }
 
         # self.init_pos = {
