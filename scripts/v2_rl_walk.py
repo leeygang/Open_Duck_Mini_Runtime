@@ -3,21 +3,34 @@ starttt = time.time()
 import pickle
 from queue import Queue
 from threading import Thread
+
+pygame_start = time.time()
 import pygame
+print("Importing pygame took ", time.time() - pygame_start)
 
 import adafruit_bno055
 import numpy as np
 import serial
+scipy_start = time.time()
 from scipy.spatial.transform import Rotation as R
+print("Importing scipy took ", time.time() - scipy_start)
 import RPi.GPIO as GPIO
 
+hwi_start = time.time() 
 from mini_bdx_runtime.hwi_feetech_pypot import HWI
+print("Importing hwi took ", time.time() - hwi_start)
+
+onnx_start = time.time()
 from mini_bdx_runtime.onnx_infer import OnnxInfer
+print("Importing onnx took ", time.time() - onnx_start)
+
+rl_utils_start = time.time()
 from mini_bdx_runtime.rl_utils import (
     LowPassActionFilter,
     make_action_dict,
     quat_rotate_inverse,
 )
+print("Importing rl_utils took ", time.time() - rl_utils_start)
 
 print("Importing python modules took ", time.time() - starttt)
 
