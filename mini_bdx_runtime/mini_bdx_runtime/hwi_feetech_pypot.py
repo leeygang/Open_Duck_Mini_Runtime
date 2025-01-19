@@ -98,11 +98,11 @@ class HWI:
         pass
 
     def set_pid_all(self, pid):
-        P = int(pid[0]/2)
-        I = int(pid[1]/2)
-        D = int(pid[2]/2)
+        P = pid[0]
+        I = pid[1]
+        D = pid[2]
 
-        self.dxl_io.set_P_coefficient({id: 32 for id in self.joints.values()})
+        self.dxl_io.set_P_coefficient({id: P for id in self.joints.values()})
         self.dxl_io.set_I_coefficient({id: I for id in self.joints.values()})
         self.dxl_io.set_D_coefficient({id: D for id in self.joints.values()})
 
