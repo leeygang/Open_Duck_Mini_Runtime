@@ -8,4 +8,4 @@ io = FeetechSTS3215IO(
 
 id = 20
 
-print(io.get_present_voltage(id))
+print(io.get_present_voltage([id]))
