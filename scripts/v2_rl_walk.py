@@ -4,12 +4,10 @@ from queue import Queue
 from threading import Thread
 
 import adafruit_bno055
-# import FramesViewer.utils as fv_utils
 import numpy as np
 import serial
 from scipy.spatial.transform import Rotation as R
 
-# from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.hwi_feetech_pypot import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
@@ -34,7 +32,7 @@ class RLWalk:
         onnx_model_path: str,
         serial_port: str = "/dev/ttyACM0",
         control_freq: float = 30,
-        pid=[1100, 0, 0],
+        pid=[32, 0, 0],
         action_scale=1.0,
         cutoff_frequency=None,
         commands=False,
@@ -167,6 +165,10 @@ class RLWalk:
 
         return self.last_commands
 
+    def get_feet_contacts(self):
+        # TODO
+        pass
+
     def get_obs(self):
         orientation_quat = self.get_imu_data()
         if orientation_quat is None:
@@ -193,7 +195,8 @@ class RLWalk:
 
         projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
 
-        feet_contacts = [0, 0]
+        feet_contacts = get_feet_contacts()
+        # feet_contacts = [0, 0]
 
         cmds = list(
             np.array(self.last_commands).copy()
