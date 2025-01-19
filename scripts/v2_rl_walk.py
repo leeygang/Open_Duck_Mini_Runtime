@@ -275,18 +275,15 @@ class RLWalk:
                     else:
                         break
                 else:
-                    get_obs_time = time.time()
                     obs = self.get_obs()
-                    print("Get obs time", time.time() - get_obs_time)
                 if obs is None:
                     break
 
                 obs = np.clip(obs, -100, 100)
 
                 robot_computed_obs.append(obs)
-                infer_time = time.time()
+
                 action = self.policy.infer(obs)
-                print("Infer time", time.time() - infer_time)
 
                 action = np.clip(action, -1, 1)
 
@@ -301,14 +298,12 @@ class RLWalk:
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
-                send_action_time = time.time()
                 self.hwi.set_position_all(action_dict)
-                print("Send action time", time.time() - send_action_time)
 
                 i += 1
 
                 took = time.time() - t
-                print("Full loop took", took, "fps : ", np.around(1 / took, 2))
+                # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
