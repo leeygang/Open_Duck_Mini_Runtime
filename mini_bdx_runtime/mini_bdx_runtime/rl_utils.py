@@ -8,16 +8,16 @@
 import numpy as np
 
 mujoco_joints_order = [
-    "right_hip_yaw",
-    "right_hip_roll",
-    "right_hip_pitch",
-    "right_knee",
-    "right_ankle",
     "left_hip_yaw",
     "left_hip_roll",
     "left_hip_pitch",
     "left_knee",
     "left_ankle",
+    "right_hip_yaw",
+    "right_hip_roll",
+    "right_hip_pitch",
+    "right_knee",
+    "right_ankle",
     "neck_pitch",
     "head_pitch",
     "head_yaw",
@@ -48,18 +48,18 @@ isaac_joints_order = [
 
 def isaac_to_mujoco(joints):
     new_joints = [
-        # right leg
-        joints[11],
-        joints[12],
-        joints[13],
-        joints[14],
-        joints[15],
         # left leg
         joints[0],
         joints[1],
         joints[2],
         joints[3],
         joints[4],
+        # right leg
+        joints[11],
+        joints[12],
+        joints[13],
+        joints[14],
+        joints[15],
         # head
         joints[5],
         joints[6],
@@ -74,11 +74,11 @@ def isaac_to_mujoco(joints):
 def mujoco_to_isaac(joints):
     new_joints = [
         # left leg
-        joints[5],
-        joints[6],
-        joints[7],
-        joints[8],
-        joints[9],
+        joints[0],
+        joints[1],
+        joints[2],
+        joints[3],
+        joints[4],
         # head
         joints[10],
         joints[11],
@@ -87,11 +87,11 @@ def mujoco_to_isaac(joints):
         joints[14],
         joints[15],
         # right leg
-        joints[0],
-        joints[1],
-        joints[2],
-        joints[3],
-        joints[4],
+        joints[5],
+        joints[6],
+        joints[7],
+        joints[8],
+        joints[9],
     ]
     return new_joints
 
