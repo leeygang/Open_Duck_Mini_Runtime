@@ -13,17 +13,17 @@ mujoco_joints_order = [
     "left_hip_pitch",
     "left_knee",
     "left_ankle",
-    "right_hip_yaw",
-    "right_hip_roll",
-    "right_hip_pitch",
-    "right_knee",
-    "right_ankle",
     "neck_pitch",
     "head_pitch",
     "head_yaw",
     "head_roll",
     "left_antenna",
     "right_antenna",
+    "right_hip_yaw",
+    "right_hip_roll",
+    "right_hip_pitch",
+    "right_knee",
+    "right_ankle",
 ]
 
 isaac_joints_order = [

@@ -13,10 +13,7 @@ from mini_bdx_runtime.hwi_feetech_pypot import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
     LowPassActionFilter,
-    isaac_to_mujoco,
     make_action_dict,
-    mujoco_joints_order,
-    mujoco_to_isaac,
     quat_rotate_inverse,
 )
 import pygame
@@ -33,12 +30,32 @@ GPIO.setmode(GPIO.BCM) # Use physical pin numbering
 GPIO.setup(LEFT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(RIGHT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+
+joints_order = [
+    "left_hip_yaw",
+    "left_hip_roll",
+    "left_hip_pitch",
+    "left_knee",
+    "left_ankle",
+    "neck_pitch",
+    "head_pitch",
+    "head_yaw",
+    "head_roll",
+    "left_antenna",
+    "right_antenna",
+    "right_hip_yaw",
+    "right_hip_roll",
+    "right_hip_pitch",
+    "right_knee",
+    "right_ankle",
+]
+
 class RLWalk:
     def __init__(
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyACM0",
-        control_freq: float = 30,
+        control_freq: float = 60,
         pid=[32, 0, 0],
         action_scale=1.0,
         cutoff_frequency=None,
@@ -81,10 +98,9 @@ class RLWalk:
         self.dof_vel_scale = 1.0
         self.action_scale = action_scale
 
-        self.prev_action = np.zeros(15)
+        self.prev_action = np.zeros(16)
 
-        self.mujoco_init_pos = list(self.hwi.init_pos.values()) + [0, 0] # TODO
-        self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
+        self.init_pos = self.add_fake_antennas(list(self.hwi.init_pos.values()))
 
         self.last_commands = [0, 0, 0]
         self.command_freq = 10  # hz
@@ -103,6 +119,13 @@ class RLWalk:
             )
         else:
             self.action_filter = None
+
+    def add_fake_antennas(self, pos):
+        # takes in position without antennas, adds position 0 for both antennas at the right place
+        assert len(pos) == (self.num_obs - 2)
+        pos_with_antennas = np.insert(pos, 9, [0, 0])
+        return np.array(pos_with_antennas))
+
 
     def commands_worker(self):
         while True:
@@ -177,11 +200,9 @@ class RLWalk:
         right = False
         if GPIO.input(LEFT_FOOT_PIN) == GPIO.LOW:
             left = True
-            print("LEFT!")
         if GPIO.input(RIGHT_FOOT_PIN) == GPIO.LOW:
             right = True
-            print("RIGHT! ")
-        return [left, right]
+        return np.array([left, right])
 
     def get_obs(self):
         orientation_quat = self.get_imu_data()
@@ -194,23 +215,18 @@ class RLWalk:
             print(self.last_commands)
 
         # dof_pos, dof_vel = self.hwi.get_present_positions_and_velocities()
-        dof_pos = self.hwi.get_present_positions()  # rad # TODO
-        dof_vel = self.hwi.get_present_velocities()  # rad/s # TODO
+        dof_pos = self.hwi.get_present_positions()  # rad
+        dof_vel = self.hwi.get_present_velocities()  # rad/s
+
+        dof_pos = self.add_fake_antennas(dof_pos)
+        dof_vel = self.add_fake_antennas(dof_vel)
 
         dof_pos_scaled = list(dof_pos * self.dof_pos_scale)
-        dof_vel_scaled = list(np.array(dof_vel) * self.dof_vel_scale)
-
-        # adding fake antennas
-        dof_pos_scaled = np.concatenate([dof_pos_scaled, [0, 0]])
-        dof_vel_scaled = np.concatenate([dof_vel_scaled, [0, 0]])
-
-        dof_pos_scaled = mujoco_to_isaac(dof_pos_scaled)
-        dof_vel_scaled = mujoco_to_isaac(dof_vel_scaled)
+        dof_vel_scaled = list(dof_vel * self.dof_vel_scale)
 
         projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
 
         feet_contacts = get_feet_contacts()
-        # feet_contacts = [0, 0]
 
         cmds = list(
             np.array(self.last_commands).copy()
@@ -273,16 +289,13 @@ class RLWalk:
 
                 self.prev_action = action.copy()
 
-                action = action * self.action_scale + self.isaac_init_pos
+                robot_action = action * self.action_scale + self.init_pos
 
                 if self.action_filter is not None:
                     self.action_filter.push(action)
                     action = self.action_filter.get_filtered_action()
 
-                robot_action = isaac_to_mujoco(action)
-
-                # TODO
-                action_dict = make_action_dict(robot_action, mujoco_joints_order)
+                action_dict = make_action_dict(robot_action, joints_order) # Removes antennas
                 self.hwi.set_position_all(action_dict)
 
                 i += 1

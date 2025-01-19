@@ -143,10 +143,10 @@ class HWI:
         """
         present_positions = np.deg2rad(self.dxl_io.get_present_position(self.joints.values()))
         present_positions = [pos - self.joints_offsets[joint] for joint, pos in zip(self.joints.keys(), present_positions)]
-        return list(np.around(present_positions, 3))
+        return np.array(np.around(present_positions, 3))
 
 
-    def get_present_velocities(self, rad_s=True) -> List[float]:
+    def get_present_velocities(self, rad_s=True):
         """
         Returns the present velocities in rad/s (default) or rev/min
         """
@@ -156,4 +156,4 @@ class HWI:
         )
         if rad_s:
             present_velocities = (2 * np.pi * present_velocities) / 60  # rad/s
-        return list(np.around(present_velocities, 3))
+        return np.array(np.around(present_velocities, 3))
