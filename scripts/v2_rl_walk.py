@@ -20,7 +20,7 @@ from mini_bdx_runtime.rl_utils import (
 # Commands
 X_RANGE = [-0.2, 0.3]
 Y_RANGE = [-0.2, 0.2]
-YAW_RANGE = [-0.3, 0.3]
+YAW_RANGE = [-0.2, 0.2]
 
 LEFT_FOOT_PIN = 22
 RIGHT_FOOT_PIN = 27
