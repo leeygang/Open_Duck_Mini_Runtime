@@ -106,7 +106,7 @@ class HWI:
         # I = np.uint8(pid[1])
         # D = np.uint8(pid[2])
 
-        self.dxl_io.set_P_coefficient({id: 16 for id in self.joints.values()})
+        self.dxl_io.set_P_coefficient({id: 32 for id in self.joints.values()})
         self.dxl_io.set_I_coefficient({id: 0 for id in self.joints.values()})
         self.dxl_io.set_D_coefficient({id: 32 for id in self.joints.values()})
 
