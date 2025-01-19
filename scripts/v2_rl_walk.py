@@ -143,7 +143,7 @@ class RLWalk:
                 continue
 
             # Converting to correct axes
-            euler = [euler[1], euler[2], euler[0]]
+            euler = [np.pi-euler[1], euler[2], -euler[0]]
             euler[1] += np.deg2rad(self.pitch_bias)
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
