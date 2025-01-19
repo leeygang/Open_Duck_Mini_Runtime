@@ -16,16 +16,16 @@ class HWI:
             use_sync_read=True,
         )
         self.joints = {
-            "right_hip_yaw": 10,
-            "right_hip_roll": 11,
-            "right_hip_pitch": 12,
-            "right_knee": 13,
-            "right_ankle": 14,
             "left_hip_yaw": 20,
             "left_hip_roll": 21,
             "left_hip_pitch": 22,
             "left_knee": 23,
             "left_ankle": 24,
+            "right_hip_yaw": 10,
+            "right_hip_roll": 11,
+            "right_hip_pitch": 12,
+            "right_knee": 13,
+            "right_ankle": 14,
             "neck_pitch": 30,
             "head_pitch": 31,
             "head_yaw": 32,
@@ -33,16 +33,16 @@ class HWI:
         }
 
         self.zero_pos = {
-            "right_hip_yaw": 0,
-            "right_hip_roll": 0,
-            "right_hip_pitch": 0,
-            "right_knee": 0,
-            "right_ankle": 0,
             "left_hip_yaw": 0,
             "left_hip_roll": 0,
             "left_hip_pitch": 0,
             "left_knee": 0,
             "left_ankle": 0,
+            "right_hip_yaw": 0,
+            "right_hip_roll": 0,
+            "right_hip_pitch": 0,
+            "right_knee": 0,
+            "right_ankle": 0,
             "neck_pitch": 0,
             "head_pitch": 0,
             "head_yaw": 0,
@@ -52,16 +52,16 @@ class HWI:
         }
 
         self.init_pos = {
-            "right_hip_yaw": 0,
-            "right_hip_roll": 0,
-            "right_hip_pitch": -0.95,
-            "right_knee": 1.5,
-            "right_ankle": -0.6,
             "left_hip_yaw": 0,
             "left_hip_roll": 0,
             "left_hip_pitch": 0.95,
             "left_knee": 1.5,
             "left_ankle": -0.6,
+            "right_hip_yaw": 0,
+            "right_hip_roll": 0,
+            "right_hip_pitch": -0.95,
+            "right_knee": 1.5,
+            "right_ankle": -0.6,
             "neck_pitch": 0.5,
             "head_pitch": -0.5,
             "head_yaw": 0,
@@ -73,16 +73,16 @@ class HWI:
         # self.init_pos = self.zero_pos  # TODO REMOVE
 
         self.joints_offsets = {
-            "right_hip_yaw": -0.15,
-            "right_hip_roll": -0.12,
-            "right_hip_pitch": -0.05,
-            "right_knee": -0.05,
-            "right_ankle": -0.08,
             "left_hip_yaw": 0.07,
             "left_hip_roll": 0.1,
             "left_hip_pitch": 0.0,
             "left_knee": 0.05,
             "left_ankle": -0.1,
+            "right_hip_yaw": -0.15,
+            "right_hip_roll": -0.12,
+            "right_hip_pitch": -0.05,
+            "right_knee": -0.05,
+            "right_ankle": -0.08,
             "neck_pitch": 0.1,
             "head_pitch": 0.1,
             "head_yaw": 0,
@@ -92,16 +92,16 @@ class HWI:
         }
 
         self.joints_sign = {
-            "right_hip_yaw": -1,
-            "right_hip_roll": 1,  # was -1
-            "right_hip_pitch": 1,
-            "right_knee": -1,
-            "right_ankle": -1,
             "left_hip_yaw": -1,
             "left_hip_roll": 1,  # was -1
             "left_hip_pitch": 1,
             "left_knee": -1,
             "left_ankle": -1,
+            "right_hip_yaw": -1,
+            "right_hip_roll": 1,  # was -1
+            "right_hip_pitch": 1,
+            "right_knee": -1,
+            "right_ankle": -1,
             "neck_pitch": -1,
             "head_pitch": -1,
             "head_yaw": -1,

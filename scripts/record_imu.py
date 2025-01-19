@@ -6,6 +6,7 @@ import pickle
 
 uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
 imu = adafruit_bno055.BNO055_UART(uart)
+imu.mode = adafruit_bno055.IMUPLUS_MODE
 data = []
 print("Starting to record. Press Ctrl+C to stop.")
 try: 
