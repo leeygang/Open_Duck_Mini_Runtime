@@ -26,8 +26,8 @@ X_RANGE = [-0.2, 0.3]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-0.3, 0.3]
 
-LEFT_FOOT_PIN = 27
-RIGHT_FOOT_PIN = 22
+LEFT_FOOT_PIN = 22
+RIGHT_FOOT_PIN = 27
 GPIO.setwarnings(False) # Ignore warning for now
 GPIO.setmode(GPIO.BCM) # Use physical pin numbering
 GPIO.setup(LEFT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
