@@ -282,8 +282,9 @@ class RLWalk:
                 obs = np.clip(obs, -100, 100)
 
                 robot_computed_obs.append(obs)
-
+                infer_time = time.time()
                 action = self.policy.infer(obs)
+                print("Infer time", time.time() - infer_time)
 
                 action = np.clip(action, -1, 1)
 
