@@ -99,6 +99,9 @@ class HWI:
 
     def set_pid_all(self, pid):
         # TODO WEIRD THINGS HERE
+        # If I set 32 manually, it works, but if it comes from a variable, it doesn't.
+        # sometimes i get :  ValueError: byte must be in range(0, 256)
+        # sometimes 32 becomes 76 somehow
         # P = np.uint8(pid[0])
         # I = np.uint8(pid[1])
         # D = np.uint8(pid[2])
