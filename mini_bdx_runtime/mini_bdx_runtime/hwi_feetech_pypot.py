@@ -86,29 +86,10 @@ class HWI:
             # "left_antenna": 0,
             # "right_antenna": 0,
             "right_hip_yaw": -0.15,
-            "right_hip_roll": 0.12,
+            "right_hip_roll": 0.07,
             "right_hip_pitch": 0.05,
             "right_knee": -0.05,
             "right_ankle": -0.08,
-        }
-
-        self.joints_sign = {
-            "left_hip_yaw": -1,
-            "left_hip_roll": -1,  # was -1
-            "left_hip_pitch": -1,
-            "left_knee": -1,
-            "left_ankle": -1,
-            "neck_pitch": -1,
-            "head_pitch": -1,
-            "head_yaw": -1,
-            "head_roll": -1,
-            # "left_antenna": -1,
-            # "right_antenna": -1,
-            "right_hip_yaw": -1,
-            "right_hip_roll": -1,  # was -1
-            "right_hip_pitch": -1,
-            "right_knee": -1,
-            "right_ankle": -1,
         }
 
 
@@ -147,8 +128,7 @@ class HWI:
         Warning: expects radians
         """
         ids_positions = {
-            self.joints[joint]: self.joints_sign[joint]
-            * np.rad2deg(-position - self.joints_offsets[joint])
+            self.joints[joint]: np.rad2deg(position + self.joints_offsets[joint])
             for joint, position in joints_positions.items()
         }
 
@@ -158,29 +138,22 @@ class HWI:
         self.dxl_io.set_goal_position({self.joints[joint_name]: np.rad2deg(-position)})
 
     def get_present_positions(self):
-        # TODO
-        # Apply sign and offset
-        pass
-        # present_position = list(
-        #     np.around(
-        #         np.deg2rad((self.dxl_io.get_present_position(self.joints.values()))), 3
-        #     )
-        # )
-        # factor = np.ones(len(present_position)) * -1
-        # return present_position * factor
+        """
+        Returns the present positions in radians
+        """
+        present_positions = np.deg2rad(self.dxl_io.get_present_position(self.joints.values()))
+        present_positions = [pos - self.joints_offsets[joint] for joint, pos in zip(self.joints.keys(), present_positions)]
+        return list(np.around(present_positions, 3))
+
 
     def get_present_velocities(self, rad_s=True) -> List[float]:
-        # TODO clarify
-        # Check sign
         """
-        Returns the present velocities in rad/s or rev/min
+        Returns the present velocities in rad/s (default) or rev/min
         """
         # rev/min
         present_velocities = np.array(
-            self.dxl_io.get_present_velocity(self.joints.values())
+            self.dxl_io.get_present_speed(self.joints.values())
         )
         if rad_s:
             present_velocities = (2 * np.pi * present_velocities) / 60  # rad/s
-
-        factor = np.ones(len(present_velocities)) * -1
-        return list(present_velocities * factor)
+        return list(np.around(present_velocities, 3))
