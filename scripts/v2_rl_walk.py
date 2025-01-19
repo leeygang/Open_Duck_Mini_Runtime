@@ -303,6 +303,7 @@ class RLWalk:
                 i += 1
 
                 took = time.time() - t
+                print("Full loop took", took, "fps : ", np.around(1 / took, 2))
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
