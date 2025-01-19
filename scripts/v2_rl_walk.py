@@ -275,7 +275,9 @@ class RLWalk:
                     else:
                         break
                 else:
+                    get_obs_time = time.time()
                     obs = self.get_obs()
+                    print("Get obs time", time.time() - get_obs_time)
                 if obs is None:
                     break
 
@@ -299,7 +301,9 @@ class RLWalk:
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
+                send_action_time = time.time()
                 self.hwi.set_position_all(action_dict)
+                print("Send action time", time.time() - send_action_time)
 
                 i += 1
 
