@@ -101,6 +101,15 @@ class HWI:
         # TODO
         pass
 
+    def get_pid_all(self):
+        Ps = self.dxl_io.get_P_coefficient(self.joints.values())
+        Is = self.dxl_io.get_I_coefficient(self.joints.values())
+        Ds = self.dxl_io.get_D_coefficient(self.joints.values())
+        print("Ps", Ps)
+        print("Is", Is)
+        print("Ds", Ds)
+
+        return Ps, Is, Ds
 
     def turn_on(self):
         self.dxl_io.enable_torque(self.joints.values())

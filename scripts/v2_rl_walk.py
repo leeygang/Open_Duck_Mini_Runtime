@@ -1,38 +1,21 @@
 import time
-starttt = time.time()
 import pickle
 from queue import Queue
 from threading import Thread
-
-pygame_start = time.time()
 import pygame
-print("Importing pygame took ", time.time() - pygame_start)
-
 import adafruit_bno055
 import numpy as np
 import serial
-scipy_start = time.time()
 from scipy.spatial.transform import Rotation as R
-print("Importing scipy took ", time.time() - scipy_start)
 import RPi.GPIO as GPIO
-
-hwi_start = time.time() 
 from mini_bdx_runtime.hwi_feetech_pypot import HWI
-print("Importing hwi took ", time.time() - hwi_start)
-
-onnx_start = time.time()
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-print("Importing onnx took ", time.time() - onnx_start)
-
-rl_utils_start = time.time()
 from mini_bdx_runtime.rl_utils import (
     LowPassActionFilter,
     make_action_dict,
     quat_rotate_inverse,
 )
-print("Importing rl_utils took ", time.time() - rl_utils_start)
 
-print("Importing python modules took ", time.time() - starttt)
 
 # Commands
 X_RANGE = [-0.2, 0.3]
@@ -41,8 +24,8 @@ YAW_RANGE = [-0.3, 0.3]
 
 LEFT_FOOT_PIN = 22
 RIGHT_FOOT_PIN = 27
-GPIO.setwarnings(False) # Ignore warning for now
-GPIO.setmode(GPIO.BCM) # Use physical pin numbering
+GPIO.setwarnings(False)  # Ignore warning for now
+GPIO.setmode(GPIO.BCM)  # Use physical pin numbering
 GPIO.setup(LEFT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(RIGHT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
@@ -65,6 +48,7 @@ joints_order = [
     "right_knee",
     "right_ankle",
 ]
+
 
 class RLWalk:
     def __init__(
@@ -142,7 +126,6 @@ class RLWalk:
         pos_with_antennas = np.insert(pos, 9, [0, 0])
         return np.array(pos_with_antennas)
 
-
     def commands_worker(self):
         while True:
             self.cmd_queue.put(self.get_commands())
@@ -187,7 +170,7 @@ class RLWalk:
                 continue
 
             # Converting to correct axes
-            euler = [np.pi-euler[1], euler[2], -euler[0]]
+            euler = [np.pi - euler[1], euler[2], -euler[0]]
             euler[1] += np.deg2rad(self.pitch_bias)
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
@@ -270,6 +253,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
+        self.hwi.get_pid_all()
         # self.hwi.set_pid_all(self.pid)
         # self.hwi.set_pid([500, 0, 0], "neck_pitch")
         # self.hwi.set_pid([500, 0, 0], "head_pitch")
@@ -311,7 +295,9 @@ class RLWalk:
                     self.action_filter.push(action)
                     action = self.action_filter.get_filtered_action()
 
-                action_dict = make_action_dict(robot_action, joints_order) # Removes antennas
+                action_dict = make_action_dict(
+                    robot_action, joints_order
+                )  # Removes antennas
                 # self.hwi.set_position_all(action_dict)
 
                 i += 1
