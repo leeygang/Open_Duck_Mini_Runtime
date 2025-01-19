@@ -102,7 +102,7 @@ class HWI:
         I = int(pid[1]/2)
         D = int(pid[2]/2)
 
-        self.dxl_io.set_P_coefficient({id: P for id in self.joints.values()})
+        self.dxl_io.set_P_coefficient({id: 32 for id in self.joints.values()})
         self.dxl_io.set_I_coefficient({id: I for id in self.joints.values()})
         self.dxl_io.set_D_coefficient({id: D for id in self.joints.values()})
 
