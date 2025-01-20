@@ -8,12 +8,7 @@ from mini_bdx_runtime.feetech_pwm_control import FeetechPWMControl
 
 
 class HWI:
-    def __init__(self, usb_port="/dev/ttyACM0", baudrate=3000000):
-        # self.dxl_io = FeetechSTS3215IO(
-        #     usb_port,
-        #     baudrate=1000000,
-        #     use_sync_read=True,
-        # )
+    def __init__(self, usb_port="/dev/ttyACM0"):
 
         # Order matters here
         self.joints = {
@@ -108,7 +103,7 @@ class HWI:
         self.control.set_kps(self.kps)
 
     def turn_on(self):
-        self.set_kps(self.low_torque_kps)
+        self.control.set_kps(self.low_torque_kps)
         self.control.enable_torque()
 
         time.sleep(1)
@@ -117,7 +112,7 @@ class HWI:
 
         time.sleep(1)
 
-        self.set_kps(self.kps)
+        self.control.set_kps(self.kps)
 
     def turn_off(self):
         self.control.disable_torque()
