@@ -41,7 +41,7 @@ class FeetechPWMControl:
         self.io.disable_torque(self.ids)
 
     def enable_torque(self):
-        # self.io.enable_torque(self.ids)
+        self.io.enable_torque(self.ids)
         self.io.set_mode({id: 2 for id in self.ids})
 
     def update(self):
