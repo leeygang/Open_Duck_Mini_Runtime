@@ -40,13 +40,14 @@ class FeetechPWMControl:
         self.io.set_mode({id: 0 for id in self.ids})
         self.io.disable_torque(self.ids)
 
-    def enable_torque(self):
-        self.io.enable_torque(self.ids)
-        self.io.set_mode({id: 2 for id in self.ids})
+    # def enable_torque(self):
+    #     self.io.enable_torque(self.ids)
+    #     self.io.set_mode({id: 2 for id in self.ids})
 
     def freeze(self):
         self.io.set_goal_position(self.io.get_present_position(self.ids))
         self.io.set_mode({id: 0 for id in self.ids})
+        self.io.enable_torque(self.ids)
 
 
     def update(self):
