@@ -254,11 +254,10 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        print("HWI TRNED ON")
-        self.hwi.set_kps([self.pid[0]] * 14)
-        print("KPS SET")
+        # self.hwi.set_kps([self.pid[0]] * 14)
 
         time.sleep(2)
+        exit()
 
     def run(self):
         robot_computed_obs = []
