@@ -5,7 +5,8 @@ import time
 
 hwi = HWI()
 hwi.turn_on()
-time.sleep(2)
+while True:
+    time.sleep(0.01)
 # exit()
 
 # zero_pos = hwi.zero_pos.copy()
