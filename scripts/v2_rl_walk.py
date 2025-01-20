@@ -311,6 +311,7 @@ class RLWalk:
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
         time.sleep(1)
 
+        self.hwi.freeze()
 
 if __name__ == "__main__":
     import argparse
