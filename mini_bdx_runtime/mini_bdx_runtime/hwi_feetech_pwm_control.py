@@ -3,16 +3,19 @@ from typing import List
 
 import numpy as np
 
-from pypot.feetech import FeetechSTS3215IO
+# from pypot.feetech import FeetechSTS3215IO
+from mini_bdx_runtime.feetech_pwm_control import FeetechPWMControl
 
 
 class HWI:
     def __init__(self, usb_port="/dev/ttyACM0", baudrate=3000000):
-        self.dxl_io = FeetechSTS3215IO(
-            usb_port,
-            baudrate=1000000,
-            use_sync_read=True,
-        )
+        # self.dxl_io = FeetechSTS3215IO(
+        #     usb_port,
+        #     baudrate=1000000,
+        #     use_sync_read=True,
+        # )
+
+        # Order matters here
         self.joints = {
             "left_hip_yaw": 20,
             "left_hip_roll": 21,
@@ -31,6 +34,8 @@ class HWI:
             "right_knee": 13,
             "right_ankle": 14,
         }
+
+        self.control = FeetechPWMControl(ids=list(self.joints.values()), usb_port=usb_port)
 
         self.zero_pos = {
             "left_hip_yaw": 0,
@@ -90,37 +95,16 @@ class HWI:
             "right_knee": -0.05,
             "right_ankle": -0.08,
         }
+        self.kps = np.ones(len(self.joints)) * 32  # default kp
+        self.low_torque_kps = np.ones(len(self.joints)) * 8  # default kp
 
-    def set_pid(self, pid, joint_name):
-        # TODO
-        pass
-
-    def set_pid_all(self, pid):
-        # TODO WEIRD THINGS HERE
-        # If I set 32 manually, it works, but if it comes from a variable, it doesn't.
-        # sometimes i get :  ValueError: byte must be in range(0, 256)
-        # sometimes 32 becomes 76 somehow
-        # P = np.uint8(pid[0])
-        # I = np.uint8(pid[1])
-        # D = np.uint8(pid[2])
-
-        self.dxl_io.set_P_coefficient({id: 32 for id in self.joints.values()})
-        self.dxl_io.set_I_coefficient({id: 0 for id in self.joints.values()})
-        self.dxl_io.set_D_coefficient({id: 32 for id in self.joints.values()})
-
-    def get_pid_all(self):
-        Ps = self.dxl_io.get_P_coefficient(self.joints.values())
-        Is = self.dxl_io.get_I_coefficient(self.joints.values())
-        Ds = self.dxl_io.get_D_coefficient(self.joints.values())
-        print("Ps", Ps)
-        print("Is", Is)
-        print("Ds", Ds)
-
-        return Ps, Is, Ds
+    def set_kps(self, kps):
+        self.kps = kps
+        self.control.set_kps(self.kps)
 
     def turn_on(self):
-        self.dxl_io.enable_torque(self.joints.values())
-        self.dxl_io.set_acceleration({id: 16 for id in self.joints.values()})
+        self.set_kps(self.low_torque_kps)
+        self.control.enable_torque()
 
         time.sleep(1)
 
@@ -128,14 +112,11 @@ class HWI:
 
         time.sleep(1)
 
-        for name, id in self.joints.items():
-            if "neck" in name or "head" in name:
-                self.dxl_io.set_acceleration({id: 32})
-            else:
-                self.dxl_io.set_acceleration({id: 254})
+        self.set_kps(self.kps)
 
     def turn_off(self):
-        self.dxl_io.disable_torque(self.joints.values())
+        self.control.disable_torque()
+
 
     def set_position_all(self, joints_positions):
         """
@@ -147,17 +128,14 @@ class HWI:
             for joint, position in joints_positions.items()
         }
 
-        self.dxl_io.set_goal_position(ids_positions)
-
-    def set_position(self, joint_name, position):
-        self.dxl_io.set_goal_position({self.joints[joint_name]: np.rad2deg(-position)})
+        self.control.goal_positions = list(ids_positions.values())
 
     def get_present_positions(self):
         """
         Returns the present positions in radians
         """
         present_positions = np.deg2rad(
-            self.dxl_io.get_present_position(self.joints.values())
+            self.control.io.get_present_position(self.joints.values())
         )
         present_positions = [
             pos - self.joints_offsets[joint]
@@ -171,7 +149,7 @@ class HWI:
         """
         # rev/min
         present_velocities = np.array(
-            self.dxl_io.get_present_speed(self.joints.values())
+            self.control.io.get_present_speed(self.joints.values())
         )
         if rad_s:
             present_velocities = (2 * np.pi * present_velocities) / 60  # rad/s

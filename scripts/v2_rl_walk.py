@@ -8,7 +8,8 @@ import numpy as np
 import serial
 from scipy.spatial.transform import Rotation as R
 import RPi.GPIO as GPIO
-from mini_bdx_runtime.hwi_feetech_pypot import HWI
+# from mini_bdx_runtime.hwi_feetech_pypot import HWI
+from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
     LowPassActionFilter,
@@ -253,11 +254,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        self.hwi.set_pid_all(self.pid)
-        self.hwi.get_pid_all()
-        # self.hwi.set_pid([500, 0, 0], "neck_pitch")
-        # self.hwi.set_pid([500, 0, 0], "head_pitch")
-        # self.hwi.set_pid([500, 0, 0], "head_yaw")
+        self.hwi.set_kps([self.pid[0]] * 16)
 
         time.sleep(2)
 
@@ -298,7 +295,7 @@ class RLWalk:
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
-                self.hwi.set_position_all(action_dict)
+                # self.hwi.set_position_all(action_dict)
 
                 i += 1
 
@@ -307,6 +304,7 @@ class RLWalk:
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
+            self.hwi.turn_off()
             pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
