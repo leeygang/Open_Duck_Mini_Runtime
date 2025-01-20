@@ -5,7 +5,7 @@ from threading import Thread
 
 
 class FeetechPWMControl:
-    def __init__(self, ids, usb_port="/dev/ttyACM0"):
+    def __init__(self, ids, init_pos_rad, usb_port="/dev/ttyACM0"):
         self.io = FeetechSTS3215IO(
             usb_port,
             baudrate=1000000,
@@ -24,8 +24,12 @@ class FeetechPWMControl:
         self.io.set_mode({id: 2 for id in self.ids})
         self.kps = np.ones(len(self.ids)) * 32  # default kp
 
+        self.init_pos_rad = init_pos_rad
+        self.init_pos_deg = np.rad2deg(self.init_pos_rad)
+
         self.control_freq = 100  # Hz
         self.goal_positions = [0] * len(self.ids)
+        self.goal_positions = self.init_pos_deg
         self.present_positions = [0] * len(self.ids)
         Thread(target=self.update, daemon=True).start()
 

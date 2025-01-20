@@ -35,8 +35,6 @@ class HWI:
             "right_ankle": 14,
         }
 
-        self.control = FeetechPWMControl(ids=list(self.joints.values()), usb_port=usb_port)
-
         self.zero_pos = {
             "left_hip_yaw": 0,
             "left_hip_roll": 0,
@@ -95,6 +93,13 @@ class HWI:
             "right_knee": -0.05,
             "right_ankle": -0.08,
         }
+
+        self.control = FeetechPWMControl(
+            ids=list(self.joints.values()),
+            init_pos_rad=list(self.init_pos.values()),
+            usb_port=usb_port,
+        )
+
         self.kps = np.ones(len(self.joints)) * 32  # default kp
         self.low_torque_kps = np.ones(len(self.joints)) * 8  # default kp
 
@@ -116,7 +121,6 @@ class HWI:
 
     def turn_off(self):
         self.control.disable_torque()
-
 
     def set_position_all(self, joints_positions):
         """
