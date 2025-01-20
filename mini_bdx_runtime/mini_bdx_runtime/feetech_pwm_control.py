@@ -34,7 +34,7 @@ class FeetechPWMControl:
         Thread(target=self.update, daemon=True).start()
 
     def set_kps(self, kps):
-        self.kps = kps
+        self.kps = np.array(kps)
 
     def disable_torque(self):
         self.io.set_mode({id: 0 for id in self.ids})
