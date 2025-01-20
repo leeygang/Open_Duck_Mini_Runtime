@@ -254,7 +254,9 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
+        print("HWI TRNED ON")
         self.hwi.set_kps([self.pid[0]] * 14)
+        print("KPS SET")
 
         time.sleep(2)
 
@@ -347,4 +349,5 @@ if __name__ == "__main__":
     )
     print("Done instantiating RLWalk")
     rl_walk.start()
+    input("press enter to run")
     rl_walk.run()
