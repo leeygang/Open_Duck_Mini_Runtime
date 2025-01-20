@@ -254,7 +254,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        # self.hwi.set_kps([self.pid[0]] * 14)
+        self.hwi.set_kps([self.pid[0]] * 14)
 
         time.sleep(2)
 
@@ -319,7 +319,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
-    parser.add_argument("-p", type=int, default=1100)
+    parser.add_argument("-p", type=int, default=32)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=60)
