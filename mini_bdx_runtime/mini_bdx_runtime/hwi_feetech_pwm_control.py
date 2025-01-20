@@ -89,9 +89,14 @@ class HWI:
             "right_ankle": -0.08,
         }
 
+        init_pos_with_offsets = {
+            joint: pos + self.joints_offsets[joint]
+            for joint, pos in self.init_pos.items()
+        }
+
         self.control = FeetechPWMControl(
             ids=list(self.joints.values()),
-            init_pos_rad=list(self.init_pos.values()),
+            init_pos_rad=list(init_pos_with_offsets.values()),
             usb_port=usb_port,
         )
 
