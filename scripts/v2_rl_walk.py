@@ -304,7 +304,8 @@ class RLWalk:
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
-            self.hwi.turn_off()
+            self.hwi.freeze()
+            # self.hwi.turn_off()
             pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))

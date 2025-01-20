@@ -119,6 +119,10 @@ class HWI:
     def turn_off(self):
         self.control.disable_torque()
 
+    def freeze(self):
+        self.control.freeze()
+
+
     def set_position_all(self, joints_positions):
         """
         joints_positions is a dictionary with joint names as keys and joint positions as values
