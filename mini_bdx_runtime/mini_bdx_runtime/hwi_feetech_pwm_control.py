@@ -104,7 +104,7 @@ class HWI:
 
     def turn_on(self):
         self.control.set_kps(self.low_torque_kps)
-        # self.control.enable_torque()
+        self.control.enable_torque()
         print("turn on : low KPS set")
         time.sleep(1)
 
