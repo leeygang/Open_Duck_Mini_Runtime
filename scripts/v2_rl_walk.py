@@ -257,7 +257,6 @@ class RLWalk:
         # self.hwi.set_kps([self.pid[0]] * 14)
 
         time.sleep(2)
-        exit()
 
     def run(self):
         robot_computed_obs = []
@@ -348,5 +347,7 @@ if __name__ == "__main__":
     )
     print("Done instantiating RLWalk")
     rl_walk.start()
+    while True:
+        time.sleep(0.01)
     input("press enter to run")
     rl_walk.run()
