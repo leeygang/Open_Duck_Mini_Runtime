@@ -131,9 +131,7 @@ class HWI:
             self.joints[joint]: np.rad2deg(position + self.joints_offsets[joint])
             for joint, position in joints_positions.items()
         }
-        print(ids_positions)
-        print(list(ids_positions.values()))
-        exit()
+
         self.control.goal_positions = list(ids_positions.values())
 
     def get_present_positions(self):
