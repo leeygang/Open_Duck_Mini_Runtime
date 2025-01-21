@@ -76,7 +76,6 @@ class RLWalk:
 
         self.num_obs = 56
 
-        self.hwi = HWI(serial_port)
 
         # IMU
         self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
@@ -87,6 +86,8 @@ class RLWalk:
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
+        
+        self.hwi = HWI(serial_port)
 
         # Control
         self.control_freq = control_freq
