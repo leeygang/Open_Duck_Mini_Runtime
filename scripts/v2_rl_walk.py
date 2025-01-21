@@ -76,6 +76,9 @@ class RLWalk:
 
         self.num_obs = 56
 
+        # Control
+        self.control_freq = control_freq
+        self.pid = pid
 
         # IMU
         self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
@@ -89,9 +92,6 @@ class RLWalk:
 
         self.hwi = HWI(serial_port)
 
-        # Control
-        self.control_freq = control_freq
-        self.pid = pid
 
         # Scales
         self.linearVelocityScale = 1.0

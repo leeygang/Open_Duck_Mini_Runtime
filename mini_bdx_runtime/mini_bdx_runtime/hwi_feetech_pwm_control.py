@@ -55,7 +55,7 @@ class HWI:
             "left_hip_pitch": -0.63,
             "left_knee": 1.368,
             "left_ankle": -0.784,
-            "neck_pitch": 0.002,
+            "neck_pitch": 0.0,
             "head_pitch": 0.0,
             "head_yaw": 0,
             "head_roll": 0,
