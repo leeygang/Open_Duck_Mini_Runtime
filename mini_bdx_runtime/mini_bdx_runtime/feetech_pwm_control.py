@@ -35,6 +35,7 @@ class FeetechPWMControl:
         self.present_speeds = [0] * len(self.ids)
         self.speed_decimation = 2
         self.speed_decimation_index = 0
+        self.last_t = time.time()
 
         Thread(target=self.update, daemon=True).start()
 
@@ -86,10 +87,11 @@ class FeetechPWMControl:
             if self.speed_decimation_index % self.speed_decimation == 0:
                 self.present_speeds = (
                     np.array(self.present_positions) - np.array(self.last_positions)
-                ) / ((1 / self.control_freq) * self.speed_decimation)
+                ) / ((time.time() - self.last_t) * self.speed_decimation)
                 self.last_positions = np.array(self.present_positions).copy()
+                self.last_t = time.time()
             took = time.time() - s
-            print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
+            # print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
             time.sleep(max(0, (1 / self.control_freq - took)))
             self.speed_decimation_index += 1
 
