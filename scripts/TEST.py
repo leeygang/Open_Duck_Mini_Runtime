@@ -16,6 +16,7 @@ name = list(hwi.joints.keys())[id]
 max_vel = 0
 min_vel = 0
 try:
+    s = time.time()
     while True:
         # target = 0.4
         target = np.around(0.2*np.sin(2*np.pi*0.5*time.time()), 3)
@@ -27,11 +28,13 @@ try:
         vel = present_velocities[id]
         # print(f"vel : {present_velocities[id]}")
 
-        if vel > max_vel:
-            max_vel = vel
-        
-        if vel < min_vel:
-            min_vel = vel
+        if time.time() - s > 2:
+
+            if vel > max_vel:
+                max_vel = vel
+            
+            if vel < min_vel:
+                min_vel = vel
 
         print(f"max vel : {max_vel}, min vel : {min_vel}")
         # # hwi.set_position("left_hip_yaw", 0.2)
