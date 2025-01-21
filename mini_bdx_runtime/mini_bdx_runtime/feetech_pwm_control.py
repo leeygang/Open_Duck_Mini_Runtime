@@ -31,8 +31,8 @@ class FeetechPWMControl:
         self.goal_positions = [0] * len(self.ids)
         self.goal_positions = self.init_pos_deg
         self.present_positions = [0] * len(self.ids)
-        self.last_positions = [0] * len(self.ids)
-        self.present_speeds = [0] * len(self.ids)
+        # self.last_positions = [0] * len(self.ids)
+        # self.present_speeds = [0] * len(self.ids)
         self.speed_decimation = 2
 
         Thread(target=self.update, daemon=True).start()
@@ -84,12 +84,12 @@ class FeetechPWMControl:
 
             self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
 
-            if i % self.speed_decimation == 0:
-                self.present_speeds = (
-                    np.array(self.present_positions) - np.array(self.last_positions)
-                ) * self.control_freq
+            # if i % self.speed_decimation == 0:
+            #     self.present_speeds = (
+            #         np.array(self.present_positions) - np.array(self.last_positions)
+            #     ) * self.control_freq
 
-            self.last_positions = np.array(self.present_positions).copy()
+            # self.last_positions = np.array(self.present_positions).copy()
             took = time.time() - s
             time.sleep(max(0, (1 / self.control_freq - took)))
             i += 1
