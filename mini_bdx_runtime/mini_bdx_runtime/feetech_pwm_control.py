@@ -34,6 +34,7 @@ class FeetechPWMControl:
         self.last_positions = [0] * len(self.ids)
         self.present_speeds = [0] * len(self.ids)
         self.speed_decimation = 2
+        self.speed_decimation_index = 0
 
         Thread(target=self.update, daemon=True).start()
 
@@ -58,7 +59,6 @@ class FeetechPWMControl:
         self.io.enable_torque(self.ids)
 
     def update(self):
-        i = 0
         while True:
             s = time.time()
             self.present_positions = self.io.get_present_position(self.ids)
@@ -83,8 +83,8 @@ class FeetechPWMControl:
             ]
 
             self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
-            print(i)
-            if i % self.speed_decimation == 0:
+            print(self.speed_decimation_index)
+            if self.speed_decimation_index % self.speed_decimation == 0:
                 self.present_speeds = (
                     np.array(self.present_positions) - np.array(self.last_positions)
                 ) / (1 / self.control_freq)
@@ -92,7 +92,7 @@ class FeetechPWMControl:
                 print("PRESENT SPEEDS : ", self.present_speeds)
             took = time.time() - s
             time.sleep(max(0, (1 / self.control_freq - took)))
-            i += 1
+            self.speed_decimation_index
 
 
 if __name__ == "__main__":
