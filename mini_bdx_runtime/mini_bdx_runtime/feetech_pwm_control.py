@@ -89,6 +89,7 @@ class FeetechPWMControl:
                 ) / ((1 / self.control_freq) * self.speed_decimation)
                 self.last_positions = np.array(self.present_positions).copy()
             took = time.time() - s
+            print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
             time.sleep(max(0, (1 / self.control_freq - took)))
             self.speed_decimation_index += 1
 
