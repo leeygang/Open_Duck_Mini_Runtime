@@ -13,6 +13,8 @@ time.sleep(1)
 zero_pos = hwi.init_pos.copy()
 id = 4
 name = list(hwi.joints.keys())[id]
+max_vel = 0
+min_vel = 0
 try:
     while True:
         # target = 0.4
@@ -22,7 +24,16 @@ try:
         present_positions = hwi.get_present_positions()
         present_velocities = hwi.get_present_velocities()
         # print(f"target : {target}, pos : {present_positions[id]}, diff : {target - present_positions[id]}")
-        print(f"vel : {present_velocities[id]}")
+        vel = present_velocities[id]
+        # print(f"vel : {present_velocities[id]}")
+
+        if vel > max_vel:
+            max_vel = vel
+        
+        if vel < min_vel:
+            min_vel = vel
+
+        print(f"max vel : {max_vel}, min vel : {min_vel}")
         # # hwi.set_position("left_hip_yaw", 0.2)
 except KeyboardInterrupt:
     hwi.freeze()
