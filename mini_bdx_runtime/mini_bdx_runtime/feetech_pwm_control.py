@@ -92,7 +92,7 @@ class FeetechPWMControl:
                 print("PRESENT SPEEDS : ", self.present_speeds)
             took = time.time() - s
             time.sleep(max(0, (1 / self.control_freq - took)))
-            self.speed_decimation_index
+            self.speed_decimation_index += 1
 
 
 if __name__ == "__main__":
