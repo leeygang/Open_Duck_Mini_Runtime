@@ -31,6 +31,10 @@ class FeetechPWMControl:
         self.goal_positions = [0] * len(self.ids)
         self.goal_positions = self.init_pos_deg
         self.present_positions = [0] * len(self.ids)
+        self.last_positions = [0] * len(self.ids)
+        self.present_speeds = [0] * len(self.ids)
+        self.speed_decimation = 2
+
         Thread(target=self.update, daemon=True).start()
 
     def set_kps(self, kps):
@@ -47,12 +51,14 @@ class FeetechPWMControl:
     def freeze(self):
         present_position = list(self.io.get_present_position(self.ids))
         print(present_position)
-        self.io.set_goal_position({id: present_position[i] for i, id in enumerate(self.ids)})
+        self.io.set_goal_position(
+            {id: present_position[i] for i, id in enumerate(self.ids)}
+        )
         self.io.set_mode({id: 0 for id in self.ids})
         self.io.enable_torque(self.ids)
 
-
     def update(self):
+        i = 0
         while True:
             s = time.time()
             self.present_positions = self.io.get_present_position(self.ids)
@@ -78,8 +84,15 @@ class FeetechPWMControl:
 
             self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
 
+            if i % self.speed_decimation == 0:
+                self.present_speeds = (
+                    np.array(self.present_positions) - np.array(self.last_positions)
+                ) * self.control_freq
+
+            self.last_positions = self.present_positions.copy()
             took = time.time() - s
             time.sleep(max(0, (1 / self.control_freq - took)))
+            i += 1
 
 
 if __name__ == "__main__":
