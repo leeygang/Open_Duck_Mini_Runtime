@@ -86,7 +86,7 @@ class FeetechPWMControl:
             if self.speed_decimation_index % self.speed_decimation == 0:
                 self.present_speeds = (
                     np.array(self.present_positions) - np.array(self.last_positions)
-                ) / (1 / self.control_freq)
+                ) / ((1 / self.control_freq) * self.speed_decimation)
                 self.last_positions = np.array(self.present_positions).copy()
             took = time.time() - s
             time.sleep(max(0, (1 / self.control_freq - took)))
