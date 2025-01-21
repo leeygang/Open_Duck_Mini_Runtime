@@ -83,13 +83,11 @@ class FeetechPWMControl:
             ]
 
             self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
-            print(self.speed_decimation_index)
             if self.speed_decimation_index % self.speed_decimation == 0:
                 self.present_speeds = (
                     np.array(self.present_positions) - np.array(self.last_positions)
                 ) / (1 / self.control_freq)
                 self.last_positions = np.array(self.present_positions).copy()
-                print("PRESENT SPEEDS : ", self.present_speeds)
             took = time.time() - s
             time.sleep(max(0, (1 / self.control_freq - took)))
             self.speed_decimation_index += 1
