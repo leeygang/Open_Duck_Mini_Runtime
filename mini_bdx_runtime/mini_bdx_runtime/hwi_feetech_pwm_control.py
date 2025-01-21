@@ -156,11 +156,23 @@ class HWI:
         """
         Returns the present velocities in rad/s (default) or rev/min
         """
-        # rev/min
+        # deg/s
         present_velocities = np.array(self.control.present_speeds)
         # present_velocities = np.array(
         #     self.control.io.get_present_speed(self.joints.values())
         # )
         if rad_s:
-            present_velocities = (2 * np.pi * present_velocities) / 60  # rad/s
+            present_velocities = np.deg2rad(present_velocities)  # rad/s
         return np.array(np.around(present_velocities, 3))
+
+    # def get_present_velocities(self, rad_s=True):
+    #     """
+    #     Returns the present velocities in rad/s (default) or rev/min
+    #     """
+    #     # rev/min
+    #     present_velocities = np.array(
+    #         self.control.io.get_present_speed(self.joints.values())
+    #     )
+    #     if rad_s:
+    #         present_velocities = (2 * np.pi * present_velocities) / 60  # rad/s
+    #     return np.array(np.around(present_velocities, 3))

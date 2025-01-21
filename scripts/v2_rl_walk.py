@@ -8,6 +8,7 @@ import numpy as np
 import serial
 from scipy.spatial.transform import Rotation as R
 import RPi.GPIO as GPIO
+
 # from mini_bdx_runtime.hwi_feetech_pypot import HWI
 from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
@@ -91,7 +92,6 @@ class RLWalk:
         Thread(target=self.imu_worker, daemon=True).start()
 
         self.hwi = HWI(serial_port)
-
 
         # Scales
         self.linearVelocityScale = 1.0
@@ -278,7 +278,6 @@ class RLWalk:
 
                 obs = np.clip(obs, -100, 100)
 
-
                 action = self.policy.infer(obs)
 
                 action = np.clip(action, -5, 5)
@@ -311,6 +310,7 @@ class RLWalk:
         time.sleep(1)
 
         self.hwi.freeze()
+
 
 if __name__ == "__main__":
     import argparse
