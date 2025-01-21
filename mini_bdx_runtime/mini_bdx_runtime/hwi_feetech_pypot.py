@@ -120,7 +120,7 @@ class HWI:
 
     def turn_on(self):
         self.dxl_io.enable_torque(self.joints.values())
-        self.dxl_io.set_mode({id: 2 for id in self.joints.values()})
+        self.dxl_io.set_mode({id: 0 for id in self.joints.values()})
         # self.dxl_io.set_mode
         self.dxl_io.set_acceleration({id: 16 for id in self.joints.values()})
 
