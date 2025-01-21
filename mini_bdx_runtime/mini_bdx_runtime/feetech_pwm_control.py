@@ -89,6 +89,7 @@ class FeetechPWMControl:
                     np.array(self.present_positions) - np.array(self.last_positions)
                 ) / (1 / self.control_freq)
                 self.last_positions = np.array(self.present_positions).copy()
+                print("PRESENT SPEEDS : ", self.present_speeds)
             took = time.time() - s
             time.sleep(max(0, (1 / self.control_freq - took)))
             i += 1
