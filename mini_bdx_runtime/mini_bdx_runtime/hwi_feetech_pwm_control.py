@@ -126,6 +126,7 @@ class HWI:
     def freeze(self):
         self.control.freeze()
 
+
     def set_position_all(self, joints_positions):
         """
         joints_positions is a dictionary with joint names as keys and joint positions as values
@@ -145,13 +146,9 @@ class HWI:
         present_positions = np.deg2rad(
             self.control.io.get_present_position(self.joints.values())
         )
-        # present_positions = [
-        #     pos - self.joints_offsets[joint]
-        #     for joint, pos in zip(self.joints.keys(), present_positions)
-        # ]
-
         present_positions = [
-            pos for joint, pos in zip(self.joints.keys(), present_positions)
+            pos - self.joints_offsets[joint]
+            for joint, pos in zip(self.joints.keys(), present_positions)
         ]
         return np.array(np.around(present_positions, 3))
 

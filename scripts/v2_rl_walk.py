@@ -86,7 +86,7 @@ class RLWalk:
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
-        
+
         self.hwi = HWI(serial_port)
 
         # Control
@@ -215,7 +215,6 @@ class RLWalk:
             self.last_commands = self.get_last_command()
             # print(self.last_commands)
 
-        # dof_pos, dof_vel = self.hwi.get_present_positions_and_velocities()
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rad/s
 
@@ -283,7 +282,7 @@ class RLWalk:
 
                 action = self.policy.infer(obs)
 
-                action = np.clip(action, -1, 1)
+                action = np.clip(action, -5, 5)
 
                 self.prev_action = action.copy()
 
