@@ -266,19 +266,18 @@ class RLWalk:
             while True:
                 t = time.time()
 
+                obs = self.get_obs()
+                robot_computed_obs.append(obs)
                 if self.replay_obs is not None:
                     if i < len(self.replay_obs):
                         obs = self.replay_obs[i]
                     else:
                         break
-                else:
-                    obs = self.get_obs()
                 if obs is None:
                     break
 
                 obs = np.clip(obs, -100, 100)
 
-                robot_computed_obs.append(obs)
 
                 action = self.policy.infer(obs)
 
