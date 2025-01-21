@@ -54,6 +54,7 @@ class FeetechPWMControl:
 
     def update(self):
         while True:
+            s = time.time()
             self.present_positions = self.io.get_present_position(self.ids)
             errors = np.array(self.goal_positions) - np.array(self.present_positions)
 
@@ -77,7 +78,8 @@ class FeetechPWMControl:
 
             self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
 
-            time.sleep(1 / self.control_freq)
+            took = time.time() - s
+            time.sleep(max(0, (1 / self.control_freq - took)))
 
 
 if __name__ == "__main__":
