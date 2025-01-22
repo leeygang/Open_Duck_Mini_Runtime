@@ -290,7 +290,7 @@ class RLWalk:
                 if self.action_filter is not None:
                     self.action_filter.push(robot_action)
                     if time.time() - start > 2:
-                        print(self.action_filter)
+                        print(self.action_filter.get_filtered_action())
                         print(robot_action)
                         print("==")
                         # robot_action = self.action_filter.get_filtered_action()
