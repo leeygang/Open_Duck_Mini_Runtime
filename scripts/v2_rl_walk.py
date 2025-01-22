@@ -178,7 +178,7 @@ class RLWalk:
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
             self.imu_queue.put(final_orientation_quat)
-            time.sleep(1 / (self.control_freq * 2))
+            time.sleep(1 / self.control_freq)
 
     def get_imu_data(self):
         try:
