@@ -92,11 +92,11 @@ class FeetechPWMControl:
                 self.last_t = time.time()
             took = time.time() - s
             # print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
-            if (1 / self.control_freq - took) < 0:
-                print(
-                    "Low level control budget exceded by ",
-                    np.around(took - 1 / self.control_freq, 3),
-                )
+            # if (1 / self.control_freq - took) < 0:
+            #     print(
+            #         "Low level control budget exceded by ",
+            #         np.around(took - 1 / self.control_freq, 3),
+            #     )
             time.sleep(max(0, (1 / self.control_freq - took)))
             self.speed_decimation_index += 1
 
