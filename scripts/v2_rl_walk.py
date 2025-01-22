@@ -287,8 +287,8 @@ class RLWalk:
                 robot_action = action * self.action_scale + self.init_pos
 
                 if self.action_filter is not None:
-                    self.action_filter.push(action)
-                    action = self.action_filter.get_filtered_action()
+                    self.action_filter.push(robot_action)
+                    robot_action = self.action_filter.get_filtered_action()
 
                 action_dict = make_action_dict(
                     robot_action, joints_order
