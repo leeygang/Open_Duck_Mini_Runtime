@@ -261,6 +261,7 @@ class RLWalk:
     def run(self):
         robot_computed_obs = []
         i = 0
+        start = time.time()
         try:
             print("Starting")
             while True:
@@ -288,7 +289,8 @@ class RLWalk:
 
                 if self.action_filter is not None:
                     self.action_filter.push(robot_action)
-                    robot_action = self.action_filter.get_filtered_action()
+                    if time.time() - start > 2:
+                        robot_action = self.action_filter.get_filtered_action()
 
                 action_dict = make_action_dict(
                     robot_action, joints_order
