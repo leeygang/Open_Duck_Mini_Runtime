@@ -65,8 +65,10 @@ try:
         zero_pos[name] = target
 
         hwi.set_position_all(zero_pos)
+        prev_pos = add_fake_antennas(zero_pos.copy())
 
-        obs = get_obs(zero_pos.copy())
+        obs = get_obs(prev_pos)
+        
         saved_obs.append(obs)
 
         if time.time() - all_s > 10:
