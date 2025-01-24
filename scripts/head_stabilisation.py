@@ -19,7 +19,11 @@ try:
         s = time.time()
 
         hwi.set_position_all(init_pos)
-        print("yaw : ", imu.get_data(euler=True)[2])
+        euler = imu.get_data(euler=True)
+        # print("yaw : ", imu.get_data(euler=True)[2])
+
+        head_yaw_target = init_pos["head_yaw"] + euler[2] - zero_imu[2]
+        print(head_yaw_target)
 
         took = time.time() - s
         time.sleep(max(1 / control_freq - took, 0))
