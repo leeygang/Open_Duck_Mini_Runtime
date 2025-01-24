@@ -30,7 +30,7 @@ try:
         print("euler diff : ", euler_diff)
         print(head_yaw_target)
         pos = init_pos.copy()
-        # pos["head_yaw"] = head_yaw_target
+        pos["head_yaw"] = head_yaw_target
 
         hwi.set_position_all(pos)
 
