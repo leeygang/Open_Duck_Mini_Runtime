@@ -51,7 +51,7 @@ def get_obs(prev_action):
 zero_pos = hwi.zero_pos.copy()
 id = 2
 name = list(hwi.joints.keys())[id]
-A = 0.5
+A = 0.3
 F = 0.5
 control_freq = 50
 saved_obs = []
