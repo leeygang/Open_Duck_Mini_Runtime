@@ -22,7 +22,10 @@ class Imu:
     def imu_worker(self):
         while True:
             try:
+                s = time.time()
                 raw_orientation = self.imu.quaternion  # quat
+                print("getting orientation took", time.time() - s)
+                s = time.time()
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
                 print(e)
@@ -35,6 +38,7 @@ class Imu:
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
             self.imu_queue.put(final_orientation_quat)
+            print("all other stuff took", time.time() - s)
             time.sleep(1 / (self.sampling_freq/2))
 
     def get_data(self, euler=False):
