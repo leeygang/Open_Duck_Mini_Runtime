@@ -27,8 +27,8 @@ try:
         pos = init_pos.copy()
 
         euler_diff = zero_imu - euler
-        pos["head_roll"] = init_pos["head_roll"] + euler_diff[0]
-        pos["head_pitch"] = init_pos["head_pitch"] + euler_diff[1]
+        pos["head_roll"] = init_pos["head_roll"] - euler_diff[0]
+        pos["head_pitch"] = init_pos["head_pitch"] - euler_diff[1]
         pos["head_yaw"] = init_pos["head_yaw"] + euler_diff[2]
 
         hwi.set_position_all(pos)
