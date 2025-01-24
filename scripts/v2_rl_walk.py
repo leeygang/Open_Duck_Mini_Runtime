@@ -3,7 +3,6 @@ import pickle
 from queue import Queue
 from threading import Thread
 import pygame
-import adafruit_bno055
 import numpy as np
 import serial
 from scipy.spatial.transform import Rotation as R
@@ -17,6 +16,7 @@ from mini_bdx_runtime.rl_utils import (
     make_action_dict,
     quat_rotate_inverse,
 )
+from mini_bdx_runtime.imu import Imu
 
 
 # Commands
@@ -83,15 +83,7 @@ class RLWalk:
         self.control_freq = control_freq
         self.pid = pid
 
-        # IMU
-        self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
-        self.imu = adafruit_bno055.BNO055_UART(self.uart)
-        # self.imu.mode = adafruit_bno055.NDOF_MODE
-        # self.imu.mode = adafruit_bno055.GYRONLY_MODE
-        self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-        self.last_imu_data = [0, 0, 0, 0]
-        self.imu_queue = Queue(maxsize=1)
-        Thread(target=self.imu_worker, daemon=True).start()
+        self.imu = Imu(self.control_freq, self.pitch_bias)
 
         self.hwi = HWI(serial_port)
 
@@ -171,32 +163,6 @@ class RLWalk:
 
         return np.around(last_commands, 3)
 
-    def imu_worker(self):
-        while True:
-            try:
-                raw_orientation = self.imu.quaternion  # quat
-                euler = R.from_quat(raw_orientation).as_euler("xyz")
-            except Exception as e:
-                print(e)
-                continue
-
-            # Converting to correct axes
-            euler = [np.pi - euler[1], euler[2], -euler[0]]
-            euler[1] += np.deg2rad(self.pitch_bias)
-
-            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
-
-            self.imu_queue.put(final_orientation_quat)
-            time.sleep(1 / self.control_freq)
-
-    def get_imu_data(self):
-        try:
-            self.last_imu_data = self.imu_queue.get(False)  # non blocking
-        except Exception:
-            pass
-
-        return self.last_imu_data
-
     def get_last_command(self):
         try:
             self.last_commands = self.cmd_queue.get(False)  # non blocking
@@ -215,7 +181,7 @@ class RLWalk:
         return np.array([left, right])
 
     def get_obs(self):
-        orientation_quat = self.get_imu_data()
+        orientation_quat = self.imu.get_data()
         if orientation_quat is None:
             print("IMU ERROR")
             return None
