@@ -21,7 +21,9 @@ try:
         euler = imu.get_data(euler=True)
         # print("yaw : ", imu.get_data(euler=True)[2])
 
-        head_yaw_target = init_pos["head_yaw"] + (euler[2] - zero_imu[2])
+        euler_diff = zero_imu[2] - euler[2]
+        head_yaw_target = init_pos["head_yaw"] + euler_diff
+        print("euler diff : ", euler_diff)
         print(head_yaw_target)
         pos = init_pos.copy()
         # pos["head_yaw"] = head_yaw_target
