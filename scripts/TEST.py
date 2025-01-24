@@ -1,4 +1,4 @@
-# from mini_bdx_runtime.hwi_feetech_pypot import HWI
+import pickle
 from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 import numpy as np
 import time
@@ -10,36 +10,79 @@ hwi.turn_on()
 # exit()
 time.sleep(1)
 
-zero_pos = hwi.init_pos.copy()
-id = 4
+
+def add_fake_antennas(pos):
+    # takes in position without antennas, adds position 0 for both antennas at the right place
+    assert len(pos) == 14
+    pos_with_antennas = np.insert(pos, 9, [0, 0])
+    return np.array(pos_with_antennas)
+
+
+def get_obs(prev_action):
+
+    commands = [0, 0, 0]
+
+    dof_pos = hwi.get_present_positions()  # rad
+    dof_vel = hwi.get_present_velocities()  # rad/s
+
+    dof_pos = add_fake_antennas(dof_pos)
+    dof_vel = add_fake_antennas(dof_vel)
+
+    dof_pos_scaled = list(dof_pos * 1)
+    dof_vel_scaled = list(dof_vel * 1)
+
+    projected_gravity = [0, 0, 0]
+    feet_contacts = [0, 0]
+
+    obs = np.concatenate(
+        [
+            projected_gravity,
+            dof_pos_scaled,
+            dof_vel_scaled,
+            feet_contacts,
+            prev_action,
+            commands,
+        ]
+    )
+
+    return obs
+
+
+zero_pos = hwi.zero_pos.copy()
+id = 2
 name = list(hwi.joints.keys())[id]
-max_vel = 0
-min_vel = 0
+A = 0.5
+F = 0.5
+control_freq = 50
+saved_obs = []
+all_s = time.time()
 try:
     s = time.time()
     while True:
-        # target = 0.4
-        target = np.around(0.2*np.sin(2*np.pi*0.5*time.time()), 3)
+        s = time.time()
+
+        target = A * np.sin(2 * np.pi * F * time.time())
         zero_pos[name] = target
+
         hwi.set_position_all(zero_pos)
-        present_positions = hwi.get_present_positions()
-        present_velocities = hwi.get_present_velocities()
-        # print(f"target : {target}, pos : {present_positions[id]}, diff : {target - present_positions[id]}")
-        vel = present_velocities[id]
-        # print(f"vel : {present_velocities[id]}")
 
-        if time.time() - s > 2:
+        obs = get_obs(zero_pos.copy())
+        saved_obs.append(obs)
 
-            if vel > max_vel:
-                max_vel = vel
-            
-            if vel < min_vel:
-                min_vel = vel
+        if time.time() - all_s > 10:
+            break
 
-        print(f"max vel : {max_vel}, min vel : {min_vel}")
-        # # hwi.set_position("left_hip_yaw", 0.2)
+        took = time.time() - s
+        time.sleep(max(0, 1 / control_freq - took))
 except KeyboardInterrupt:
     hwi.freeze()
 
     time.sleep(2)
+    exit()
 
+
+hwi.freeze()
+time.sleep(2)
+
+
+pickle.dump(saved_obs, open("robot_saved_obs.pkl", "wb"))
