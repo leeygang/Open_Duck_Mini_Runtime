@@ -11,7 +11,9 @@ hwi.turn_on()
 hwi.set_kps([4 * 14])
 
 init_pos = hwi.init_pos
-zero_imu = imu.get_data(euler=True)
+for i in range(20):
+    zero_imu = imu.get_data(euler=True)
+    
 print(zero_imu)
 
 try:
