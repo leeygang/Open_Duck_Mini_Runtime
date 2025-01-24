@@ -1,6 +1,7 @@
 from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 import time
+import pickle
 
 control_freq = 50
 
@@ -17,12 +18,14 @@ for i in range(10):
     time.sleep(0.1)
 
 print("zero imu", zero_imu)
+saved_euler = []
 
 try:
     while True:
         s = time.time()
 
         euler = imu.get_data(euler=True)
+        saved_euler.append(euler)
 
         pos = init_pos.copy()
 
@@ -39,4 +42,6 @@ try:
 
 except KeyboardInterrupt:
     hwi.freeze()
+    time.sleep(1)
+    pickle.dump(saved_euler, open("saved_euler.pkl", "wb"))
     time.sleep(1)
