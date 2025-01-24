@@ -64,9 +64,11 @@ class RLWalk:
         commands=False,
         pitch_bias=0.0,
         replay_obs=None,
+        zero_head=False,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
+        self.zero_head = zero_head
 
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path, awd=True)
@@ -127,6 +129,13 @@ class RLWalk:
         assert len(pos) == 14
         pos_with_antennas = np.insert(pos, 9, [0, 0])
         return np.array(pos_with_antennas)
+
+    def set_zero_head(self, pos):
+        pos[5] = 0
+        pos[6] = 0
+        pos[7] = 0
+        pos[8] = 0
+        return pos
 
     def commands_worker(self):
         while True:
@@ -293,6 +302,9 @@ class RLWalk:
                     if time.time() - start > 2:
                         robot_action = filtered_action
 
+                if self.zero_head:
+                    robot_action = self.set_zero_head(robot_action)
+
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
@@ -337,6 +349,13 @@ if __name__ == "__main__":
         default=False,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
+
+    parser.add_argument(
+        "--zero_head",
+        action="store_true",
+        default=False,
+        help="force all head dofs to zero",
+    )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
     parser.add_argument("--record_current_voltage", action="store_true", default=False)
     args = parser.parse_args()
@@ -352,6 +371,7 @@ if __name__ == "__main__":
         commands=args.commands,
         pitch_bias=args.pitch_bias,
         replay_obs=args.replay_obs,
+        zero_head=args.zero_head,
     )
     print("Done instantiating RLWalk")
     rl_walk.start()
