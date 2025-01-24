@@ -11,10 +11,11 @@ hwi.turn_on()
 hwi.set_kps([4 * 14])
 
 init_pos = hwi.init_pos
-for i in range(100):
+for i in range(10):
     zero_imu = imu.get_data(euler=True)
+    time.sleep(0.1)
 
-print(zero_imu)
+print("zero imu", zero_imu)
 
 try:
     while True:
