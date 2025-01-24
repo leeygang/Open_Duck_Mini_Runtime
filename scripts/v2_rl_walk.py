@@ -4,8 +4,6 @@ from queue import Queue
 from threading import Thread
 import pygame
 import numpy as np
-import serial
-from scipy.spatial.transform import Rotation as R
 import RPi.GPIO as GPIO
 
 # from mini_bdx_runtime.hwi_feetech_pypot import HWI

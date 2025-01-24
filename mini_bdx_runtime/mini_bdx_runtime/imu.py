@@ -8,7 +8,7 @@ from scipy.spatial.transform import Rotation as R
 
 
 class Imu:
-    def __init__(self, sampling_freq, pitch_bias):
+    def __init__(self, sampling_freq, pitch_bias=0):
         self.sampling_freq = sampling_freq
         self.pitch_bias = pitch_bias
 
@@ -37,10 +37,13 @@ class Imu:
             self.imu_queue.put(final_orientation_quat)
             time.sleep(1 / self.sampling_freq)
 
-    def get_data(self):
+    def get_data(self, euler=False):
         try:
             self.last_imu_data = self.imu_queue.get(False)  # non blocking
         except Exception:
             pass
 
-        return self.last_imu_data
+        if not euler:
+            return self.last_imu_data
+        else:
+            return R.from_quat(self.last_imu_data).as_euler("xyz")
