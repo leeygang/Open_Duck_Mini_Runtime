@@ -19,6 +19,7 @@ try:
         s = time.time()
 
         hwi.set_position_all(init_pos)
+        print("yaw : ", imu.get_data(euler=True)[2])
 
         took = time.time() - s
         time.sleep(max(1 / control_freq - took, 0))
