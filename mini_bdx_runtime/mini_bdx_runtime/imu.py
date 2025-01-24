@@ -35,7 +35,7 @@ class Imu:
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
             self.imu_queue.put(final_orientation_quat)
-            time.sleep(1 / self.sampling_freq)
+            time.sleep(1 / (self.sampling_freq/2))
 
     def get_data(self, euler=False):
         try:
