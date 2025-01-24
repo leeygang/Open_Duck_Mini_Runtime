@@ -12,11 +12,12 @@ hwi.set_kps([8 * 14])
 
 init_pos = hwi.init_pos
 zero_imu = imu.get_data(euler=True)
+print(zero_imu)
 
 try:
     while True:
         s = time.time()
-        
+
         hwi.set_position_all(init_pos)
 
         took = time.time() - s
