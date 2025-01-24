@@ -51,8 +51,8 @@ def get_obs(prev_action):
 zero_pos = hwi.zero_pos.copy()
 id = 2
 name = list(hwi.joints.keys())[id]
-A = 0.5
-F = 0.5
+A = 0.2
+F = 0.2
 control_freq = 50
 saved_obs = []
 all_s = time.time()
@@ -68,7 +68,7 @@ try:
         prev_pos = add_fake_antennas(zero_pos.copy())
 
         obs = get_obs(prev_pos)
-        
+
         saved_obs.append(obs)
 
         if time.time() - all_s > 10:
