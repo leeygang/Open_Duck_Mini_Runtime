@@ -23,15 +23,13 @@ try:
         s = time.time()
 
         euler = imu.get_data(euler=True)
-        print("euler : ", euler)
-        # print("yaw : ", imu.get_data(euler=True)[2])
 
-        euler_diff = zero_imu[2] - euler[2]
-        head_yaw_target = init_pos["head_yaw"] + euler_diff
-        print("euler diff : ", euler_diff)
-        print(head_yaw_target)
         pos = init_pos.copy()
-        pos["head_yaw"] = head_yaw_target
+
+        euler_diff = zero_imu - euler
+        pos["head_roll"] = init_pos["head_roll"] + euler_diff[0]
+        pos["head_pitch"] = init_pos["head_pitch"] + euler_diff[1]
+        pos["head_yaw"] = init_pos["head_yaw"] + euler_diff[2]
 
         hwi.set_position_all(pos)
 
