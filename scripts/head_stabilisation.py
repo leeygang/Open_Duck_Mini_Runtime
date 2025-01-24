@@ -19,6 +19,7 @@ try:
         s = time.time()
 
         euler = imu.get_data(euler=True)
+        print("euler : ", euler)
         # print("yaw : ", imu.get_data(euler=True)[2])
 
         euler_diff = zero_imu[2] - euler[2]
