@@ -65,7 +65,7 @@ try:
         zero_pos[name] = target
 
         hwi.set_position_all(zero_pos)
-        prev_pos = add_fake_antennas(zero_pos.copy())
+        prev_pos = add_fake_antennas(list(zero_pos.values()))
 
         obs = get_obs(prev_pos)
 
