@@ -8,7 +8,7 @@ imu = Imu(control_freq)
 
 hwi = HWI("/dev/ttyACM0")
 hwi.turn_on()
-hwi.set_kps([4 * 14])
+hwi.set_kps([16 * 14])
 
 init_pos = hwi.init_pos
 for i in range(10):
