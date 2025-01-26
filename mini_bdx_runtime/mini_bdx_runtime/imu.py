@@ -26,7 +26,11 @@ class Imu:
             print("Calibrating...")
             try:
                 while True:
-                    print(self.imu.calibration_status)
+                    print(
+                        self.imu.calibration_status,
+                        "calibrated : ",
+                        self.imu.calibrated,
+                    )
                     time.sleep(0.1)
             except KeyboardInterrupt:
                 print("Calibration done.")
