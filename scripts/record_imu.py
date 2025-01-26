@@ -1,25 +1,19 @@
-import adafruit_bno055
 import time
-import serial
 from scipy.spatial.transform import Rotation as R
 import pickle
+from mini_bdx_runtime.imu import Imu
 
-uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
-imu = adafruit_bno055.BNO055_UART(uart)
-imu.mode = adafruit_bno055.IMUPLUS_MODE
+imu = Imu(sampling_freq=50)
 data = []
 data_euler = []
 print("Starting to record. Press Ctrl+C to stop.")
-try: 
+try:
     while True:
         try:
-            s = time.time()
-            raw_orientation = imu.quaternion  # quat
-            print("reading quat took ", time.time() - s)
+            raw_orientation = imu.get_data(euler=False)
             data.append(raw_orientation)
             euler = R.from_quat(raw_orientation).as_euler("xyz")
             data_euler.append(euler)
-            # print(euler)
         except Exception as e:
             print(e)
             continue
@@ -33,5 +27,3 @@ except KeyboardInterrupt:
         pickle.dump(data_euler, f)
     print("Data saved.")
     exit(0)
-
-
