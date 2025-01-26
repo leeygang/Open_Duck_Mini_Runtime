@@ -2,6 +2,7 @@ import adafruit_bno055
 import board
 import busio
 import numpy as np
+
 # import serial
 from queue import Queue
 from threading import Thread
