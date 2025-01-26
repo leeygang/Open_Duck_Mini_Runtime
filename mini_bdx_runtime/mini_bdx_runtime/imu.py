@@ -66,12 +66,15 @@ class Imu:
         # the duck should not move during this process
         num_samples = 100
         pitch_samples = []
-        while np.std(pitch_samples) > 0.1 and len(pitch_samples) < num_samples:
+        # while np.std(pitch_samples) > 0.1 and len(pitch_samples) < num_samples:
+        while True:
             try:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
                 pitch_samples.append(euler[1])
                 pitch_samples = pitch_samples[-num_samples:]
+                print("std : ", np.std(pitch_samples))
+                print("mean : ", np.mean(pitch_samples))
             except Exception as e:
                 print("[IMU]:", e)
                 continue
