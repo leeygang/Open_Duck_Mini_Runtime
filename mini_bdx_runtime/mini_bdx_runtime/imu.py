@@ -62,6 +62,10 @@ class Imu:
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
 
+    def convert_axes(self, euler):
+        euler = [np.pi - euler[1], euler[2], -euler[0]]
+        return euler
+
     def compute_nominal_pitch_bias(self):
         # the duck should not move during this process
         num_samples = 10
@@ -71,6 +75,7 @@ class Imu:
             try:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
+                euler = self.convert_axes(euler)
                 pitch_samples.append(np.rad2deg(euler[1]))
                 pitch_samples = pitch_samples[-num_samples:]
                 print("std : ", np.std(pitch_samples))
@@ -95,7 +100,7 @@ class Imu:
 
             # Converting to correct axes
             # euler = euler - self.zero_euler
-            euler = [np.pi - euler[1], euler[2], -euler[0]]
+            euler = self.convert_axes(euler)
             euler[1] += np.deg2rad(self.pitch_bias)
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
