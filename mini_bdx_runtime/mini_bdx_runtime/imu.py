@@ -1,6 +1,8 @@
 import adafruit_bno055
+import board
+import busio
 import numpy as np
-import serial
+# import serial
 from queue import Queue
 from threading import Thread
 import time
@@ -12,8 +14,11 @@ class Imu:
         self.sampling_freq = sampling_freq
         self.pitch_bias = pitch_bias
 
-        self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
-        self.imu = adafruit_bno055.BNO055_UART(self.uart)
+        i2c = busio.I2C(board.SCL, board.SDA)
+        self.imu = adafruit_bno055.BNO055_I2C(i2c)
+
+        # self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
+        # self.imu = adafruit_bno055.BNO055_UART(self.uart)
         self.imu.mode = adafruit_bno055.IMUPLUS_MODE
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
