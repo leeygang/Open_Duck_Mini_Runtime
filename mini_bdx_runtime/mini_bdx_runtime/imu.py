@@ -78,7 +78,7 @@ class Imu:
             except Exception as e:
                 print("[IMU]:", e)
                 continue
-            time.sleep(self.sampling_freq)
+            time.sleep(1/self.sampling_freq)
 
         self.nominal_pitch_bias = np.mean(pitch_samples)
         print("[IMU]: Nominal pitch bias:", self.nominal_pitch_bias)
