@@ -19,7 +19,7 @@ try:
             data.append(raw_orientation)
             euler = R.from_quat(raw_orientation).as_euler("xyz")
             data_euler.append(euler)
-            print(euler)
+            # print(euler)
         except Exception as e:
             print(e)
             continue
