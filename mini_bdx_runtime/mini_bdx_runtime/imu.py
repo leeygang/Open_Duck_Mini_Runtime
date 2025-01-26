@@ -22,18 +22,13 @@ class Imu:
         # self.imu = adafruit_bno055.BNO055_UART(self.uart)
         self.imu.mode = adafruit_bno055.IMUPLUS_MODE
 
-        # Calibration
-        print("Calibrating IMU...")
-        while not self.imu.calibrated:
-            print(self.imu.calibration_status)
-            time.sleep(0.3)
 
         # # sample the imu a little
-        # gyro_calibrated = (self.imu.calibration_status[1] == 3)
-        # print("Calibrating Gyro...")
-        # while not gyro_calibrated:
-        #     gyro_calibrated = (self.imu.calibration_status[1] == 3)
-        #     time.sleep(0.01)
+        gyro_calibrated = (self.imu.calibration_status[1] == 3)
+        print("Calibrating Gyro...")
+        while not gyro_calibrated:
+            gyro_calibrated = (self.imu.calibration_status[1] == 3)
+            time.sleep(0.01)
 
         # self.zero_euler = None
         # while self.zero_euler is None:
