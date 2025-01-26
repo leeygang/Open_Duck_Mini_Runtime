@@ -23,11 +23,10 @@ class Imu:
         self.imu.mode = adafruit_bno055.IMUPLUS_MODE
 
         # sample the imu a little
-        while True:
-            print(self.imu.calibration_status)
-            print(self.imu.calibrated)
-            print("==")
-            # self.imu.quaternion
+        gyro_calibrated = (self.imu.calibration_status[1] == 3)
+        while not gyro_calibrated:
+            print("Calibrating Gyro...")
+            gyro_calibrated = (self.imu.calibration_status[1] == 3)
             time.sleep(0.01)
 
         self.last_imu_data = [0, 0, 0, 0]
