@@ -30,7 +30,7 @@ class Imu:
             time.sleep(0.01)
 
         self.zero_euler = None
-        while self.zero is None:
+        while self.zero_euler is None:
             try:
                 zero_quat = np.array(self.imu.quaternion)
                 self.zero_euler = R.from_quat(zero_quat).as_euler("xyz")
