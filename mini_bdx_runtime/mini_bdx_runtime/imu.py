@@ -20,8 +20,8 @@ class Imu:
 
         # self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
         # self.imu = adafruit_bno055.BNO055_UART(self.uart)
-        self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-        # self.imu.mode = adafruit_bno055.NDOF_MODE
+        # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+        self.imu.mode = adafruit_bno055.NDOF_MODE
 
         # calibrate imu
         calibrated = (
