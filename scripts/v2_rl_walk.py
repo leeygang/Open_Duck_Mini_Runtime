@@ -81,9 +81,10 @@ class RLWalk:
         self.control_freq = control_freq
         self.pid = pid
 
-        self.imu = Imu(self.control_freq, self.pitch_bias)
-
         self.hwi = HWI(serial_port)
+        self.start()
+
+        self.imu = Imu(self.control_freq, self.pitch_bias)
 
         # Scales
         self.linearVelocityScale = 1.0
@@ -338,5 +339,5 @@ if __name__ == "__main__":
         zero_head=args.zero_head,
     )
     print("Done instantiating RLWalk")
-    rl_walk.start()
+    # rl_walk.start()
     rl_walk.run()

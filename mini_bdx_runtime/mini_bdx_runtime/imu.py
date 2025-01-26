@@ -9,10 +9,12 @@ import time
 from scipy.spatial.transform import Rotation as R
 
 
+# TODO filter spikes
 class Imu:
-    def __init__(self, sampling_freq, pitch_bias=0, calibration=False):
+    def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False):
         self.sampling_freq = sampling_freq
-        self.pitch_bias = pitch_bias
+        self.user_pitch_bias = user_pitch_bias
+        self.nominal_pitch_bias = 0
 
         i2c = busio.I2C(board.SCL, board.SDA)
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
@@ -21,19 +23,24 @@ class Imu:
         # self.imu.mode = adafruit_bno055.GYRONLY_MODE
         # self.imu.mode = adafruit_bno055.NDOF_MODE
 
+        self.compute_nominal_pitch_bias()
+
+        self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
+
         if calibration:
-            print("press ctrl+c when you are satisfied with the calibration")
-            print("Calibrating...")
+            print("[IMU]: press ctrl+c when you are satisfied with the calibration")
+            print("[IMU]: Calibrating...")
             try:
                 while True:
                     print(
+                        "[IMU]: ",
                         self.imu.calibration_status,
                         "calibrated : ",
                         self.imu.calibrated,
                     )
                     time.sleep(0.1)
             except KeyboardInterrupt:
-                print("Calibration done.")
+                print("[IMU]: Calibration done.")
                 exit()
 
         # # calibrate imu
@@ -55,6 +62,23 @@ class Imu:
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
 
+    def compute_nominal_pitch_bias(self):
+        # the duck should not move during this process
+        num_samples = 100
+        pitch_samples = []
+        while np.std(pitch_samples) > 0.1 and len(pitch_samples) < num_samples:
+            try:
+                raw_orientation = np.array(self.imu.quaternion)  # quat
+                euler = R.from_quat(raw_orientation).as_euler("xyz")
+                pitch_samples.append(euler[1])
+                pitch_samples = pitch_samples[-num_samples:]
+            except Exception as e:
+                print("[IMU]:", e)
+                continue
+
+        self.nominal_pitch_bias = np.mean(pitch_samples)
+        print("[IMU]: Nominal pitch bias:", self.nominal_pitch_bias)
+
     def imu_worker(self):
         while True:
             s = time.time()
@@ -62,7 +86,7 @@ class Imu:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
-                print(e)
+                print("[IMU]:", e)
                 continue
 
             # Converting to correct axes
