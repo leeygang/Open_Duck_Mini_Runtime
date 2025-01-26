@@ -232,8 +232,10 @@ class RLWalk:
 
         time.sleep(2)
 
+
     def run(self):
         robot_computed_obs = []
+        voltages = []
         i = 0
         start = time.time()
         try:
@@ -275,6 +277,8 @@ class RLWalk:
                 )  # Removes antennas
                 self.hwi.set_position_all(action_dict)
 
+                voltages.append(self.hwi.get_present_voltages())
+
                 i += 1
 
                 took = time.time() - t
@@ -291,6 +295,7 @@ class RLWalk:
             pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
+        pickle.dump(voltages, open("voltages.pkl", "wb"))
         time.sleep(1)
 
         self.hwi.freeze()
