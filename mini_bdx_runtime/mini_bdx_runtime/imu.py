@@ -17,9 +17,9 @@ class Imu:
         i2c = busio.I2C(board.SCL, board.SDA)
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
 
-        # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+        self.imu.mode = adafruit_bno055.IMUPLUS_MODE
         # self.imu.mode = adafruit_bno055.GYRONLY_MODE
-        self.imu.mode = adafruit_bno055.NDOF_MODE
+        # self.imu.mode = adafruit_bno055.NDOF_MODE
 
         if calibration:
             print("press ctrl+c when you are satisfied with the calibration")
