@@ -13,7 +13,9 @@ print("Starting to record. Press Ctrl+C to stop.")
 try: 
     while True:
         try:
+            s = time.time()
             raw_orientation = imu.quaternion  # quat
+            print("reading quat took ", time.time() - s)
             data.append(raw_orientation)
             euler = R.from_quat(raw_orientation).as_euler("xyz")
             data_euler.append(euler)
