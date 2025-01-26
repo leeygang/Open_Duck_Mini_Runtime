@@ -20,19 +20,14 @@ class Imu:
 
         # self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
         # self.imu = adafruit_bno055.BNO055_UART(self.uart)
-        # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-        self.imu.mode = adafruit_bno055.NDOF_MODE
+        self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+        # self.imu.mode = adafruit_bno055.NDOF_MODE
 
         # calibrate imu
-        calibrated = (
-            self.imu.calibration_status[1] == 3 and self.imu.calibration_status[2] == 1
-        )
+        calibrated = self.imu.calibration_status[1] == 3
         print("Calibrating Gyro...")
         while not calibrated:
-            calibrated = (
-                self.imu.calibration_status[1] == 3
-                and self.imu.calibration_status[2] == 1
-            )
+            calibrated = self.imu.calibration_status[1] == 3
             time.sleep(0.01)
 
         # self.zero_euler = None
