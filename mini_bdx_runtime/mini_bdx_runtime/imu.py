@@ -22,21 +22,27 @@ class Imu:
         # self.imu = adafruit_bno055.BNO055_UART(self.uart)
         self.imu.mode = adafruit_bno055.IMUPLUS_MODE
 
-        # sample the imu a little
-        gyro_calibrated = (self.imu.calibration_status[1] == 3)
-        print("Calibrating Gyro...")
-        while not gyro_calibrated:
-            gyro_calibrated = (self.imu.calibration_status[1] == 3)
-            time.sleep(0.01)
+        # Calibration
+        print("Calibrating IMU...")
+        while not self.imu.calibrated:
+            print(self.imu.calibration_status)
+            time.sleep(0.3)
 
-        self.zero_euler = None
-        while self.zero_euler is None:
-            try:
-                zero_quat = np.array(self.imu.quaternion)
-                self.zero_euler = R.from_quat(zero_quat).as_euler("xyz")
-            except Exception as e:
-                print(e)
-                continue
+        # # sample the imu a little
+        # gyro_calibrated = (self.imu.calibration_status[1] == 3)
+        # print("Calibrating Gyro...")
+        # while not gyro_calibrated:
+        #     gyro_calibrated = (self.imu.calibration_status[1] == 3)
+        #     time.sleep(0.01)
+
+        # self.zero_euler = None
+        # while self.zero_euler is None:
+        #     try:
+        #         zero_quat = np.array(self.imu.quaternion)
+        #         self.zero_euler = R.from_quat(zero_quat).as_euler("xyz")
+        #     except Exception as e:
+        #         print(e)
+        #         continue
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
@@ -52,7 +58,7 @@ class Imu:
                 continue
 
             # Converting to correct axes
-            euler = euler - self.zero_euler
+            # euler = euler - self.zero_euler
             euler = [np.pi - euler[1], euler[2], -euler[0]]
             euler[1] += np.deg2rad(self.pitch_bias)
 
