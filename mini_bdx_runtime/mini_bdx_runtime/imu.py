@@ -76,10 +76,12 @@ class Imu:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
                 euler = self.convert_axes(euler)
+                print("euler : ", np.rad2deg(euler[1]))
                 pitch_samples.append(np.rad2deg(euler[1]))
                 pitch_samples = pitch_samples[-num_samples:]
                 print("std : ", np.std(pitch_samples))
                 print("mean : ", np.mean(pitch_samples))
+                print("==")
             except Exception as e:
                 print("[IMU]:", e)
                 continue
