@@ -24,11 +24,12 @@ class Imu:
 
         # sample the imu a little
         gyro_calibrated = (self.imu.calibration_status[1] == 3)
+        print("Calibrating Gyro...")
         while not gyro_calibrated:
-            print("Calibrating Gyro...")
             gyro_calibrated = (self.imu.calibration_status[1] == 3)
             time.sleep(0.01)
 
+        self.zero = self.imu.quaternion
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
@@ -38,7 +39,8 @@ class Imu:
             s = time.time()
             try:
                 raw_orientation = self.imu.quaternion  # quat
-                euler = R.from_quat(raw_orientation).as_euler("xyz")
+                orientation = raw_orientation + self.zero
+                euler = R.from_quat(orientation).as_euler("xyz")
             except Exception as e:
                 print(e)
                 continue
