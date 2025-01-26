@@ -44,6 +44,8 @@ source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
 
 ### Enable UART
 
+> Outdated, we now use I2C. TODO update these instructions
+
 First disable the shell over serial. Run `sudo raspi-config`, navigate to `Interface Options`, then `Serial Port`, and select `No`, then `Yes`.
 
 Then, edit the file `/boot/firmware/config.txt` and add the following line at the end of the file :
