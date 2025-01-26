@@ -20,11 +20,14 @@ class Imu:
 
         # self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
         # self.imu = adafruit_bno055.BNO055_UART(self.uart)
-        # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+        self.imu.mode = adafruit_bno055.IMUPLUS_MODE
 
         # sample the imu a little
-        for _ in range(100):
-            self.imu.quaternion
+        while True:
+            print(self.imu.calibration_status)
+            print(self.imu.calibrated)
+            print("==")
+            # self.imu.quaternion
             time.sleep(0.01)
 
         self.last_imu_data = [0, 0, 0, 0]
