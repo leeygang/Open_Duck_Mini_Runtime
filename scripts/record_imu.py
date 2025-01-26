@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--pitch_bias", type=float, default=0)
 args = parser.parse_args()
 
-imu = Imu(sampling_freq=100, pitch_bias=args.pitch_bias)
+imu = Imu(sampling_freq=100, user_pitch_bias=args.pitch_bias)
 data = []
 data_euler = []
 print("Starting to record. Press Ctrl+C to stop.")
