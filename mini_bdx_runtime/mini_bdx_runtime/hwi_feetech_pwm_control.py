@@ -166,7 +166,7 @@ class HWI:
         return np.array(np.around(present_velocities, 3))
 
     def get_present_voltages(self):
-        return self.control.io.get_present_voltage(self.joints.values()) * 0.1
+        return np.array(self.control.io.get_present_voltage(self.joints.values())) * 0.1
 
     # def get_present_velocities(self, rad_s=True):
     #     """
