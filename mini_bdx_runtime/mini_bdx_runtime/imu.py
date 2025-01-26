@@ -3,7 +3,6 @@ import board
 import busio
 import numpy as np
 
-# import serial
 from queue import Queue
 from threading import Thread
 import time
@@ -11,18 +10,27 @@ from scipy.spatial.transform import Rotation as R
 
 
 class Imu:
-    def __init__(self, sampling_freq, pitch_bias=0):
+    def __init__(self, sampling_freq, pitch_bias=0, calibration=False):
         self.sampling_freq = sampling_freq
         self.pitch_bias = pitch_bias
 
         i2c = busio.I2C(board.SCL, board.SDA)
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
 
-        # self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
-        # self.imu = adafruit_bno055.BNO055_UART(self.uart)
         self.imu.mode = adafruit_bno055.IMUPLUS_MODE
         # self.imu.mode = adafruit_bno055.GYRONLY_MODE
         # self.imu.mode = adafruit_bno055.NDOF_MODE
+
+        if calibration:
+            print("press ctrl+c when you are satisfied with the calibration")
+            print("Calibrating...")
+            try:
+                while True:
+                    print(self.imu.calibration_status)
+                    time.sleep(0.1)
+            except KeyboardInterrupt:
+                print("Calibration done.")
+                exit()
 
         # # calibrate imu
         # calibrated = self.imu.calibration_status[1] == 3
