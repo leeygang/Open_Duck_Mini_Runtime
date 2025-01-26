@@ -23,7 +23,7 @@ class Imu:
         # self.imu.mode = adafruit_bno055.GYRONLY_MODE
         # self.imu.mode = adafruit_bno055.NDOF_MODE
 
-        self.compute_nominal_pitch_bias()
+        # self.compute_nominal_pitch_bias() # TODO
 
         self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
 
