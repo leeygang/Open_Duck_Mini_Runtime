@@ -29,7 +29,14 @@ class Imu:
             gyro_calibrated = (self.imu.calibration_status[1] == 3)
             time.sleep(0.01)
 
-        self.zero = np.array(self.imu.quaternion)
+        self.zero_euler = None
+        while self.zero is None:
+            try:
+                zero_quat = np.array(self.imu.quaternion)
+                self.zero_euler = R.from_quat(zero_quat).as_euler("xyz")
+            except Exception as e:
+                print(e)
+                continue
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
@@ -39,13 +46,13 @@ class Imu:
             s = time.time()
             try:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
-                orientation = raw_orientation - self.zero
-                euler = R.from_quat(orientation).as_euler("xyz")
+                euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
                 print(e)
                 continue
 
             # Converting to correct axes
+            euler = euler - self.zero_euler
             euler = [np.pi - euler[1], euler[2], -euler[0]]
             euler[1] += np.deg2rad(self.pitch_bias)
 
