@@ -9,6 +9,7 @@ import time
 from scipy.spatial.transform import Rotation as R
 
 
+
 # TODO filter spikes
 class Imu:
     def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False):

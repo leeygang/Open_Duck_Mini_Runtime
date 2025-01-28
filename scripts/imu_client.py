@@ -6,7 +6,6 @@ from queue import Queue
 from threading import Thread
 from scipy.spatial.transform import Rotation as R
 from FramesViewer.viewer import Viewer
-import argparse
 
 
 class IMUClient:
@@ -43,9 +42,6 @@ class IMUClient:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--pitch_bias", type=float, default=0, help="deg")
-    args = parser.parse_args()
 
     client = IMUClient("192.168.166.253")
     fv = Viewer()
@@ -56,11 +52,7 @@ if __name__ == "__main__":
     while True:
         quat = client.get_imu()
         try:
-            euler = R.from_quat(quat).as_euler("xyz")
-            euler[1] += np.deg2rad(args.pitch_bias)
-            rot_mat = R.from_euler("xyz", euler).as_matrix()
-            # rot_mat = R.from_quat(quat).as_matrix()
-            # print(euler)
+            rot_mat = R.from_quat(quat).as_matrix()
             pose[:3, :3] = rot_mat
             fv.pushFrame(pose, "aze")
         except:
