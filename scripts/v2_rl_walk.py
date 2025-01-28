@@ -84,7 +84,7 @@ class RLWalk:
         self.hwi = HWI(serial_port)
         self.start()
 
-        self.imu = Imu(self.control_freq, self.pitch_bias)
+        self.imu = Imu(sampling_freq=self.control_freq, user_pitch_bias=self.pitch_bias)
 
         # Scales
         self.linearVelocityScale = 1.0

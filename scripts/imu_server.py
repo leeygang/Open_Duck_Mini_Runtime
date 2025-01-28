@@ -9,7 +9,7 @@ port = 1234
 server_socket = socket.socket()
 server_socket.bind((host, port))
 
-imu = Imu(50, pitch_bias=20)
+imu = Imu(50, user_pitch_bias=20)
 
 while True:
     server_socket.listen(1)
