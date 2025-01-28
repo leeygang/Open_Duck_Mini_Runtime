@@ -21,7 +21,7 @@ print(f"Loaded joystick with {_p1.get_numaxes()} axes.")
 
 
 limits = {
-    "neck_pitch" : [-65, 20],
+    "neck_pitch" : [-40, 20],
     "head_pitch" : [-45, 45],
     "head_yaw" : [-60, 60],
     "head_roll" : [-20, 20],
