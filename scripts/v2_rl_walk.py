@@ -228,7 +228,14 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        self.hwi.set_kps([self.pid[0]] * 14)
+        kps = [self.pid[0]] * 14
+        kps[5] = 16
+        kps[6] = 16
+        kps[7] = 16
+        kps[8] = 16
+
+        self.hwi.set_kps(kps)
+
 
         time.sleep(2)
 
