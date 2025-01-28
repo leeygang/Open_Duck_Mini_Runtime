@@ -8,11 +8,13 @@ from mini_bdx_runtime.hwi_feetech_pypot import HWI
 import time
 import pygame
 import numpy as np
+from mini_bdx_runtime.imu import Imu
 
 
 hwi = HWI()
 hwi.turn_on()
 
+imu = Imu(50)
 
 pygame.init()
 _p1 = pygame.joystick.Joystick(0)
@@ -58,9 +60,10 @@ while True:
     neck_pitch_deg = -r_y * (limits["neck_pitch"][1] - limits["neck_pitch"][0]) / 2 + (limits["neck_pitch"][1] + limits["neck_pitch"][0]) / 2
     neck_pitch_pos_rad = np.deg2rad(neck_pitch_deg)
 
+    euler = np.rad2deg(imu.get_data(euler=True))
+    print(euler)
 
-    # Convert from degrees to radians
-    print(head_yaw_deg)
+
 
     hwi.set_position("head_yaw", head_yaw_pos_rad)
     hwi.set_position("head_roll", head_roll_pos_rad)
