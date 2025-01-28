@@ -104,6 +104,7 @@ class Imu:
             # euler = euler - self.zero_euler
             euler = self.convert_axes(euler)
             euler[1] += np.deg2rad(self.pitch_bias)
+            print("PITCH BIAS", self.pitch_bias)
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
