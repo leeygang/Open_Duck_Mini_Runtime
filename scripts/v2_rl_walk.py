@@ -60,7 +60,7 @@ class RLWalk:
         action_scale=0.25,
         cutoff_frequency=None,
         commands=False,
-        pitch_bias=20,
+        pitch_bias=0,
         replay_obs=None,
         zero_head=False,
     ):
@@ -319,7 +319,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=50)
     parser.add_argument("--cutoff_frequency", type=int, default=None)
-    parser.add_argument("--pitch_bias", type=float, default=20, help="deg")
+    parser.add_argument("--pitch_bias", type=float, default=0, help="deg")
     parser.add_argument(
         "--commands",
         action="store_true",

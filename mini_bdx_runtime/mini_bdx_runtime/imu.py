@@ -15,7 +15,7 @@ class Imu:
     def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False):
         self.sampling_freq = sampling_freq
         self.user_pitch_bias = user_pitch_bias
-        self.nominal_pitch_bias = 0
+        self.nominal_pitch_bias = 20
 
         i2c = busio.I2C(board.SCL, board.SDA)
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
@@ -107,7 +107,6 @@ class Imu:
             quat = R.from_euler("xyz", euler).as_quat()
             euler = R.from_quat(quat).as_euler("xyz")
             euler[1] += np.deg2rad(self.pitch_bias)
-            print("PITCH BIAS", self.pitch_bias)
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
