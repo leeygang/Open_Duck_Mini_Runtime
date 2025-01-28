@@ -34,11 +34,14 @@ l_y = 0
 r_x = 0
 r_y = 0
 while True:
-    for event in pygame.event.get():
-        l_x = round(_p1.get_axis(0), 3)
-        l_y = round(_p1.get_axis(1), 3)
-        r_x = round(_p1.get_axis(2), 3)
-        r_y = round(_p1.get_axis(3), 3)
+    try:
+        for event in pygame.event.get():
+            l_x = round(_p1.get_axis(0), 3)
+            l_y = round(_p1.get_axis(1), 3)
+            r_x = round(_p1.get_axis(2), 3)
+            r_y = round(_p1.get_axis(3), 3)
+    except Exception:
+        pass
 
     # print("l_x", l_x)
     # print("l_y", l_y)
