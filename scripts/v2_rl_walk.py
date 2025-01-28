@@ -192,6 +192,14 @@ class RLWalk:
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rad/s
 
+        if len(dof_pos) != 14:
+            print("ERROR len(dof_pos) != 14")
+            return None
+
+        if len(dof_vel) != 14:
+            print("ERROR len(dof_vel) != 14")
+            return None
+
         dof_pos = self.add_fake_antennas(dof_pos)
         dof_vel = self.add_fake_antennas(dof_vel)
 
@@ -236,9 +244,7 @@ class RLWalk:
 
         self.hwi.set_kps(kps)
 
-
         time.sleep(2)
-
 
     def run(self):
         robot_computed_obs = []
@@ -251,14 +257,14 @@ class RLWalk:
                 t = time.time()
 
                 obs = self.get_obs()
+                if obs is None:
+                    continue
                 robot_computed_obs.append(obs)
                 if self.replay_obs is not None:
                     if i < len(self.replay_obs):
                         obs = self.replay_obs[i]
                     else:
                         break
-                if obs is None:
-                    break
 
                 obs = np.clip(obs, -100, 100)
 
