@@ -101,5 +101,4 @@ while True:
     hwi.set_position("head_pitch", head_pitch_pos_rad)
     hwi.set_position("neck_pitch", neck_pitch_pos_rad)
 
-    pygame.event.pump()  # process event queue
     time.sleep(1 / 60)
