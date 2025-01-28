@@ -14,7 +14,7 @@ from mini_bdx_runtime.imu import Imu
 hwi = HWI()
 hwi.turn_on()
 
-imu = Imu(50)
+imu = Imu(50, -18)
 
 pygame.init()
 _p1 = pygame.joystick.Joystick(0)
