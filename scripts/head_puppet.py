@@ -68,7 +68,7 @@ def get_command():
 
 Thread(target=commands_worker, daemon=True).start()
 while True:
-    l_x, l_y, r_x, t_y = get_command()
+    l_x, l_y, r_x, r_y = get_command()
     head_yaw_deg = (
         l_x * (limits["head_yaw"][1] - limits["head_yaw"][0]) / 2
         + (limits["head_yaw"][1] + limits["head_yaw"][0]) / 2
