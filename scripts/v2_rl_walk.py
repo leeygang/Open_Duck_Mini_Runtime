@@ -97,7 +97,8 @@ class RLWalk:
 
         self.init_pos = self.add_fake_antennas(list(self.hwi.init_pos.values()))
 
-        self.last_commands = [0.2, 0, 0]
+        # self.last_commands = [0.2, 0, 0]
+        self.last_commands = [0, 0, 0, 0, 0, 0]
         self.command_freq = 10  # hz
         if self.commands:
             pygame.init()
