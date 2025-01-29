@@ -213,16 +213,17 @@ class RLWalk:
 
         feet_contacts = self.get_feet_contacts()
 
-        cmds = list(
-            np.array(self.last_commands).copy()
-            * np.array(
-                [
-                    self.linearVelocityScale,
-                    self.linearVelocityScale,
-                    self.angularVelocityScale,
-                ]
-            )
-        )
+        cmds = self.last_commands
+        # cmds = list(
+        #     np.array(self.last_commands).copy()
+        #     * np.array(
+        #         [
+        #             self.linearVelocityScale,
+        #             self.linearVelocityScale,
+        #             self.angularVelocityScale,
+        #         ]
+        #     )
+        # )
 
         obs = np.concatenate(
             [
