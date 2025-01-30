@@ -284,6 +284,7 @@ class RLWalk:
 
                 self.prev_action = action.copy()
 
+                robot_action = np.zeros(16)
                 robot_action = action * self.action_scale + self.init_pos
 
                 if self.action_filter is not None:
@@ -294,7 +295,6 @@ class RLWalk:
 
                 if self.zero_head:
                     robot_action = self.set_zero_head(robot_action)
-
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
