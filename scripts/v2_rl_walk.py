@@ -284,7 +284,7 @@ class RLWalk:
 
                 self.prev_action = action.copy()
 
-                # robot_action = np.zeros(16)
+                # action = np.zeros(16)
                 robot_action = action * self.action_scale + self.init_pos
 
                 if self.action_filter is not None:
