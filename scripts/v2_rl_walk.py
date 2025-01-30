@@ -214,7 +214,6 @@ class RLWalk:
         feet_contacts = self.get_feet_contacts()
 
         cmds = self.last_commands
-        print(cmds)
         # cmds = list(
         #     np.array(self.last_commands).copy()
         #     * np.array(
@@ -275,7 +274,7 @@ class RLWalk:
 
                 action = self.policy.infer(obs)
 
-                action = np.clip(action, -5, 5)
+                action = np.clip(action, -1, 1)
 
                 self.prev_action = action.copy()
 
