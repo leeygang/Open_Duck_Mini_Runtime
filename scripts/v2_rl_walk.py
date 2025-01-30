@@ -214,6 +214,7 @@ class RLWalk:
         feet_contacts = self.get_feet_contacts()
 
         cmds = self.last_commands
+        print(cmds)
         # cmds = list(
         #     np.array(self.last_commands).copy()
         #     * np.array(
