@@ -63,10 +63,12 @@ class RLWalk:
         pitch_bias=0,
         replay_obs=None,
         zero_head=False,
+        stand=False,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
         self.zero_head = zero_head
+        self.stand = stand
 
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path, awd=True)
@@ -97,8 +99,11 @@ class RLWalk:
 
         self.init_pos = self.add_fake_antennas(list(self.hwi.init_pos.values()))
 
-        self.last_commands = [0.2, 0, 0]
-        # self.last_commands = [0, 0, 0, 0, 0, 0]
+        if not self.stand:
+            self.last_commands = [0.2, 0, 0]
+        else:
+            self.last_commands = [0, 0, 0, 0, 0, 0]
+
         self.command_freq = 10  # hz
         if self.commands:
             pygame.init()
@@ -107,6 +112,7 @@ class RLWalk:
             print(f"Loaded joystick with {self._p1.get_numaxes()} axes.")
             self.cmd_queue = Queue(maxsize=1)
             Thread(target=self.commands_worker, daemon=True).start()
+
         self.last_command_time = time.time()
 
         if cutoff_frequency is not None:
@@ -343,6 +349,12 @@ if __name__ == "__main__":
         default=False,
         help="force all head dofs to zero",
     )
+    parser.add_argument(
+        "--stand",
+        action="store_true",
+        default=False,
+        help="stand",
+    )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
     parser.add_argument("--record_current_voltage", action="store_true", default=False)
     args = parser.parse_args()
@@ -359,6 +371,7 @@ if __name__ == "__main__":
         pitch_bias=args.pitch_bias,
         replay_obs=args.replay_obs,
         zero_head=args.zero_head,
+        stand=args.stand,
     )
     print("Done instantiating RLWalk")
     # rl_walk.start()
