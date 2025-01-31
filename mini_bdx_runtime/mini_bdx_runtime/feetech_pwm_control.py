@@ -70,28 +70,27 @@ class FeetechPWMControl:
             errors = np.array(self.goal_positions) - np.array(self.present_positions)
 
             pwms = self.kps * errors
-            # pwms *= 10
             pwms = np.int16(pwms)
             pwms = np.clip(pwms, -1000, 1000)
 
             pwm_magnitudes = abs(pwms)
 
-            # direction_bits = 1 if pwms >= 0 else 0
             direction_bits = [1 if pwm >= 0 else 0 for pwm in pwms]
 
-            # goal_times = (direction_bits << 10) | pwm_magnitudes
             goal_times = [
                 (direction_bits[i] << 10) | pwm_magnitudes[i]
                 for i in range(len(pwm_magnitudes))
             ]
 
             self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
+
             if self.speed_decimation_index % self.speed_decimation == 0:
                 self.present_speeds = (
                     np.array(self.present_positions) - np.array(self.last_positions)
                 ) / (time.time() - self.last_t)
                 self.last_positions = np.array(self.present_positions).copy()
                 self.last_t = time.time()
+
             took = time.time() - s
             # print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
             # if (1 / self.control_freq - took) < 0:
