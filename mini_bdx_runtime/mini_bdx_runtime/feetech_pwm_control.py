@@ -65,7 +65,7 @@ class FeetechPWMControl:
             self.present_positions = self.io.get_present_position(self.ids)
             if len(self.present_positions) != len(self.ids):
                 print("ERROR : present_positions and ids do not have the same length")
-                time.sleep(1/self.control_freq)
+                time.sleep(1 / self.control_freq)
                 continue
             errors = np.array(self.goal_positions) - np.array(self.present_positions)
 
@@ -75,9 +75,6 @@ class FeetechPWMControl:
             pwms = np.clip(pwms, -1000, 1000)
 
             pwm_magnitudes = abs(pwms)
-            for i in range(len(pwm_magnitudes)):
-                if pwm_magnitudes[i] >= 2**10:
-                    pwm_magnitudes[i] = (2**10) - 24
 
             # direction_bits = 1 if pwms >= 0 else 0
             direction_bits = [1 if pwm >= 0 else 0 for pwm in pwms]
