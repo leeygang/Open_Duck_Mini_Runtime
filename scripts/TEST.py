@@ -48,7 +48,7 @@ def get_obs(prev_action):
     return obs
 
 
-zero_pos = hwi.zero_pos.copy()
+zero_pos = hwi.init_pos.copy()
 id = 4
 name = list(hwi.joints.keys())[id]
 A = 0.3
