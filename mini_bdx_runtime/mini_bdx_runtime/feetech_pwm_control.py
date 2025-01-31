@@ -72,6 +72,7 @@ class FeetechPWMControl:
             pwms = self.kps * errors
             # pwms *= 10
             pwms = np.int16(pwms)
+            pwms = np.clip(pwms, -1000, 1000)
 
             pwm_magnitudes = abs(pwms)
             for i in range(len(pwm_magnitudes)):
