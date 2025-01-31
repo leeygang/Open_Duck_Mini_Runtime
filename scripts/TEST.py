@@ -66,6 +66,8 @@ try:
 
         hwi.set_position_all(zero_pos)
         prev_pos = add_fake_antennas(list(zero_pos.values()))
+        load = hwi.control.io.get_current_load([id])[0]
+        print("load : ", load)
 
         obs = get_obs(prev_pos)
 
