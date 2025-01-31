@@ -76,7 +76,7 @@ class FeetechPWMControl:
             pwm_magnitudes = abs(pwms)
             for i in range(len(pwm_magnitudes)):
                 if pwm_magnitudes[i] >= 2**10:
-                    pwm_magnitudes[i] = (2**10) - 1
+                    pwm_magnitudes[i] = (2**10) - 24
 
             # direction_bits = 1 if pwms >= 0 else 0
             direction_bits = [1 if pwm >= 0 else 0 for pwm in pwms]
