@@ -49,7 +49,7 @@ def get_obs(prev_action):
 
 
 zero_pos = hwi.zero_pos.copy()
-id = 2
+id = 4
 name = list(hwi.joints.keys())[id]
 A = 0.3
 F = 2.0
