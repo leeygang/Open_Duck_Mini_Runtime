@@ -106,7 +106,7 @@ class RLWalk:
         self.init_pos = self.add_fake_antennas(list(self.hwi.init_pos.values()))
 
         if not self.stand:
-            self.last_commands = [0.2, 0, 0]
+            self.last_commands = [0.3, 0, 0]
         else:
             self.last_commands = [0, 0, 0, 0, 0, 0]
 
@@ -135,8 +135,8 @@ class RLWalk:
         return np.array(pos_with_antennas)
 
     def set_zero_head(self, pos):
-        pos[5] = np.deg2rad(5)
-        pos[6] = np.deg2rad(-5)
+        pos[5] = np.deg2rad(10)
+        pos[6] = np.deg2rad(-10)
         # pos[5] = 0
         # pos[6] = 0
         pos[7] = 0
@@ -320,7 +320,8 @@ class RLWalk:
                 # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
                 if (1 / self.control_freq - took) < 0:
                     print(
-                        "Policy control budget exceeded by", np.around(took - 1 / self.control_freq, 3)
+                        "Policy control budget exceeded by",
+                        np.around(took - 1 / self.control_freq, 3),
                     )
                 time.sleep(max(0, 1 / self.control_freq - took))
 
