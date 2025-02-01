@@ -97,11 +97,11 @@ class FeetechPWMControl:
             self.bench = self.bench[-100:]
             print("mean took : ", np.mean(self.bench))
             # print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
-            # if (1 / self.control_freq - took) < 0:
-            #     print(
-            #         "Low level control budget exceded by ",
-            #         np.around(took - 1 / self.control_freq, 3),
-            #     )
+            if (1 / self.control_freq - took) < 0:
+                print(
+                    "Low level control budget exceded by ",
+                    np.around(took - 1 / self.control_freq, 3),
+                )
             time.sleep(max(0, (1 / self.control_freq - took)))
             self.speed_decimation_index += 1
 
