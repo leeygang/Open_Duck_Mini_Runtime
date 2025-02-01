@@ -296,8 +296,10 @@ class RLWalk:
                         break
 
                 if self.rma:
-                    self.rma_obs_history.append(obs)
-                    self.rma_obs_history = self.rma_obs_history[-self.rma_obs_history_size:]
+                    # self.rma_obs_history.append(obs)
+                    # self.rma_obs_history = self.rma_obs_history[-self.rma_obs_history_size:]
+                    self.rma_obs_history = np.roll(self.rma_obs_history, 1, axis=0)
+                    self.rma_obs_history[0] = obs
 
                     if i % self.rma_decimation == 0 or latent is None:
                         latent = self.adaptation_module.infer(np.array(self.rma_obs_history).flatten())
