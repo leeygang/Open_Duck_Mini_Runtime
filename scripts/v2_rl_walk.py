@@ -287,7 +287,10 @@ class RLWalk:
                 if self.replay_actions is None:
                     action = self.policy.infer(obs)
                 else:
-                    action = self.replay_actions[i][-(16 + 3) : -3]
+                    if i < len(self.replay_actions):
+                        action = self.replay_actions[i][-(16 + 3) : -3]
+                    else:
+                        break
 
                 action = np.clip(action, -5, 5)
 
