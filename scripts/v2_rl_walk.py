@@ -204,8 +204,11 @@ class RLWalk:
             self.last_commands = self.get_last_command()
             # print(self.last_commands)
 
-        dof_pos = self.hwi.get_present_positions()  # rad
-        dof_vel = self.hwi.get_present_velocities()  # rad/s
+        # dof_pos = self.hwi.get_present_positions()  # rad
+        # dof_vel = self.hwi.get_present_velocities()  # rad/s
+
+        dof_pos = np.zeros(14)
+        dof_vel = np.zeros(14)
 
         if len(dof_pos) != 14:
             print("ERROR len(dof_pos) != 14")
