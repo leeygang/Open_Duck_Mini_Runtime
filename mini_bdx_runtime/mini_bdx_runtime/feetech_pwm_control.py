@@ -94,6 +94,7 @@ class FeetechPWMControl:
 
             took = time.time() - s
             self.bench.append(took)
+            self.bench = self.bench[-100:]
             print("mean took : ", np.mean(self.bench))
             # print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
             # if (1 / self.control_freq - took) < 0:
