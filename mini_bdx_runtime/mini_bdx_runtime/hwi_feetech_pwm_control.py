@@ -143,8 +143,13 @@ class HWI:
         """
         Returns the present positions in radians
         """
+
+        # present_positions = np.deg2rad(
+        #     self.control.io.get_present_position(self.joints.values())
+        # )
+
         present_positions = np.deg2rad(
-            self.control.io.get_present_position(self.joints.values())
+            self.control.present_positions
         )
         present_positions = [
             pos - self.joints_offsets[joint]

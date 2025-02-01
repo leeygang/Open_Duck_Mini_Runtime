@@ -204,11 +204,8 @@ class RLWalk:
             self.last_commands = self.get_last_command()
             # print(self.last_commands)
 
-        # dof_pos = self.hwi.get_present_positions()  # rad
-        # dof_vel = self.hwi.get_present_velocities()  # rad/s
-
-        dof_pos = np.zeros(14)
-        dof_vel = np.zeros(14)
+        dof_pos = self.hwi.get_present_positions()  # rad
+        dof_vel = self.hwi.get_present_velocities()  # rad/s
 
         if len(dof_pos) != 14:
             print("ERROR len(dof_pos) != 14")
@@ -267,7 +264,7 @@ class RLWalk:
 
     def run(self):
         robot_computed_obs = []
-        voltages = []
+        # voltages = []
         i = 0
         start = time.time()
         try:
@@ -313,9 +310,9 @@ class RLWalk:
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
-                # self.hwi.set_position_all(action_dict)
+                self.hwi.set_position_all(action_dict)
 
-                voltages.append(self.hwi.get_present_voltages())
+                # voltages.append(self.hwi.get_present_voltages())
 
                 i += 1
 
@@ -333,7 +330,7 @@ class RLWalk:
             pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
-        pickle.dump(voltages, open("voltages.pkl", "wb"))
+        # pickle.dump(voltages, open("voltages.pkl", "wb"))
         time.sleep(1)
 
         self.hwi.freeze()
@@ -372,7 +369,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
     parser.add_argument("--replay_actions", type=str, required=False, default=None)
-    parser.add_argument("--record_current_voltage", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
