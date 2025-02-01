@@ -62,6 +62,7 @@ class RLWalk:
         commands=False,
         pitch_bias=0,
         replay_obs=None,
+        replay_actions=None,
         zero_head=False,
         stand=False,
     ):
@@ -76,6 +77,11 @@ class RLWalk:
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
             self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
+
+        self.replay_actions = replay_actions
+        if self.replay_actions is not None:
+            self.replay_actions = pickle.load(open(self.replay_actions, "rb"))
+            self.replay_obs = None
 
         self.num_obs = 56
 
@@ -278,7 +284,10 @@ class RLWalk:
 
                 obs = np.clip(obs, -100, 100)
 
-                action = self.policy.infer(obs)
+                if self.replay_actions is None:
+                    action = self.policy.infer(obs)
+                else:
+                    action = self.replay_actions[i][-(16 + 3) : -3]
 
                 action = np.clip(action, -5, 5)
 
@@ -356,6 +365,7 @@ if __name__ == "__main__":
         help="stand",
     )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
+    parser.add_argument("--replay_actions", type=str, required=False, default=None)
     parser.add_argument("--record_current_voltage", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
@@ -370,6 +380,7 @@ if __name__ == "__main__":
         commands=args.commands,
         pitch_bias=args.pitch_bias,
         replay_obs=args.replay_obs,
+        replay_actions=args.replay_actions,
         zero_head=args.zero_head,
         stand=args.stand,
     )
