@@ -12,6 +12,7 @@ class FeetechPWMControl:
             use_sync_read=True,
         )
         self.ids = ids
+        self.bench = []
 
         # TODO remove this ?
         # self.io.enable_torque(self.ids)
@@ -92,6 +93,8 @@ class FeetechPWMControl:
                 self.last_t = time.time()
 
             took = time.time() - s
+            self.bench.append(took)
+            print("mean took : ", np.mean(self.bench))
             # print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
             # if (1 / self.control_freq - took) < 0:
             #     print(
