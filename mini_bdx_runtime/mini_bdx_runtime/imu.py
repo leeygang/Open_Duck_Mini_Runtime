@@ -1,6 +1,8 @@
+
+from adafruit_extended_bus import ExtendedI2C as I2C
 import adafruit_bno055
-import board
-import busio
+# import board
+# import busio
 import numpy as np
 
 from queue import Queue
@@ -18,7 +20,8 @@ class Imu:
         self.nominal_pitch_bias = 20
         self.raw = raw
 
-        i2c = busio.I2C(board.SCL, board.SDA)
+        # i2c = busio.I2C(board.SCL, board.SDA)
+        i2c = I2C(1)  # Device is /dev/i2c-1
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
 
         # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
