@@ -32,7 +32,7 @@ class IMUServer:
             print("Connection from: " + str(address))
             try:
                 while True:
-                    data = self.imu.get_data()
+                    data = self.imu.get_data(raw=True)
                     data = pickle.dumps(data)
                     conn.send(data)  # send data to the client
                     time.sleep(1 / 30)

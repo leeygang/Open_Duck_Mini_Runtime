@@ -61,6 +61,7 @@ class Imu:
         #         continue
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
+        self.raw_imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
 
     def convert_axes(self, euler):
@@ -101,11 +102,12 @@ class Imu:
                 print("[IMU]:", e)
                 continue
 
+            self.raw_imu_queue.put(raw_orientation)
             # Converting to correct axes
             # euler = euler - self.zero_euler
             euler = self.convert_axes(euler)
-            # quat = R.from_euler("xyz", euler).as_quat()
-            # euler = R.from_quat(quat).as_euler("xyz")
+            quat = R.from_euler("xyz", euler).as_quat()
+            euler = R.from_quat(quat).as_euler("xyz")
             euler[1] += np.deg2rad(self.pitch_bias)
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
@@ -114,9 +116,13 @@ class Imu:
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
-    def get_data(self, euler=False):
+    def get_data(self, euler=False, raw=False):
         try:
-            self.last_imu_data = self.imu_queue.get(False)  # non blocking
+            if not raw:
+                self.last_imu_data = self.imu_queue.get(False)  # non blocking
+            else:
+                self.last_imu_data = self.raw_imu_queue.get(False)
+
         except Exception:
             pass
 
