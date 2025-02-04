@@ -16,7 +16,14 @@ class IMUClient:
         self.port = port
         self.freq = freq
         self.client_socket = socket.socket()
-        self.client_socket.connect((self.host, self.port))
+        self.connected = False
+        while not self.connected:
+            try:
+                self.client_socket.connect((self.host, self.port))
+                self.connected = True
+            except Exception as e:
+                print(e)
+                time.sleep(0.5)
         self.imu_queue = Queue(maxsize=1)
         self.last_imu = [0, 0, 0, 0]
 
