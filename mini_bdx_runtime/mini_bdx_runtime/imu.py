@@ -117,7 +117,7 @@ class Imu:
             # ignoring yaw
             euler[2] = 0 
 
-            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
+            final_orientation_quat = R.from_euler("xyz", euler, degrees=True).as_quat()
 
             self.imu_queue.put(final_orientation_quat)
             took = time.time() - s
