@@ -15,6 +15,7 @@ from mini_bdx_runtime.rl_utils import (
     quat_rotate_inverse,
 )
 from mini_bdx_runtime.imu import Imu
+from imu_server import IMUServer
 
 
 # Commands
@@ -67,6 +68,7 @@ class RLWalk:
         stand=False,
         rma=False,
         adaptation_module_path=None,
+        imu_server = False
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
@@ -74,6 +76,7 @@ class RLWalk:
         self.stand = stand
         self.rma = rma
         self.adaptation_module_path = adaptation_module_path
+        self.imu_server = imu_server
 
         self.num_obs = 56
 
@@ -106,6 +109,9 @@ class RLWalk:
         self.start()
 
         self.imu = Imu(sampling_freq=self.control_freq, user_pitch_bias=self.pitch_bias)
+
+        if self.imu_server:
+            imu_server = IMUServer(imu=self.imu)
 
         # Scales
         self.linearVelocityScale = 1.0
@@ -399,6 +405,7 @@ if __name__ == "__main__":
     parser.add_argument("--replay_actions", type=str, required=False, default=None)
     parser.add_argument("--rma", action="store_true", default=False)
     parser.add_argument("--adaptation_module_path", type=str, required=False)
+    parser.add_argument("--imu_server", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -417,6 +424,7 @@ if __name__ == "__main__":
         stand=args.stand,
         rma=args.rma,
         adaptation_module_path=args.adaptation_module_path,
+        imu_server=args.imu_server,
     )
     print("Done instantiating RLWalk")
     # rl_walk.start()

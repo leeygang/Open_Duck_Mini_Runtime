@@ -2,6 +2,8 @@ import socket
 import time
 import pickle
 from mini_bdx_runtime.imu import Imu
+from threading import Thread
+import time
 
 import argparse
 
@@ -23,6 +25,9 @@ class IMUServer:
         else:
             self.imu = imu
 
+        Thread(target=self.run, daemon=True).start()
+
+    def run(self):
 
         while True:
             self.server_socket.listen(1)
@@ -39,4 +44,7 @@ class IMUServer:
 
 
 if __name__ == "__main__":
-    IMUServer()
+    imu_server = IMUServer()
+    while True:
+        time.sleep(0.01)
+
