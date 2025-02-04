@@ -299,7 +299,7 @@ class RLWalk:
 
                 if self.rma:
                     self.rma_obs_history = np.roll(self.rma_obs_history, 1, axis=0)
-                    self.rma_obs_history[0] = obs.copy()
+                    self.rma_obs_history[0, :] = obs.copy()
 
                     if (time.time() - self.last_rma_tick > 1 / self.rma_freq) or latent is None:
                         latent = self.adaptation_module.infer(np.array(self.rma_obs_history).flatten())
