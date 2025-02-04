@@ -16,7 +16,7 @@ try:
 
         target = A * np.sin(2 * np.pi * F * time.time())
         for name in zero_pos.keys():
-            zero_pos[name] = target
+            zero_pos[name] = target + hwi.init_pos[name]
 
         hwi.set_position_all(zero_pos)
 
