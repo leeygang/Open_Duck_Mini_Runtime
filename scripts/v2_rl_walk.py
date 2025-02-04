@@ -108,7 +108,7 @@ class RLWalk:
         self.hwi = HWI(serial_port)
         self.start()
 
-        self.imu = Imu(sampling_freq=self.control_freq, user_pitch_bias=self.pitch_bias)
+        self.imu = Imu(sampling_freq=self.control_freq, user_pitch_bias=self.pitch_bias, raw=True)
 
         if self.imu_server:
             imu_server = IMUServer(imu=self.imu)
