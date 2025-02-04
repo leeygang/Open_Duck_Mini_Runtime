@@ -110,7 +110,7 @@ class Imu:
             #     self.imu_queue.put(raw_orientation)
             # else:
             # Converting to correct axes
-            euler = self.convert_axes(euler)
+            # euler = self.convert_axes(euler)
             # quat = R.from_euler("xyz", euler).as_quat()
             # euler = R.from_quat(quat).as_euler("xyz")
             euler[1] += np.deg2rad(self.pitch_bias)
