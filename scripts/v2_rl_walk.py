@@ -277,6 +277,7 @@ class RLWalk:
 
     def run(self):
         robot_computed_obs = []
+        adaptation_module_latents = []
         # voltages = []
         i = 0
         start = time.time()
@@ -302,6 +303,7 @@ class RLWalk:
 
                     if (time.time() - self.last_rma_tick > 1 / self.rma_freq) or latent is None:
                         latent = self.adaptation_module.infer(np.array(self.rma_obs_history).flatten())
+                        adaptation_module_latents.append(latent)
                         self.last_rma_tick = time.time()
                     obs = np.concatenate([obs, latent])
 
@@ -354,6 +356,8 @@ class RLWalk:
             pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
+        if self.rma:
+            pickle.dump(adaptation_module_latents, open("adaptation_module_latents.pkl", "wb"))
         # pickle.dump(voltages, open("voltages.pkl", "wb"))
         time.sleep(1)
 
