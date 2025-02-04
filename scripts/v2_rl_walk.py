@@ -118,7 +118,7 @@ class RLWalk:
         self.init_pos = self.add_fake_antennas(list(self.hwi.init_pos.values()))
 
         if not self.stand:
-            self.last_commands = [0.2, 0, 0]
+            self.last_commands = [0.1, 0, 0]
         else:
             self.last_commands = [0, 0, 0, 0, 0, 0]
 
