@@ -405,7 +405,7 @@ if __name__ == "__main__":
     parser.add_argument("--replay_actions", type=str, required=False, default=None)
     parser.add_argument("--rma", action="store_true", default=False)
     parser.add_argument("--adaptation_module_path", type=str, required=False)
-    # parser.add_argument("--imu_server", action="store_true", default=False)
+    parser.add_argument("--imu_server", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
