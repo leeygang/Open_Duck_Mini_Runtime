@@ -97,6 +97,7 @@ class Imu:
             s = time.time()
             try:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
+                print(raw_orientation)
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
                 print("[IMU]:", e)
