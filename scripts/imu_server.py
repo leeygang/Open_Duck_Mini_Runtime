@@ -7,9 +7,6 @@ import time
 
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--pitch_bias", type=float, default=0, help="deg")
-args = parser.parse_args()
 
 
 class IMUServer:
@@ -44,6 +41,9 @@ class IMUServer:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pitch_bias", type=float, default=0, help="deg")
+    args = parser.parse_args()
     imu_server = IMUServer()
     while True:
         time.sleep(0.01)
