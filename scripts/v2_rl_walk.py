@@ -424,7 +424,7 @@ if __name__ == "__main__":
         stand=args.stand,
         rma=args.rma,
         adaptation_module_path=args.adaptation_module_path,
-        imu_server=False
+        imu_server=args.imu_server
     )
     print("Done instantiating RLWalk")
     # rl_walk.start()
