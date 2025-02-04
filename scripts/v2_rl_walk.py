@@ -301,6 +301,7 @@ class RLWalk:
                     if i < len(self.replay_obs):
                         obs = self.replay_obs[i]
                     else:
+                        print("BREAKING ")
                         break
 
                 if self.rma:
