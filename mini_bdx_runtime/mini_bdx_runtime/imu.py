@@ -99,25 +99,27 @@ class Imu:
         while True:
             s = time.time()
             try:
-                raw_orientation = np.array(self.imu.quaternion)  # quat
-                euler = R.from_quat(raw_orientation).as_euler("xyz")
+                # raw_orientation = np.array(self.imu.quaternion)  # quat
+                # euler = R.from_quat(raw_orientation).as_euler("xyz")
+                euler = np.array(self.imu.euler)
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
-            if self.raw:
-                self.imu_queue.put(raw_orientation)
-            else:
-                # Converting to correct axes
-                # euler = euler - self.zero_euler
-                euler = self.convert_axes(euler)
-                quat = R.from_euler("xyz", euler).as_quat()
-                euler = R.from_quat(quat).as_euler("xyz")
-                euler[1] += np.deg2rad(self.pitch_bias)
+            # if self.raw:
+            #     self.imu_queue.put(raw_orientation)
+            # else:
+            # Converting to correct axes
+            euler = self.convert_axes(euler)
+            # quat = R.from_euler("xyz", euler).as_quat()
+            # euler = R.from_quat(quat).as_euler("xyz")
+            euler[1] += np.deg2rad(self.pitch_bias)
+            # ignoring yaw
+            euler[2] = 0 
 
-                final_orientation_quat = R.from_euler("xyz", euler).as_quat()
+            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-                self.imu_queue.put(final_orientation_quat)
+            self.imu_queue.put(final_orientation_quat)
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
