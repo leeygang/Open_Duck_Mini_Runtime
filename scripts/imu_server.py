@@ -18,7 +18,7 @@ class IMUServer:
         self.server_socket.bind((self.host, self.port))
 
         if imu is None:
-            self.imu = Imu(50, user_pitch_bias=args.pitch_bias)
+            self.imu = Imu(50, user_pitch_bias=args.pitch_bias, raw=True)
         else:
             self.imu = imu
 
@@ -32,7 +32,7 @@ class IMUServer:
             print("Connection from: " + str(address))
             try:
                 while True:
-                    data = self.imu.get_data(raw=True)
+                    data = self.imu.get_data()
                     data = pickle.dumps(data)
                     conn.send(data)  # send data to the client
                     time.sleep(1 / 30)

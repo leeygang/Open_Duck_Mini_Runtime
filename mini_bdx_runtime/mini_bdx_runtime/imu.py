@@ -12,10 +12,11 @@ from scipy.spatial.transform import Rotation as R
 
 # TODO filter spikes
 class Imu:
-    def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False):
+    def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False, raw=False):
         self.sampling_freq = sampling_freq
         self.user_pitch_bias = user_pitch_bias
         self.nominal_pitch_bias = 20
+        self.raw = raw
 
         i2c = busio.I2C(board.SCL, board.SDA)
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
@@ -61,7 +62,6 @@ class Imu:
         #         continue
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
-        self.raw_imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
 
     def convert_axes(self, euler):
@@ -102,30 +102,26 @@ class Imu:
                 print("[IMU]:", e)
                 continue
 
-            self.raw_imu_queue.put(raw_orientation)
-            # Converting to correct axes
-            # euler = euler - self.zero_euler
-            euler = self.convert_axes(euler)
-            quat = R.from_euler("xyz", euler).as_quat()
-            euler = R.from_quat(quat).as_euler("xyz")
-            euler[1] += np.deg2rad(self.pitch_bias)
+            if self.raw:
+                self.imu_queue.put(raw_orientation)
+            else:
+                # Converting to correct axes
+                # euler = euler - self.zero_euler
+                euler = self.convert_axes(euler)
+                quat = R.from_euler("xyz", euler).as_quat()
+                euler = R.from_quat(quat).as_euler("xyz")
+                euler[1] += np.deg2rad(self.pitch_bias)
 
-            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
+                final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            self.imu_queue.put(final_orientation_quat)
+                self.imu_queue.put(final_orientation_quat)
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
-    def get_data(self, euler=False, raw=False):
+    def get_data(self, euler=False):
         try:
-            if not raw:
-                self.last_imu_data = self.imu_queue.get(False)  # non blocking
-            else:
-                self.last_imu_data = self.raw_imu_queue.get(False)
-                print("got")
-
+            self.last_imu_data = self.imu_queue.get(False)  # non blocking
         except Exception:
-            print("aa")
             pass
 
         if not euler:
