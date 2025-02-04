@@ -10,7 +10,7 @@ hwi = HWI()
 hwi.turn_on()
 
 
-def get_feet_contacts(self):
+def get_feet_contacts():
     left = False
     right = False
     if GPIO.input(LEFT_FOOT_PIN) == GPIO.LOW:
