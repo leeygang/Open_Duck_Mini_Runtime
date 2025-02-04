@@ -97,6 +97,7 @@ class Imu:
         while True:
             s = time.time()
             try:
+                print("calibration status", self.imu.calibration_status)
                 raw_orientation = np.array(self.imu.quaternion)  # quat
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
