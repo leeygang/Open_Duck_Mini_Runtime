@@ -1,8 +1,6 @@
-
-from adafruit_extended_bus import ExtendedI2C as I2C
 import adafruit_bno055
-# import board
-# import busio
+import board
+import busio
 import numpy as np
 
 from queue import Queue
@@ -14,17 +12,16 @@ from scipy.spatial.transform import Rotation as R
 
 # TODO filter spikes
 class Imu:
-    def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False, raw=False):
+    def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False):
         self.sampling_freq = sampling_freq
         self.user_pitch_bias = user_pitch_bias
         self.nominal_pitch_bias = 20
-        self.raw = raw
 
-        # i2c = busio.I2C(board.SCL, board.SDA)
-        i2c = I2C(1)  # Device is /dev/i2c-1
+        i2c = busio.I2C(board.SCL, board.SDA)
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
 
-        self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+        # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+        self.imu.mode = adafruit_bno055.ACCGYRO_MODE
         # self.imu.mode = adafruit_bno055.GYRONLY_MODE
         # self.imu.mode = adafruit_bno055.NDOF_MODE
 
@@ -99,25 +96,20 @@ class Imu:
         while True:
             s = time.time()
             try:
-                # raw_orientation = np.array(self.imu.quaternion)  # quat
-                # euler = R.from_quat(raw_orientation).as_euler("xyz")
-                euler = np.array(self.imu.euler)
+                raw_orientation = np.array(self.imu.quaternion)  # quat
+                euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
-            # if self.raw:
-            #     self.imu_queue.put(raw_orientation)
-            # else:
             # Converting to correct axes
-            # euler = self.convert_axes(euler)
-            # quat = R.from_euler("xyz", euler).as_quat()
-            # euler = R.from_quat(quat).as_euler("xyz")
+            # euler = euler - self.zero_euler
+            euler = self.convert_axes(euler)
+            quat = R.from_euler("xyz", euler).as_quat()
+            euler = R.from_quat(quat).as_euler("xyz")
             euler[1] += np.deg2rad(self.pitch_bias)
-            # ignoring yaw
-            euler[2] = 0 
 
-            final_orientation_quat = R.from_euler("xyz", euler, degrees=True).as_quat()
+            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
             self.imu_queue.put(final_orientation_quat)
             took = time.time() - s
