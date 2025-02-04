@@ -22,7 +22,7 @@ class Imu:
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
 
         # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-        self.imu.mode = adafruit_bno055.GYRONLY_MODE
+        # self.imu.mode = adafruit_bno055.GYRONLY_MODE
         # self.imu.mode = adafruit_bno055.NDOF_MODE
 
         # self.compute_nominal_pitch_bias() # TODO
@@ -97,8 +97,8 @@ class Imu:
             s = time.time()
             try:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
-                print(raw_orientation)
-                print(self.imu.euler)
+                # print(raw_orientation)
+                # print(self.imu.euler)
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
                 print("[IMU]:", e)
