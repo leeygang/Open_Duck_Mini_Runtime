@@ -321,6 +321,7 @@ class RLWalk:
                     if i < len(self.replay_actions):
                         action = self.replay_actions[i][-(16 + 3) : -3]
                     else:
+                        print("BREAKING ")
                         break
 
                 action = np.clip(action, -5, 5)
@@ -367,7 +368,9 @@ class RLWalk:
         # pickle.dump(voltages, open("voltages.pkl", "wb"))
         time.sleep(1)
 
+        print("FREEZING")
         self.hwi.freeze()
+        print("TURNING OFF")
 
 
 if __name__ == "__main__":
