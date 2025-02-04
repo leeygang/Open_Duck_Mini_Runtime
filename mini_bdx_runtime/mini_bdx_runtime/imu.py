@@ -122,6 +122,7 @@ class Imu:
                 self.last_imu_data = self.imu_queue.get(False)  # non blocking
             else:
                 self.last_imu_data = self.raw_imu_queue.get(False)
+                print("got")
 
         except Exception:
             print("aa")
