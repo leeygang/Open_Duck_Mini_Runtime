@@ -1,9 +1,24 @@
 from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 import numpy as np
 import time
+import RPi.GPIO as GPIO
+
+LEFT_FOOT_PIN = 22
+RIGHT_FOOT_PIN = 27
 
 hwi = HWI()
 hwi.turn_on()
+
+
+def get_feet_contacts(self):
+    left = False
+    right = False
+    if GPIO.input(LEFT_FOOT_PIN) == GPIO.LOW:
+        left = True
+    if GPIO.input(RIGHT_FOOT_PIN) == GPIO.LOW:
+        right = True
+    return np.array([left, right])
+
 
 control_freq = 50
 zero_pos = hwi.init_pos.copy()
@@ -19,6 +34,7 @@ try:
             zero_pos[name] = target + hwi.init_pos[name]
 
         hwi.set_position_all(zero_pos)
+        feet_contacts = get_feet_contacts()
 
         took = time.time() - s
         time.sleep(max(0, 1 / control_freq - took))
