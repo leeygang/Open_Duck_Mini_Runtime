@@ -24,7 +24,7 @@ class Imu:
         i2c = I2C(1)  # Device is /dev/i2c-1
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
 
-        # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+        self.imu.mode = adafruit_bno055.IMUPLUS_MODE
         # self.imu.mode = adafruit_bno055.GYRONLY_MODE
         # self.imu.mode = adafruit_bno055.NDOF_MODE
 
