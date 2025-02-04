@@ -85,8 +85,8 @@ class RLWalk:
                 self.adaptation_module_path, "rma_history", awd=True
             )
             self.rma_obs_history_size = 50
-            self.rma_obs_history = np.zeros((self.rma_obs_history_size, self.num_obs)).tolist()
-            self.rma_freq = 30  # Hz
+            self.rma_obs_history = np.zeros((self.rma_obs_history_size, self.num_obs))
+            self.rma_freq = 10  # Hz
             self.last_rma_tick = time.time()
 
         self.replay_obs = replay_obs
