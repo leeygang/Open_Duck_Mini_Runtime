@@ -86,7 +86,8 @@ class RLWalk:
             )
             self.rma_obs_history_size = 50
             self.rma_obs_history = np.zeros((self.rma_obs_history_size, self.num_obs)).tolist()
-            self.rma_decimation = 5  # 10 Hz if control_freq = 50 Hz
+            self.rma_freq = 10  # Hz
+            self.last_rma_tick = time.time()
 
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
@@ -296,13 +297,12 @@ class RLWalk:
                         break
 
                 if self.rma:
-                    # self.rma_obs_history.append(obs)
-                    # self.rma_obs_history = self.rma_obs_history[-self.rma_obs_history_size:]
                     self.rma_obs_history = np.roll(self.rma_obs_history, 1, axis=0)
                     self.rma_obs_history[0] = obs
 
-                    if i % self.rma_decimation == 0 or latent is None:
+                    if (time.time() - self.last_rma_tick > 1 / self.rma_freq) or latent is None:
                         latent = self.adaptation_module.infer(np.array(self.rma_obs_history).flatten())
+                        self.last_rma_tick = time.time()
                     obs = np.concatenate([obs, latent])
 
                 obs = np.clip(obs, -100, 100)
