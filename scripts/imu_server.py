@@ -4,27 +4,39 @@ import pickle
 from mini_bdx_runtime.imu import Imu
 
 import argparse
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--pitch_bias", type=float, default=0, help="deg")
 args = parser.parse_args()
 
-host = "0.0.0.0"
-port = 1234
 
-server_socket = socket.socket()
-server_socket.bind((host, port))
+class IMUServer:
+    def __init__(self, imu=None):
+        self.host = "0.0.0.0"
+        self.port = 1234
 
-imu = Imu(50, user_pitch_bias=args.pitch_bias)
+        self.server_socket = socket.socket()
+        self.server_socket.bind((self.host, self.port))
 
-while True:
-    server_socket.listen(1)
-    conn, address = server_socket.accept()  # accept new connection
-    print("Connection from: " + str(address))
-    try:
+        if imu is None:
+            self.imu = Imu(50, user_pitch_bias=args.pitch_bias)
+        else:
+            self.imu = imu
+
+
         while True:
-            data = imu.get_data()
-            data = pickle.dumps(data)
-            conn.send(data)  # send data to the client
-            time.sleep(1 / 30)
-    except:
-        pass
+            self.server_socket.listen(1)
+            conn, address = self.server_socket.accept()  # accept new connection
+            print("Connection from: " + str(address))
+            try:
+                while True:
+                    data = self.imu.get_data()
+                    data = pickle.dumps(data)
+                    conn.send(data)  # send data to the client
+                    time.sleep(1 / 30)
+            except:
+                pass
+
+
+if __name__ == "__main__":
+    IMUServer()
