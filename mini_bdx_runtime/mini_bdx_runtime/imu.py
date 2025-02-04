@@ -124,6 +124,7 @@ class Imu:
                 self.last_imu_data = self.raw_imu_queue.get(False)
 
         except Exception:
+            print("aa")
             pass
 
         if not euler:
