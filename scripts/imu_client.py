@@ -72,7 +72,8 @@ if __name__ == "__main__":
 
                 projected_gravity = quat_rotate_inverse(quat, [0, 0, -1])
                 projected_gravities.append(projected_gravity)
-            except:
+            except Exception as e:
+                print('error', e)
                 pass
             time.sleep(1 / 30)
     except KeyboardInterrupt:
