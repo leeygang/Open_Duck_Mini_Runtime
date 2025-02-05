@@ -315,8 +315,8 @@ class RLWalk:
                         adaptation_module_latents.append(latent)
                         self.last_rma_tick = time.time()
 
-                    if nb_times_rolled < 50:
-                        latent = np.zeros(18)
+                    # if nb_times_rolled < 50:
+                    latent = np.zeros(18)
                     obs = np.concatenate([obs, latent])
 
                 obs = np.clip(obs, -100, 100)
