@@ -93,10 +93,42 @@ class Imu:
         self.nominal_pitch_bias = np.mean(pitch_samples)
         print("[IMU]: Nominal pitch bias:", self.nominal_pitch_bias)
 
+    # def imu_worker(self):
+    #     while True:
+    #         s = time.time()
+    #         problem = False
+    #         try:
+    #             raw_orientation = np.array(self.imu.quaternion)  # quat
+    #             acc = np.array(self.imu.acceleration)
+    #             gyro = np.array(self.imu.gyro)
+    #             print("raw_orientation : ", np.around(raw_orientation, 2))
+    #             print("acc : ", np.around(acc, 2))
+    #             print("gyro : ", np.around(gyro, 2))
+    #             euler = R.from_quat(raw_orientation).as_euler("xyz").copy()
+    #             print("euler", euler)
+    #             problem = raw_orientation[0] == 1.0
+    #         except Exception as e:
+    #             print("[IMU]:", e)
+    #             continue
+
+    #         # Converting to correct axes
+    #         # euler = euler - self.zero_euler
+    #         if problem:
+    #             euler[2] -= np.pi
+    #         euler = self.convert_axes(euler)
+    #         quat = R.from_euler("xyz", euler).as_quat()
+    #         euler = R.from_quat(quat).as_euler("xyz")
+    #         euler[1] += np.deg2rad(self.pitch_bias)
+
+    #         final_orientation_quat = R.from_euler("xyz", euler).as_quat()
+
+    #         self.imu_queue.put(final_orientation_quat)
+    #         took = time.time() - s
+    #         time.sleep(max(0, 1 / self.sampling_freq - took))
+
     def imu_worker(self):
         while True:
             s = time.time()
-            problem = False
             try:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
                 acc = np.array(self.imu.acceleration)
@@ -104,25 +136,22 @@ class Imu:
                 print("raw_orientation : ", np.around(raw_orientation, 2))
                 print("acc : ", np.around(acc, 2))
                 print("gyro : ", np.around(gyro, 2))
-                euler = R.from_quat(raw_orientation).as_euler("xyz")
+                euler = R.from_quat(raw_orientation).as_euler("xyz").copy()
                 print("euler", euler)
-                problem = raw_orientation[0] == 1.0
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
             # Converting to correct axes
             # euler = euler - self.zero_euler
-            if problem:
-                euler[2] -= np.pi
-            euler = self.convert_axes(euler)
-            quat = R.from_euler("xyz", euler).as_quat()
-            euler = R.from_quat(quat).as_euler("xyz")
-            euler[1] += np.deg2rad(self.pitch_bias)
+            # euler = self.convert_axes(euler)
+            # quat = R.from_euler("xyz", euler).as_quat()
+            # euler = R.from_quat(quat).as_euler("xyz")
+            # euler[1] += np.deg2rad(self.pitch_bias)
 
-            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
+            # final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            self.imu_queue.put(final_orientation_quat)
+            self.imu_queue.put(raw_orientation)
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
