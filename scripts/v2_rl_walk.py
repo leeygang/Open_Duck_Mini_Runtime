@@ -290,7 +290,6 @@ class RLWalk:
         latent = None
         try:
             print("Starting")
-            nb_times_rolled = 0
             while True:
                 t = time.time()
 
@@ -308,16 +307,12 @@ class RLWalk:
                 if self.rma:
                     self.rma_obs_history = np.roll(self.rma_obs_history, 1, axis=0)
                     self.rma_obs_history[0] = obs.copy()
-                    nb_times_rolled += 1
 
                     if (time.time() - self.last_rma_tick > 1 / self.rma_freq) or latent is None:
                         latent = self.adaptation_module.infer(np.array(self.rma_obs_history).flatten())
-                        # latent = np.clip(latent, -0.5, 0.5)
                         adaptation_module_latents.append(latent)
                         self.last_rma_tick = time.time()
 
-                    if nb_times_rolled < 50:
-                        latent = np.zeros(18)
                     obs = np.concatenate([obs, latent])
 
                 obs = np.clip(obs, -100, 100)
@@ -355,6 +350,8 @@ class RLWalk:
                 # voltages.append(self.hwi.get_present_voltages())
 
                 i += 1
+
+                pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
 
                 took = time.time() - t
                 # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
