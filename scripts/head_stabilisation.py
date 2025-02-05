@@ -5,7 +5,7 @@ import pickle
 
 control_freq = 50
 
-imu = Imu(sampling_freq=50, pitch_bias=-25)
+imu = Imu(sampling_freq=50)
 
 hwi = HWI("/dev/ttyACM0")
 hwi.turn_on()
