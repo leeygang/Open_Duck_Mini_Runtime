@@ -132,7 +132,6 @@ class Imu:
         while True:
             s = time.time()
             try:
-                self.imu.mode = adafruit_bno055.IMUPLUS_MODE
                 raw_orientation = np.array(self.imu.quaternion).copy()  # quat
                 # acc = np.array(self.imu.acceleration).copy()
                 # gyro = np.array(self.imu.gyro).copy()
