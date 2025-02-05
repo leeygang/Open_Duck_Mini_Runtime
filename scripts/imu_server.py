@@ -21,10 +21,10 @@ class IMUServer:
             self.imu = Imu(50, user_pitch_bias=args.pitch_bias)
         else:
             self.imu = imu
+        self.stop = False
 
         Thread(target=self.run, daemon=True).start()
 
-        self.stop = False
 
     def run(self):
         while not self.stop:
