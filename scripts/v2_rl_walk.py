@@ -332,6 +332,9 @@ class RLWalk:
                         break
 
                 action = np.clip(action, -5, 5)
+                
+                if self.zero_head:
+                    action = self.set_zero_head(action)
 
                 self.prev_action = action.copy()
 
@@ -344,8 +347,6 @@ class RLWalk:
                     if time.time() - start > 2:
                         robot_action = filtered_action
 
-                if self.zero_head:
-                    robot_action = self.set_zero_head(robot_action)
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
