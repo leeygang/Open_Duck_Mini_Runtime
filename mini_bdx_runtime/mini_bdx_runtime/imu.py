@@ -49,11 +49,11 @@ class Imu:
                 exit()
 
         # # calibrate imu
-        # calibrated = self.imu.calibration_status[1] == 3
-        # print("Calibrating Gyro...")
-        # while not calibrated:
-        #     calibrated = self.imu.calibration_status[1] == 3
-        #     time.sleep(0.01)
+        calibrated = self.imu.calibration_status[1] == 3
+        print("Calibrating Gyro...")
+        while not calibrated:
+            calibrated = self.imu.calibration_status[1] == 3
+            time.sleep(0.01)
 
         # self.zero_euler = None
         # while self.zero_euler is None:
