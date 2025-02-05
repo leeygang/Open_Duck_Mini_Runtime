@@ -25,19 +25,22 @@ class IMUServer:
         Thread(target=self.run, daemon=True).start()
 
     def run(self):
-
-        while True:
-            self.server_socket.listen(1)
-            conn, address = self.server_socket.accept()  # accept new connection
-            print("Connection from: " + str(address))
-            try:
-                while True:
-                    data = self.imu.get_data()
-                    data = pickle.dumps(data)
-                    conn.send(data)  # send data to the client
-                    time.sleep(1 / 30)
-            except:
-                pass
+        try:
+            while True:
+                self.server_socket.listen(1)
+                conn, address = self.server_socket.accept()  # accept new connection
+                print("Connection from: " + str(address))
+                try:
+                    while True:
+                        data = self.imu.get_data()
+                        data = pickle.dumps(data)
+                        conn.send(data)  # send data to the client
+                        time.sleep(1 / 30)
+                except:
+                    pass
+        except KeyboardInterrupt:
+            print("Closing server")
+            self.server_socket.close()
 
 
 if __name__ == "__main__":
