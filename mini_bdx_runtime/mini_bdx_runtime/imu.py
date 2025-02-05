@@ -1,8 +1,8 @@
 import adafruit_bno055
-# import board
-# import busio
+import board
+import busio
 import numpy as np
-import serial
+# import serial
 
 from queue import Queue
 from threading import Thread
@@ -16,11 +16,11 @@ class Imu:
         self.user_pitch_bias = user_pitch_bias
         self.nominal_pitch_bias = 20
 
-        self.uart = serial.Serial("/dev/ttyS0", baudrate=9600)
-        self.imu = adafruit_bno055.BNO055_UART(self.uart)
+        # self.uart = serial.Serial("/dev/ttyS0", baudrate=9600)
+        # self.imu = adafruit_bno055.BNO055_UART(self.uart)
 
-        # i2c = busio.I2C(board.SCL, board.SDA)
-        # self.imu = adafruit_bno055.BNO055_I2C(i2c)
+        i2c = busio.I2C(board.SCL, board.SDA)
+        self.imu = adafruit_bno055.BNO055_I2C(i2c)
 
         self.imu.mode = adafruit_bno055.IMUPLUS_MODE
         # self.imu.mode = adafruit_bno055.ACCGYRO_MODE
