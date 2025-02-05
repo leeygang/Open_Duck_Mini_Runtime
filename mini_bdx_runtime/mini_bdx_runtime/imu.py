@@ -130,9 +130,9 @@ class Imu:
         while True:
             s = time.time()
             try:
-                raw_orientation = np.array(self.imu.quaternion)  # quat
-                acc = np.array(self.imu.acceleration)
-                gyro = np.array(self.imu.gyro)
+                raw_orientation = np.array(self.imu.quaternion).copy()  # quat
+                acc = np.array(self.imu.acceleration).copy()
+                gyro = np.array(self.imu.gyro).copy()
                 print("raw_orientation : ", np.around(raw_orientation, 2))
                 print("acc : ", np.around(acc, 2))
                 print("gyro : ", np.around(gyro, 2))
@@ -151,7 +151,7 @@ class Imu:
 
             # final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            self.imu_queue.put(raw_orientation)
+            self.imu_queue.put(raw_orientation.copy())
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
