@@ -62,7 +62,7 @@ if __name__ == "__main__":
         while True:
             quat = client.get_imu()
             try:
-                rot_mat = R.from_quat(quat).as_matrix()
+                rot_mat = R.from_quat(quat, scalar_first=True).as_matrix()
                 pose[:3, :3] = rot_mat
                 fv.pushFrame(pose, "aze")
 
