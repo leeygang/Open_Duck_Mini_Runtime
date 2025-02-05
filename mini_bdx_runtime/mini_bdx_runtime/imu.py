@@ -14,7 +14,7 @@ class Imu:
     def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False):
         self.sampling_freq = sampling_freq
         self.user_pitch_bias = user_pitch_bias
-        self.nominal_pitch_bias = 20
+        self.nominal_pitch_bias = 25
 
         # self.uart = serial.Serial("/dev/ttyS0", baudrate=9600)
         # self.imu = adafruit_bno055.BNO055_UART(self.uart)
@@ -69,8 +69,7 @@ class Imu:
         Thread(target=self.imu_worker, daemon=True).start()
 
     def convert_axes(self, euler):
-        # euler = [np.pi - euler[1], euler[2], -euler[0]]
-        euler = [euler[1], euler[0], np.pi - euler[2]]
+        euler = [np.pi+euler[1], euler[0], euler[2]]
         return euler
 
     def compute_nominal_pitch_bias(self):
@@ -142,11 +141,8 @@ class Imu:
                 continue
 
             # Converting to correct axes
-            # euler = euler - self.zero_euler
             euler = self.convert_axes(euler)
-            # quat = R.from_euler("xyz", euler).as_quat()
-            # euler = R.from_quat(quat).as_euler("xyz")
-            # euler[1] += np.deg2rad(self.pitch_bias)
+            euler[1] -= np.deg2rad(self.pitch_bias)
 
             # gives scalar last, which is what isaac wants
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
