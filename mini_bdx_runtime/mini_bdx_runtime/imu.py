@@ -96,6 +96,7 @@ class Imu:
     def imu_worker(self):
         while True:
             s = time.time()
+            problem = False
             try:
                 raw_orientation = np.array(self.imu.quaternion)  # quat
                 acc = np.array(self.imu.acceleration)
@@ -105,15 +106,14 @@ class Imu:
                 print("gyro : ", np.around(gyro, 2))
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
                 print("euler", euler)
+                problem = raw_orientation[0] == 1.0
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
             # Converting to correct axes
             # euler = euler - self.zero_euler
-            if euler[2] < -np.pi/2:
-                euler[2] += np.pi
-            elif euler[2] > np.pi/2:
+            if problem:
                 euler[2] -= np.pi
             euler = self.convert_axes(euler)
             quat = R.from_euler("xyz", euler).as_quat()
