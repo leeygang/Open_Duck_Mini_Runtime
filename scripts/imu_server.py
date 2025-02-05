@@ -15,6 +15,8 @@ class IMUServer:
         self.port = 1234
 
         self.server_socket = socket.socket()
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # enable address reuse
+
         self.server_socket.bind((self.host, self.port))
 
         if imu is None:
