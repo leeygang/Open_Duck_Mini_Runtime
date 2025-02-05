@@ -133,7 +133,7 @@ class Imu:
                 raw_orientation = np.array(self.imu.quaternion).copy()  # quat
                 # acc = np.array(self.imu.acceleration).copy()
                 # gyro = np.array(self.imu.gyro).copy()
-                # print("raw_orientation : ", np.around(raw_orientation, 2))
+                print("raw_orientation : ", np.around(raw_orientation, 3))
                 # print("acc : ", np.around(acc, 2))
                 # print("gyro : ", np.around(gyro, 2))
                 # euler = R.from_quat(raw_orientation).as_euler("xyz").copy()
