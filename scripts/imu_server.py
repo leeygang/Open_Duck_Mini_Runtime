@@ -24,23 +24,26 @@ class IMUServer:
 
         Thread(target=self.run, daemon=True).start()
 
+        self.stop = False
+
     def run(self):
-        try:
-            while True:
-                self.server_socket.listen(1)
-                conn, address = self.server_socket.accept()  # accept new connection
-                print("Connection from: " + str(address))
-                try:
-                    while True:
-                        data = self.imu.get_data()
-                        data = pickle.dumps(data)
-                        conn.send(data)  # send data to the client
-                        time.sleep(1 / 30)
-                except:
-                    pass
-        except KeyboardInterrupt:
-            print("Closing server")
-            self.server_socket.close()
+        while not self.stop:
+            self.server_socket.listen(1)
+            conn, address = self.server_socket.accept()  # accept new connection
+            print("Connection from: " + str(address))
+            try:
+                while True:
+                    data = self.imu.get_data()
+                    data = pickle.dumps(data)
+                    conn.send(data)  # send data to the client
+                    time.sleep(1 / 30)
+            except:
+                pass
+        
+    
+        self.server_socket.close()
+        print("thread closed")
+        time.sleep(1)
 
 
 if __name__ == "__main__":
@@ -48,6 +51,12 @@ if __name__ == "__main__":
     parser.add_argument("--pitch_bias", type=float, default=0, help="deg")
     args = parser.parse_args()
     imu_server = IMUServer()
-    while True:
-        time.sleep(0.01)
+    try:
+        while True:
+            time.sleep(0.01)
+    except KeyboardInterrupt:
+        print("Closing server")
+        imu_server.stop = True
+
+    time.sleep(2)
 
