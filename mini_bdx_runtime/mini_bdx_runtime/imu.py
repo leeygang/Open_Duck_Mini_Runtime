@@ -139,7 +139,7 @@ class Imu:
                 print("raw_orientation : ", np.around(raw_orientation, 3))
                 # print("acc : ", np.around(acc, 2))
                 # print("gyro : ", np.around(gyro, 2))
-                # euler = R.from_quat(raw_orientation).as_euler("xyz").copy()
+                euler = R.from_quat(raw_orientation).as_euler("xyz").copy()
                 # print("euler", euler)
             except Exception as e:
                 print("[IMU]:", e)
@@ -147,14 +147,14 @@ class Imu:
 
             # Converting to correct axes
             # euler = euler - self.zero_euler
-            # euler = self.convert_axes(euler)
-            # quat = R.from_euler("xyz", euler).as_quat()
-            # euler = R.from_quat(quat).as_euler("xyz")
-            # euler[1] += np.deg2rad(self.pitch_bias)
+            euler = self.convert_axes(euler)
+            quat = R.from_euler("xyz", euler).as_quat()
+            euler = R.from_quat(quat).as_euler("xyz")
+            euler[1] += np.deg2rad(self.pitch_bias)
 
-            # final_orientation_quat = R.from_euler("xyz", euler).as_quat()
+            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            self.imu_queue.put(raw_orientation.copy())
+            self.imu_queue.put(final_orientation_quat.copy())
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
