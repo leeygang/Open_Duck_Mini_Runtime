@@ -104,12 +104,17 @@ class Imu:
                 print("acc : ", np.around(acc, 2))
                 print("gyro : ", np.around(gyro, 2))
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
+                print("euler", euler)
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
             # Converting to correct axes
             # euler = euler - self.zero_euler
+            if euler[2] < -np.pi/2:
+                euler[2] += np.pi
+            elif euler[2] > np.pi/2:
+                euler[2] -= np.pi
             euler = self.convert_axes(euler)
             quat = R.from_euler("xyz", euler).as_quat()
             euler = R.from_quat(quat).as_euler("xyz")
