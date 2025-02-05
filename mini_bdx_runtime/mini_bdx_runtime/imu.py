@@ -134,25 +134,21 @@ class Imu:
         while True:
             s = time.time()
             try:
+                # returns scalar first
                 raw_orientation = np.array(self.imu.quaternion).copy()  # quat
-                # acc = np.array(self.imu.acceleration).copy()
-                # gyro = np.array(self.imu.gyro).copy()
-                print("raw_orientation : ", np.around(raw_orientation, 3))
-                # print("acc : ", np.around(acc, 2))
-                # print("gyro : ", np.around(gyro, 2))
-                euler = R.from_quat(raw_orientation).as_euler("xyz").copy()
-                # print("euler", euler)
+                euler = R.from_quat(raw_orientation, scalar_first=True).as_euler("xyz").copy()
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
             # Converting to correct axes
             # euler = euler - self.zero_euler
-            euler = self.convert_axes(euler)
+            # euler = self.convert_axes(euler)
             # quat = R.from_euler("xyz", euler).as_quat()
             # euler = R.from_quat(quat).as_euler("xyz")
             # euler[1] += np.deg2rad(self.pitch_bias)
 
+            # gives scalar last, which is what isaac wants
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
             self.imu_queue.put(final_orientation_quat.copy())
