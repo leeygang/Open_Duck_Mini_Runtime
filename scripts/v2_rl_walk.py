@@ -154,8 +154,8 @@ class RLWalk:
         return np.array(pos_with_antennas)
 
     def set_zero_head(self, pos):
-        pos[5] = np.deg2rad(10)
-        pos[6] = np.deg2rad(-10)
+        pos[5] = np.deg2rad(5)
+        pos[6] = np.deg2rad(-5)
         # pos[5] = 0
         # pos[6] = 0
         pos[7] = 0
@@ -332,7 +332,7 @@ class RLWalk:
                         break
 
                 action = np.clip(action, -5, 5)
-                
+
                 if self.zero_head:
                     action = self.set_zero_head(action)
 
