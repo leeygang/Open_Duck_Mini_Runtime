@@ -81,9 +81,9 @@ if __name__ == "__main__":
 
     # plot projected_gravities [[x, y, z], [x, y, z], ...]
 
-    from matplotlib import pyplot as plt
+    # from matplotlib import pyplot as plt
 
-    projected_gravities = np.array(projected_gravities)
-    plt.plot(projected_gravities)
-    plt.show()
+    # projected_gravities = np.array(projected_gravities)
+    # plt.plot(projected_gravities)
+    # plt.show()
 

@@ -70,7 +70,7 @@ class Imu:
 
     def convert_axes(self, euler):
         # euler = [np.pi - euler[1], euler[2], -euler[0]]
-        euler = [euler[1], euler[0], -euler[2]]
+        euler = [euler[1], euler[0], np.pi - euler[2]]
         return euler
 
     def compute_nominal_pitch_bias(self):
