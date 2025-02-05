@@ -351,8 +351,6 @@ class RLWalk:
 
                 i += 1
 
-                pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
-
                 took = time.time() - t
                 # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
                 if (1 / self.control_freq - took) < 0:
