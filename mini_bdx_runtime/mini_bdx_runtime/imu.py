@@ -133,7 +133,7 @@ class Imu:
         while True:
             s = time.time()
             try:
-                # returns scalar first
+                # imu returns scalar first
                 raw_orientation = np.array(self.imu.quaternion).copy()  # quat
                 euler = R.from_quat(raw_orientation, scalar_first=True).as_euler("xyz").copy()
             except Exception as e:
