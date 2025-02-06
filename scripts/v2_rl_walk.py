@@ -19,9 +19,9 @@ from imu_server import IMUServer
 
 
 # Commands
-X_RANGE = [-0.2, 0.3]
+X_RANGE = [-0.2, 0.2]
 Y_RANGE = [-0.2, 0.2]
-YAW_RANGE = [-0.2, 0.2]
+YAW_RANGE = [-0.5, 0.5]
 
 LEFT_FOOT_PIN = 22
 RIGHT_FOOT_PIN = 27
