@@ -154,8 +154,8 @@ class RLWalk:
         return np.array(pos_with_antennas)
 
     def set_zero_head(self, pos):
-        pos[5] = np.deg2rad(15 * 1 / self.action_scale)
-        pos[6] = np.deg2rad(-15 * 1 / self.action_scale)
+        pos[5] = np.deg2rad(10 * 1 / self.action_scale)
+        pos[6] = np.deg2rad(-10 * 1 / self.action_scale)
         # pos[5] = 0
         # pos[6] = 0
         pos[7] = 0
