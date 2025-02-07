@@ -142,12 +142,12 @@ class RLWalk:
 
         self.last_command_time = time.time()
 
-        if cutoff_frequency is not None:
-            self.action_filter = LowPassActionFilter(
-                self.control_freq, cutoff_frequency
-            )
-        else:
-            self.action_filter = None
+        # if cutoff_frequency is not None:
+        #     self.action_filter = LowPassActionFilter(
+        #         self.control_freq, cutoff_frequency
+        #     )
+        # else:
+        self.action_filter = None
 
         if self.latent_filter:
             self.latent_filter = LowPassActionFilter(self.rma_freq, cutoff_frequency)
