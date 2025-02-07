@@ -312,7 +312,7 @@ class RLWalk:
                         latent = self.adaptation_module.infer(np.array(self.rma_obs_history).flatten())
                         adaptation_module_latents.append(latent)
                         self.last_rma_tick = time.time()
-
+                    latent = np.zeros(18)
                     obs = np.concatenate([obs, latent])
 
                 obs = np.clip(obs, -100, 100)
