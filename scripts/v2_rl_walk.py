@@ -68,7 +68,8 @@ class RLWalk:
         stand=False,
         rma=False,
         adaptation_module_path=None,
-        imu_server = False
+        imu_server=False,
+        latent_filter=False,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
@@ -77,6 +78,7 @@ class RLWalk:
         self.rma = rma
         self.adaptation_module_path = adaptation_module_path
         self.imu_server = imu_server
+        self.latent_filter = latent_filter
 
         self.num_obs = 56
 
@@ -146,6 +148,9 @@ class RLWalk:
             )
         else:
             self.action_filter = None
+
+        if self.latent_filter:
+            self.latent_filter = LowPassActionFilter(self.rma_freq, cutoff_frequency)
 
     def add_fake_antennas(self, pos):
         # takes in position without antennas, adds position 0 for both antennas at the right place
@@ -308,11 +313,20 @@ class RLWalk:
                     self.rma_obs_history = np.roll(self.rma_obs_history, 1, axis=0)
                     self.rma_obs_history[0] = obs.copy()
 
-                    if (time.time() - self.last_rma_tick > 1 / self.rma_freq) or latent is None:
-                        latent = self.adaptation_module.infer(np.array(self.rma_obs_history).flatten())
+                    if (
+                        time.time() - self.last_rma_tick > 1 / self.rma_freq
+                    ) or latent is None:
+                        latent = self.adaptation_module.infer(
+                            np.array(self.rma_obs_history).flatten()
+                        )
                         adaptation_module_latents.append(latent)
                         self.last_rma_tick = time.time()
-                    latent = np.zeros(18)
+                    if self.latent_filter:
+                        self.latent_filter.push(latent)
+                        filtered_latent = self.latent_filter.get_filtered_action()
+                        if time.time() - start > 1:
+                            latent = filtered_latent
+                    # latent = np.zeros(18)
                     obs = np.concatenate([obs, latent])
 
                 obs = np.clip(obs, -100, 100)
@@ -367,7 +381,9 @@ class RLWalk:
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
         if self.rma:
-            pickle.dump(adaptation_module_latents, open("adaptation_module_latents.pkl", "wb"))
+            pickle.dump(
+                adaptation_module_latents, open("adaptation_module_latents.pkl", "wb")
+            )
         # pickle.dump(voltages, open("voltages.pkl", "wb"))
         time.sleep(1)
 
@@ -412,6 +428,7 @@ if __name__ == "__main__":
     parser.add_argument("--rma", action="store_true", default=False)
     parser.add_argument("--adaptation_module_path", type=str, required=False)
     parser.add_argument("--imu_server", action="store_true", default=False)
+    parser.add_argument("--latent_filter", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -430,7 +447,8 @@ if __name__ == "__main__":
         stand=args.stand,
         rma=args.rma,
         adaptation_module_path=args.adaptation_module_path,
-        imu_server=args.imu_server
+        imu_server=args.imu_server,
+        latent_filter=args.latent_filter,
     )
     print("Done instantiating RLWalk")
     # rl_walk.start()
