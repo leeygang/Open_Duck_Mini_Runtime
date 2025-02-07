@@ -63,7 +63,12 @@ class FeetechPWMControl:
     def update(self):
         while True:
             s = time.time()
-            self.present_positions = self.io.get_present_position(self.ids)
+            try:
+                self.present_positions = self.io.get_present_position(self.ids)
+            except Exception as e:
+                print(e)
+                continue
+
             if len(self.present_positions) != len(self.ids):
                 print("ERROR : present_positions and ids do not have the same length")
                 time.sleep(1 / self.control_freq)
