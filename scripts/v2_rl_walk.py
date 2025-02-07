@@ -319,13 +319,13 @@ class RLWalk:
                         latent = self.adaptation_module.infer(
                             np.array(self.rma_obs_history).flatten()
                         )
+                        if self.latent_filter:
+                            self.latent_filter.push(latent)
+                            filtered_latent = self.latent_filter.get_filtered_action()
+                            if time.time() - start > 1:
+                                latent = filtered_latent
                         adaptation_module_latents.append(latent)
                         self.last_rma_tick = time.time()
-                    if self.latent_filter:
-                        self.latent_filter.push(latent)
-                        filtered_latent = self.latent_filter.get_filtered_action()
-                        if time.time() - start > 1:
-                            latent = filtered_latent
                     # latent = np.zeros(18)
                     obs = np.concatenate([obs, latent])
 
