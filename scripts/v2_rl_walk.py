@@ -87,7 +87,7 @@ class RLWalk:
             self.adaptation_module = OnnxInfer(
                 self.adaptation_module_path, "rma_history", awd=True
             )
-            self.rma_obs_history_size = 50
+            self.rma_obs_history_size = 20
             self.rma_obs_history = np.zeros((self.rma_obs_history_size, self.num_obs))
             self.rma_freq = 10  # Hz
             self.last_rma_tick = time.time()
