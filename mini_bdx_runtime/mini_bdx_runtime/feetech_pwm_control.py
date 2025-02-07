@@ -88,7 +88,11 @@ class FeetechPWMControl:
                 for i in range(len(pwm_magnitudes))
             ]
 
-            self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
+            try:
+                self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
+            except Exception as e:
+                print(e)
+                continue
 
             if self.speed_decimation_index % self.speed_decimation == 0:
                 self.present_speeds = (
