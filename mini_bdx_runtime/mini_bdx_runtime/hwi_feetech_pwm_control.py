@@ -83,7 +83,7 @@ class HWI:
             # "left_antenna": 0,
             # "right_antenna": 0,
             "right_hip_yaw": -0.15,
-            "right_hip_roll": 0.07,
+            "right_hip_roll": 0.15,
             "right_hip_pitch": 0.05,
             "right_knee": -0.05,
             "right_ankle": -0.08,
