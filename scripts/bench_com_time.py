@@ -5,8 +5,8 @@ import numpy as np
 io = FeetechSTS3215IO(
     "/dev/ttyACM0",
     baudrate=1000000,
-    use_sync_read=False,
-    # use_sync_read=True,
+    # use_sync_read=False,
+    use_sync_read=True,
 )
 
 # ids = [1]
