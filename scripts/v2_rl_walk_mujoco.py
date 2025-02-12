@@ -54,7 +54,7 @@ class RLWalk:
         serial_port: str = "/dev/ttyACM0",
         control_freq: float = 50,
         pid=[32, 0, 0],
-        action_scale=0.25,
+        action_scale=0.5,
         commands=False,
         pitch_bias=0,
     ):
@@ -294,7 +294,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
-    parser.add_argument("-a", "--action_scale", type=float, default=0.25)
+    parser.add_argument("-a", "--action_scale", type=float, default=0.5)
     parser.add_argument("-p", type=int, default=32)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
