@@ -169,8 +169,8 @@ class RLWalk:
     def get_phase(self):
         phase_tp1 = self.current_phase + self.phase_dt
         self.current_phase = np.fmod(phase_tp1 + np.pi, 2 * np.pi) - np.pi
-        cos = np.cos(current_phase)
-        sin = np.sin(current_phase)
+        cos = np.cos(self.current_phase)
+        sin = np.sin(self.current_phase)
         return np.concatenate([cos, sin])
 
     def get_obs(self):
