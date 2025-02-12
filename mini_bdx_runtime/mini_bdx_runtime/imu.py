@@ -2,12 +2,14 @@ import adafruit_bno055
 import board
 import busio
 import numpy as np
+
 # import serial
 
 from queue import Queue
 from threading import Thread
 import time
 from scipy.spatial.transform import Rotation as R
+
 
 # TODO filter spikes
 class Imu:
@@ -69,7 +71,7 @@ class Imu:
         Thread(target=self.imu_worker, daemon=True).start()
 
     def convert_axes(self, euler):
-        euler = [np.pi+euler[1], euler[0], euler[2]]
+        euler = [np.pi + euler[1], euler[0], euler[2]]
         return euler
 
     def compute_nominal_pitch_bias(self):
@@ -91,7 +93,7 @@ class Imu:
             except Exception as e:
                 print("[IMU]:", e)
                 continue
-            time.sleep(1/self.sampling_freq)
+            time.sleep(1 / self.sampling_freq)
 
         self.nominal_pitch_bias = np.mean(pitch_samples)
         print("[IMU]: Nominal pitch bias:", self.nominal_pitch_bias)
@@ -135,7 +137,11 @@ class Imu:
             try:
                 # imu returns scalar first
                 raw_orientation = np.array(self.imu.quaternion).copy()  # quat
-                euler = R.from_quat(raw_orientation, scalar_first=True).as_euler("xyz").copy()
+                euler = (
+                    R.from_quat(raw_orientation, scalar_first=True)
+                    .as_euler("xyz")
+                    .copy()
+                )
             except Exception as e:
                 print("[IMU]:", e)
                 continue
@@ -157,9 +163,14 @@ class Imu:
         except Exception:
             pass
 
-        if not euler and not mat:
-            return self.last_imu_data
-        elif euler:
-            return R.from_quat(self.last_imu_data).as_euler("xyz")
-        elif mat:
-            return R.from_quat(self.last_imu_data).as_matrix()
+        try:
+            if not euler and not mat:
+                return self.last_imu_data
+            elif euler:
+                return R.from_quat(self.last_imu_data).as_euler("xyz")
+            elif mat:
+                return R.from_quat(self.last_imu_data).as_matrix()
+
+        except Exception as e:
+            print("[IMU]: ", e)
+            return None
