@@ -271,7 +271,6 @@ class RLWalk:
                     robot_action, joints_order
                 )  # Removes antennas
 
-                print(action_dict)
                 self.hwi.set_position_all(action_dict)
 
                 i += 1
