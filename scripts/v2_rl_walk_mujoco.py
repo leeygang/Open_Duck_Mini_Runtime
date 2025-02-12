@@ -256,10 +256,9 @@ class RLWalk:
 
                 self.prev_action = action.copy()
                 
-                robot_action = np.zeros(10)
+                action = np.zeros(10)
 
                 robot_action = self.init_pos + action * self.action_scale
-
 
                 robot_action = self.add_fake_head(robot_action)
 
