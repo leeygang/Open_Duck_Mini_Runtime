@@ -1,4 +1,5 @@
 import time
+import pickle
 from queue import Queue
 from threading import Thread
 import pygame
@@ -66,6 +67,8 @@ class RLWalk:
         # Control
         self.control_freq = control_freq
         self.pid = pid
+
+        self.saved_obs = []
 
         self.current_phase = np.array([0, 0])
         self.gait_freq = 2
@@ -248,6 +251,8 @@ class RLWalk:
                 if obs is None:
                     continue
 
+                self.saved_obs.append(obs)
+
                 obs = np.clip(obs, -100, 100)
 
                 action = self.policy.infer(obs)
@@ -256,7 +261,7 @@ class RLWalk:
 
                 self.prev_action = action.copy()
 
-                # action = np.zeros(10)
+                action = np.zeros(10)
 
                 robot_action = self.init_pos + action * self.action_scale
 
@@ -284,6 +289,7 @@ class RLWalk:
             self.hwi.freeze()
             pass
 
+        pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
         print("FREEZING")
         self.hwi.freeze()
         print("TURNING OFF")
