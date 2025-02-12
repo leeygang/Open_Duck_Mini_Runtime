@@ -126,7 +126,6 @@ class HWI:
     def freeze(self):
         self.control.freeze()
 
-
     def set_position_all(self, joints_positions):
         """
         joints_positions is a dictionary with joint names as keys and joint positions as values
@@ -139,7 +138,7 @@ class HWI:
 
         self.control.goal_positions = list(ids_positions.values())
 
-    def get_present_positions(self):
+    def get_present_positions(self, ignore=[]):
         """
         Returns the present positions in radians
         """
@@ -148,21 +147,23 @@ class HWI:
         #     self.control.io.get_present_position(self.joints.values())
         # )
 
-        present_positions = np.deg2rad(
-            self.control.present_positions
-        )
+        present_positions = np.deg2rad(self.control.present_positions)
         present_positions = [
             pos - self.joints_offsets[joint]
             for joint, pos in zip(self.joints.keys(), present_positions)
+            if joint not in ignore
         ]
         return np.array(np.around(present_positions, 3))
 
-    def get_present_velocities(self, rad_s=True):
+    def get_present_velocities(self, rad_s=True, ignore=[]):
         """
         Returns the present velocities in rad/s (default) or rev/min
         """
         # deg/s
         present_velocities = np.array(self.control.present_speeds)
+        present_velocities = [
+            vel for joint, vel in zip(self.joints.keys(), present_velocities) if joint not in ignore
+        ]
         # present_velocities = np.array(
         #     self.control.io.get_present_speed(self.joints.values())
         # )
