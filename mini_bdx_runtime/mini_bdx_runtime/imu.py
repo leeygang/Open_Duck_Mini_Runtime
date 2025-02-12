@@ -151,13 +151,15 @@ class Imu:
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
-    def get_data(self, euler=False):
+    def get_data(self, euler=False, mat=False):
         try:
             self.last_imu_data = self.imu_queue.get(False)  # non blocking
         except Exception:
             pass
 
-        if not euler:
+        if not euler and not mat:
             return self.last_imu_data
-        else:
+        elif euler:
             return R.from_quat(self.last_imu_data).as_euler("xyz")
+        elif mat:
+            return R.from_quat(self.last_imu_data).as_matrix()

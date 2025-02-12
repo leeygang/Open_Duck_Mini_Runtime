@@ -9,7 +9,6 @@ from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
     make_action_dict,
-    quat_rotate_inverse,
 )
 from mini_bdx_runtime.imu import Imu
 
@@ -172,8 +171,8 @@ class RLWalk:
         return np.concatenate([cos, sin])
 
     def get_obs(self):
-        orientation_quat = self.imu.get_data()
-        if orientation_quat is None:
+        imu_mat = self.imu.get_data(mat=True)
+        if imu_mat is None:
             print("IMU ERROR")
             return None
 
@@ -210,7 +209,8 @@ class RLWalk:
             print("ERROR len(dof_vel) != 10")
             return None
 
-        projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
+        # projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
+        projected_gravity = np.array(imu_mat).reshape((3, 3)).T @ np.array([0, 0, -1])
 
         phase = self.get_phase()
 
@@ -255,8 +255,8 @@ class RLWalk:
                 action = np.clip(action, -1, 1)
 
                 self.prev_action = action.copy()
-                
-                action = np.zeros(10)
+
+                # action = np.zeros(10)
 
                 robot_action = self.init_pos + action * self.action_scale
 
