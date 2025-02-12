@@ -78,10 +78,6 @@ class RLWalk:
         self.imu = Imu(sampling_freq=self.control_freq, user_pitch_bias=self.pitch_bias)
 
         # Scales
-        self.linearVelocityScale = 1.0
-        self.angularVelocityScale = 1.0
-        self.dof_pos_scale = 1.0
-        self.dof_vel_scale = 1.0
         self.action_scale = action_scale
 
         self.prev_action = np.zeros(10)
@@ -259,8 +255,11 @@ class RLWalk:
                 action = np.clip(action, -1, 1)
 
                 self.prev_action = action.copy()
+                
+                robot_action = np.zeros(10)
 
                 robot_action = self.init_pos + action * self.action_scale
+
 
                 robot_action = self.add_fake_head(robot_action)
 
