@@ -57,6 +57,7 @@ class RLWalk:
         action_scale=0.5,
         commands=False,
         pitch_bias=0,
+        history_len=0,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
@@ -112,9 +113,9 @@ class RLWalk:
 
         self.last_command_time = time.time()
 
-        self.history_len = 3
-        self.qpos_error_history = (np.zeros(self.history_len * self.num_dofs),)
-        self.qvel_history = (np.zeros(self.history_len * self.num_dofs),)
+        self.history_len = history_len
+        self.qpos_error_history = np.zeros(self.history_len * self.num_dofs)
+        self.qvel_history = np.zeros(self.history_len * self.num_dofs)
 
     def add_fake_head(self, pos):
         assert len(pos) == self.num_dofs
@@ -225,13 +226,14 @@ class RLWalk:
 
         cmds = self.last_commands
 
-        self.qvel_history = np.roll(self.qvel_history, self.num_dofs)
-        self.qvel_history[: self.num_dofs] = dof_vel
+        if self.history_len > 0:
+            self.qvel_history = np.roll(self.qvel_history, self.num_dofs)
+            self.qvel_history[: self.num_dofs] = dof_vel
 
-        last_motor_target = self.init_pos + self.prev_action * self.action_scale
-        qpos_error = self.dof_pos - last_motor_target
-        self.qpos_error_history = np.roll(self.qpos_error_history, self.num_dofs)
-        self.qpos_error_history[: self.num_dofs] = qpos_error
+            last_motor_target = self.init_pos + self.prev_action * self.action_scale
+            qpos_error = dof_pos - last_motor_target
+            self.qpos_error_history = np.roll(self.qpos_error_history, self.num_dofs)
+            self.qpos_error_history[: self.num_dofs] = qpos_error
 
         obs = np.concatenate(
             [
@@ -241,8 +243,8 @@ class RLWalk:
                 dof_vel,
                 self.prev_action,
                 phase,
-                self.qpos_error_history,
-                self.qvel_history,
+                self.qpos_error_history, # is [] if history_len == 0
+                self.qvel_history, # is [] if history_len == 0
             ]
         )
 
