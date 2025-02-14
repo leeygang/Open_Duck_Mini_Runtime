@@ -64,6 +64,8 @@ class RLWalk:
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path, awd=True)
 
+        self.num_dofs = 10
+
         # Control
         self.control_freq = control_freq
         self.pid = pid
@@ -82,7 +84,7 @@ class RLWalk:
         # Scales
         self.action_scale = action_scale
 
-        self.prev_action = np.zeros(10)
+        self.prev_action = np.zeros(self.num_dofs)
 
         self.init_pos = [
             0.002,
@@ -110,8 +112,12 @@ class RLWalk:
 
         self.last_command_time = time.time()
 
+        self.history_len = 3
+        self.qpos_error_history = (np.zeros(self.history_len * self.num_dofs),)
+        self.qvel_history = (np.zeros(self.history_len * self.num_dofs),)
+
     def add_fake_head(self, pos):
-        assert len(pos) == 10
+        assert len(pos) == self.num_dofs
         pos_with_head = np.insert(pos, 5, [0, 0, 0, 0, 0, 0])
         return np.array(pos_with_head)
 
@@ -204,12 +210,12 @@ class RLWalk:
             ]
         )  # rad/s
 
-        if len(dof_pos) != 10:
-            print("ERROR len(dof_pos) != 10")
+        if len(dof_pos) != self.num_dofs:
+            print(f"ERROR len(dof_pos) != {self.num_dofs}")
             return None
 
         if len(dof_vel) != 10:
-            print("ERROR len(dof_vel) != 10")
+            print(f"ERROR len(dof_vel) != {self.num_dofs}")
             return None
 
         # projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
@@ -219,6 +225,14 @@ class RLWalk:
 
         cmds = self.last_commands
 
+        self.qvel_history = np.roll(self.qvel_history, self.num_dofs)
+        self.qvel_history[: self.num_dofs] = dof_vel
+
+        last_motor_target = self.init_pos + self.prev_action * self.action_scale
+        qpos_error = self.dof_pos - last_motor_target
+        self.qpos_error_history = np.roll(self.qpos_error_history, self.num_dofs)
+        self.qpos_error_history[: self.num_dofs] = qpos_error
+
         obs = np.concatenate(
             [
                 projected_gravity,
@@ -227,6 +241,8 @@ class RLWalk:
                 dof_vel,
                 self.prev_action,
                 phase,
+                self.qpos_error_history,
+                self.qvel_history,
             ]
         )
 
