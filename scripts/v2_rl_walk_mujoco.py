@@ -116,6 +116,7 @@ class RLWalk:
         self.history_len = history_len
         self.qpos_error_history = np.zeros(self.history_len * self.num_dofs)
         self.qvel_history = np.zeros(self.history_len * self.num_dofs)
+        self.gravity_history = np.zeros(self.history_len * 3)
 
     def add_fake_head(self, pos):
         assert len(pos) == self.num_dofs
@@ -235,6 +236,9 @@ class RLWalk:
             self.qpos_error_history = np.roll(self.qpos_error_history, self.num_dofs)
             self.qpos_error_history[: self.num_dofs] = qpos_error
 
+            self.gravity_history = np.roll(self.gravity_history, 3)
+            self.gravity_history[:3] = projected_gravity
+
         obs = np.concatenate(
             [
                 projected_gravity,
@@ -243,8 +247,9 @@ class RLWalk:
                 dof_vel,
                 self.prev_action,
                 phase,
-                self.qpos_error_history, # is [] if history_len == 0
-                self.qvel_history, # is [] if history_len == 0
+                self.qpos_error_history,  # is [] if history_len == 0
+                self.qvel_history,  # is [] if history_len == 0
+                self.gravity_history,  # is [] if history_len == 0
             ]
         )
 
