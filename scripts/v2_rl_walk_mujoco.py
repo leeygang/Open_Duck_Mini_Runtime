@@ -71,7 +71,7 @@ class RLWalk:
         self.saved_obs = []
 
         self.current_phase = np.array([0, 0])
-        self.gait_freq = 2
+        self.gait_freq = 1.5
         self.phase_dt = 2 * np.pi * (1 / self.control_freq) * self.gait_freq
 
         self.hwi = HWI(serial_port)
