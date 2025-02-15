@@ -73,7 +73,7 @@ class RLWalk:
 
         self.saved_obs = []
 
-        self.current_phase = np.array([0, 0])
+        self.current_phase = np.array([0, np.pi])
         self.gait_freq = 1.5
         self.phase_dt = 2 * np.pi * (1 / self.control_freq) * self.gait_freq
 
@@ -177,8 +177,8 @@ class RLWalk:
     def get_phase(self):
         phase_tp1 = self.current_phase + self.phase_dt
         self.current_phase = np.fmod(phase_tp1 + np.pi, 2 * np.pi) - np.pi
-        cos = np.cos(self.current_phase)
-        sin = np.sin(self.current_phase)
+        cos = np.cos(self.current_phase - np.pi/2)
+        sin = np.sin(self.current_phase + np.pi)
         return np.concatenate([cos, sin])
 
     def get_obs(self):
