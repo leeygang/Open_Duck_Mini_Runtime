@@ -3,7 +3,9 @@ Find the offsets to set in self.joints_offsets in hwi_feetech_pwm_control.py
 """
 
 from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
+import time
 
+input("Press any key to start. The robot will move to its zero position. Make sure it is safe to do so. At any time, press ctrl+c to stop, the motors will be turned off.")
 hwi = HWI()
 hwi.joints_offsets = {
     "left_hip_yaw": 0,
@@ -23,12 +25,52 @@ hwi.joints_offsets = {
 }
 
 hwi.init_pos = hwi.zero_pos
-
+hwi.turn_on()
+print("")
+print("")
+print("")
+print("")
+hwi.set_position_all(hwi.zero_pos)
+time.sleep(1)
 try:
-    for joint_name in hwi.joints.keys():
-        print(f" === Setting up {joint_name} === ")
-        input("Press any key to set torque on for this motor. It will go to its zero position.")
-        
+    for i, joint_name in enumerate(hwi.joints.keys()):
+        ok = False
+        while not ok:
+            res = input(f" === Setting up {joint_name} === (Y/(s)kip : ").lower()
+            if res == "s":
+                break
+            hwi.set_position_all(hwi.zero_pos)
+            time.sleep(0.5)
+            current_pos = hwi.get_present_positions()[i]
+            hwi.control.kps[i] = 0
+            input(f"{joint_name} is now turned off. Move it to the desired zero position and press any key to confirm the offset" )
+            new_pos = hwi.get_present_positions()[i]
+            offset = new_pos - current_pos
+            print(f" ---> Offset is {offset}")
+            hwi.joints_offsets[joint_name] = offset
+            input("Press any key to move the motor to its zero position with offset taken into account")
+            hwi.set_position_all(hwi.zero_pos)
+            time.sleep(0.5)
+            hwi.control.kps[i] = 32
+            res = input("Is that ok ? (Y/n)").lower()
+            if res == "Y" or res == "":
+                print("Ok, setting offset")
+                hwi.joints_offsets[joint_name] = offset
+                ok = True
+                print("------")
+                print("Current offsets : ")
+                for k, v in hwi.joints_offsets.items():
+                    print(f"{k} : {v}")
+                print("------")
+                print("")
+            else:
+                print("Ok, let's try again")
+                hwi.joints_offsets[joint_name] = 0
+
+            print("===")
+
+
+
 
 except KeyboardInterrupt:
     hwi.turn_off()
