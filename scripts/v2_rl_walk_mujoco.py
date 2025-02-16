@@ -178,8 +178,9 @@ class RLWalk:
         phase_tp1 = self.current_phase + self.phase_dt
         self.current_phase = np.fmod(phase_tp1 + np.pi, 2 * np.pi) - np.pi
         cos = np.cos(self.current_phase - np.pi/2)
-        sin = np.sin(self.current_phase + np.pi)
-        return np.concatenate([cos, sin])
+        # sin = np.sin(self.current_phase + np.pi)
+        return cos
+        # return np.concatenate([cos, sin])
 
     def get_obs(self):
         imu_mat = self.imu.get_data(mat=True)
