@@ -5,7 +5,9 @@ Find the offsets to set in self.joints_offsets in hwi_feetech_pwm_control.py
 from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 import time
 
-input("Press any key to start. The robot will move to its zero position. Make sure it is safe to do so. At any time, press ctrl+c to stop, the motors will be turned off.")
+input(
+    "Press any key to start. The robot will move to its zero position. Make sure it is safe to do so. At any time, press ctrl+c to stop, the motors will be turned off."
+)
 hwi = HWI()
 hwi.joints_offsets = {
     "left_hip_yaw": 0,
@@ -43,12 +45,16 @@ try:
             time.sleep(0.5)
             current_pos = hwi.get_present_positions()[i]
             hwi.control.kps[i] = 0
-            input(f"{joint_name} is now turned off. Move it to the desired zero position and press any key to confirm the offset" )
+            input(
+                f"{joint_name} is now turned off. Move it to the desired zero position and press any key to confirm the offset"
+            )
             new_pos = hwi.get_present_positions()[i]
             offset = new_pos - current_pos
             print(f" ---> Offset is {offset}")
             hwi.joints_offsets[joint_name] = offset
-            input("Press any key to move the motor to its zero position with offset taken into account")
+            input(
+                "Press any key to move the motor to its zero position with offset taken into account"
+            )
             hwi.set_position_all(hwi.zero_pos)
             time.sleep(0.5)
             hwi.control.kps[i] = 32
@@ -69,7 +75,8 @@ try:
 
             print("===")
 
-
+    print("Done ! ")
+    print("Now you can copy the offsets in the hwi_feetech_pwm_control.py file")
 
 
 except KeyboardInterrupt:
