@@ -228,6 +228,8 @@ class RLWalk:
 
         cmds = self.last_commands
 
+        feet_contacts = self.get_feet_contacts()
+
         if self.history_len > 0:
             self.qvel_history = np.roll(self.qvel_history, self.num_dofs)
             self.qvel_history[: self.num_dofs] = dof_vel
@@ -248,6 +250,7 @@ class RLWalk:
                 dof_vel,
                 self.prev_action,
                 phase,
+                feet_contacts,
                 self.qpos_error_history,  # is [] if history_len == 0
                 self.qvel_history,  # is [] if history_len == 0
                 self.gravity_history,  # is [] if history_len == 0
