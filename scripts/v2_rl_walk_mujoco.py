@@ -12,10 +12,11 @@ from mini_bdx_runtime.rl_utils import (
     make_action_dict,
 )
 from mini_bdx_runtime.imu import Imu
+from mini_bdx_runtime.reference_motion import ReferenceMotion
 
 
 # Commands
-X_RANGE = [-0.1, 0.1]
+X_RANGE = [-0.1, 0.15]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-0.5, 0.5]
 
@@ -54,7 +55,7 @@ class RLWalk:
         serial_port: str = "/dev/ttyACM0",
         control_freq: float = 50,
         pid=[32, 0, 0],
-        action_scale=0.5,
+        action_scale=0.25,
         commands=False,
         pitch_bias=0,
         history_len=0,
@@ -85,7 +86,9 @@ class RLWalk:
         # Scales
         self.action_scale = action_scale
 
-        self.prev_action = np.zeros(self.num_dofs)
+        self.last_action = np.zeros(self.num_dofs)
+        self.last_last_action = np.zeros(self.num_dofs)
+        self.last_last_last_action = np.zeros(self.num_dofs)
 
         self.init_pos = [
             0.002,
@@ -117,6 +120,9 @@ class RLWalk:
         self.qpos_error_history = np.zeros(self.history_len * self.num_dofs)
         self.qvel_history = np.zeros(self.history_len * self.num_dofs)
         self.gravity_history = np.zeros(self.history_len * 3)
+
+        self.RM = ReferenceMotion("./ref_motion/")
+        self.imitation_i = 0
 
     def add_fake_head(self, pos):
         assert len(pos) == self.num_dofs
@@ -183,6 +189,10 @@ class RLWalk:
         # return np.concatenate([cos, sin])
 
     def get_obs(self):
+
+        self.imitation_i += 1
+        self.imitation_i = self.imitation_i % 450
+
         imu_mat = self.imu.get_data(mat=True)
         if imu_mat is None:
             print("IMU ERROR")
@@ -234,7 +244,7 @@ class RLWalk:
             self.qvel_history = np.roll(self.qvel_history, self.num_dofs)
             self.qvel_history[: self.num_dofs] = dof_vel
 
-            last_motor_target = self.init_pos + self.prev_action * self.action_scale
+            last_motor_target = self.init_pos + self.last_action * self.action_scale
             qpos_error = dof_pos - last_motor_target
             self.qpos_error_history = np.roll(self.qpos_error_history, self.num_dofs)
             self.qpos_error_history[: self.num_dofs] = qpos_error
@@ -242,15 +252,19 @@ class RLWalk:
             self.gravity_history = np.roll(self.gravity_history, 3)
             self.gravity_history[:3] = projected_gravity
 
+        ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
         obs = np.concatenate(
             [
                 projected_gravity,
                 cmds,
                 dof_pos - self.init_pos,
                 dof_vel,
-                self.prev_action,
-                phase,
+                self.last_action,
+                self.last_last_action,
+                self.last_last_last_action,
+                # phase,
                 feet_contacts,
+                ref,
                 self.qpos_error_history,  # is [] if history_len == 0
                 self.qvel_history,  # is [] if history_len == 0
                 self.gravity_history,  # is [] if history_len == 0
@@ -286,7 +300,9 @@ class RLWalk:
 
                 action = np.clip(action, -1, 1)
 
-                self.prev_action = action.copy()
+                self.last_last_last_action = self.last_last_action.copy()
+                self.last_last_action = self.last_action.copy()
+                self.last_action_action = action.copy()
 
                 # action = np.zeros(10)
 
@@ -326,7 +342,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
-    parser.add_argument("-a", "--action_scale", type=float, default=0.5)
+    parser.add_argument("-a", "--action_scale", type=float, default=0.25)
     parser.add_argument("-p", type=int, default=32)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
