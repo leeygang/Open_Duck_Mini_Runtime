@@ -52,7 +52,7 @@ class IMUClient:
 
 if __name__ == "__main__":
 
-    client = IMUClient("192.168.166.253")
+    client = IMUClient("192.168.248.253")
     fv = Viewer()
     fv.start()
     pose = np.eye(4)
