@@ -59,6 +59,7 @@ class RLWalk:
         commands=False,
         pitch_bias=0,
         history_len=0,
+        replay_obs=None,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
@@ -73,6 +74,10 @@ class RLWalk:
         self.pid = pid
 
         self.saved_obs = []
+
+        self.replay_obs = replay_obs
+        if self.replay_obs is not None:
+            self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
 
         self.current_phase = np.array([0, np.pi])
         self.gait_freq = 1.5
@@ -294,6 +299,13 @@ class RLWalk:
 
                 self.saved_obs.append(obs)
 
+                if self.replay_obs is not None:
+                    if i < len(self.replay_obs):
+                        obs = self.replay_obs[i]
+                    else:
+                        print("BREAKING ")
+                        break
+
                 # obs = np.clip(obs, -100, 100)
 
                 action = self.policy.infer(obs)
@@ -356,6 +368,7 @@ if __name__ == "__main__":
         default=False,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
+    parser.add_argument("--replay_obs", type=str, required=False, default=None)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -367,6 +380,7 @@ if __name__ == "__main__":
         control_freq=args.control_freq,
         commands=args.commands,
         pitch_bias=args.pitch_bias,
+        replay_obs=args.replay_obs,
     )
     print("Done instantiating RLWalk")
     # rl_walk.start()
