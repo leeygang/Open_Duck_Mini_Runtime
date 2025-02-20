@@ -190,9 +190,6 @@ class RLWalk:
 
     def get_obs(self):
 
-        self.imitation_i += 1
-        self.imitation_i = self.imitation_i % 450
-
         imu_mat = self.imu.get_data(mat=True)
         if imu_mat is None:
             print("IMU ERROR")
@@ -291,6 +288,9 @@ class RLWalk:
                 obs = self.get_obs()
                 if obs is None:
                     continue
+
+                self.imitation_i += 1
+                self.imitation_i = self.imitation_i % 450
 
                 self.saved_obs.append(obs)
 
