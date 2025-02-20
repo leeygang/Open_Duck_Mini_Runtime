@@ -34,7 +34,7 @@ class FeetechPWMControl:
         self.present_positions = [0] * len(self.ids)
         self.last_positions = [0] * len(self.ids)
         self.present_speeds = [0] * len(self.ids)
-        self.speed_decimation = 1
+        self.speed_decimation = 4
         self.speed_decimation_index = 0
         self.last_t = time.time()
 
