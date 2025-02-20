@@ -88,7 +88,6 @@ class FeetechPWMControl:
                 (direction_bits[i] << 10) | pwm_magnitudes[i]
                 for i in range(len(pwm_magnitudes))
             ]
-
             try:
                 self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
             except Exception as e:

@@ -298,7 +298,7 @@ class RLWalk:
 
                 action = self.policy.infer(obs)
 
-                action = np.clip(action, -1, 1)
+                # action = np.clip(action, -1, 1)
 
                 self.last_last_last_action = self.last_last_action.copy()
                 self.last_last_action = self.last_action.copy()
