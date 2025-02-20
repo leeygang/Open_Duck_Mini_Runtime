@@ -28,14 +28,14 @@ class FeetechPWMControl:
         self.init_pos_rad = init_pos_rad
         self.init_pos_deg = np.rad2deg(self.init_pos_rad)
 
-        self.control_freq = 200  # Hz
+        self.control_freq = 100  # Hz
         self.goal_positions = [0] * len(self.ids)
         self.goal_positions = self.init_pos_deg
         self.present_positions = [0] * len(self.ids)
         self.last_positions = [0] * len(self.ids)
         self.present_speeds = [0] * len(self.ids)
-        self.speed_decimation = 2
-        self.speed_decimation_index = 0
+        # self.speed_decimation = 4
+        # self.speed_decimation_index = 0
         self.last_t = time.time()
 
         Thread(target=self.update, daemon=True).start()
@@ -65,7 +65,7 @@ class FeetechPWMControl:
             s = time.time()
             try:
                 self.present_positions = self.io.get_present_position(self.ids)
-                # self.present_speeds = self.io.get_present_speed(self.ids)
+                self.present_speeds = self.io.get_present_speed(self.ids)
             except Exception as e:
                 print(e)
                 continue
@@ -94,12 +94,12 @@ class FeetechPWMControl:
                 print(e)
                 continue
 
-            if self.speed_decimation_index % self.speed_decimation == 0:
-                self.present_speeds = (
-                    np.array(self.present_positions) - np.array(self.last_positions)
-                ) / (time.time() - self.last_t)
-                self.last_positions = np.array(self.present_positions).copy()
-                self.last_t = time.time()
+            # if self.speed_decimation_index % self.speed_decimation == 0:
+            #     self.present_speeds = (
+            #         np.array(self.present_positions) - np.array(self.last_positions)
+            #     ) / (time.time() - self.last_t)
+            #     self.last_positions = np.array(self.present_positions).copy()
+            #     self.last_t = time.time()
 
             took = time.time() - s
             # self.bench.append(took)
@@ -112,7 +112,7 @@ class FeetechPWMControl:
             #         np.around(took - 1 / self.control_freq, 3),
             #     )
             time.sleep(max(0, (1 / self.control_freq - took)))
-            self.speed_decimation_index += 1
+            # self.speed_decimation_index += 1
 
 
 if __name__ == "__main__":
