@@ -228,7 +228,7 @@ class RLWalk:
                 projected_gravity,
                 cmds,
                 dof_pos - self.init_pos,
-                dof_vel,
+                dof_vel * 0.05,
                 self.last_action,
                 self.last_last_action,
                 self.last_last_last_action,
