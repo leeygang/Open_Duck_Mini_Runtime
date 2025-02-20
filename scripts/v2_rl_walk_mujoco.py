@@ -291,6 +291,7 @@ class RLWalk:
 
                 self.imitation_i += 1
                 self.imitation_i = self.imitation_i % 450
+                print("self.imiation_i", self.imitation_i)
 
                 self.saved_obs.append(obs)
 
