@@ -294,7 +294,7 @@ class RLWalk:
 
                 self.saved_obs.append(obs)
 
-                obs = np.clip(obs, -100, 100)
+                # obs = np.clip(obs, -100, 100)
 
                 action = self.policy.infer(obs)
 
