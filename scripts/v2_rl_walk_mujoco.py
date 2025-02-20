@@ -58,7 +58,6 @@ class RLWalk:
         action_scale=0.25,
         commands=False,
         pitch_bias=0,
-        history_len=0,
         replay_obs=None,
     ):
         self.commands = commands
@@ -78,10 +77,6 @@ class RLWalk:
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
             self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
-
-        self.current_phase = np.array([0, np.pi])
-        self.gait_freq = 1.5
-        self.phase_dt = 2 * np.pi * (1 / self.control_freq) * self.gait_freq
 
         self.hwi = HWI(serial_port)
         self.start()
@@ -120,11 +115,6 @@ class RLWalk:
             Thread(target=self.commands_worker, daemon=True).start()
 
         self.last_command_time = time.time()
-
-        self.history_len = history_len
-        self.qpos_error_history = np.zeros(self.history_len * self.num_dofs)
-        self.qvel_history = np.zeros(self.history_len * self.num_dofs)
-        self.gravity_history = np.zeros(self.history_len * 3)
 
         self.RM = ReferenceMotion("./ref_motion/")
         self.imitation_i = 0
@@ -185,14 +175,6 @@ class RLWalk:
             right = True
         return np.array([left, right])
 
-    def get_phase(self):
-        phase_tp1 = self.current_phase + self.phase_dt
-        self.current_phase = np.fmod(phase_tp1 + np.pi, 2 * np.pi) - np.pi
-        cos = np.cos(self.current_phase - np.pi/2)
-        # sin = np.sin(self.current_phase + np.pi)
-        return cos
-        # return np.concatenate([cos, sin])
-
     def get_obs(self):
 
         imu_mat = self.imu.get_data(mat=True)
@@ -236,23 +218,9 @@ class RLWalk:
         # projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
         projected_gravity = np.array(imu_mat).reshape((3, 3)).T @ np.array([0, 0, -1])
 
-        phase = self.get_phase()
-
         cmds = self.last_commands
 
         feet_contacts = self.get_feet_contacts()
-
-        if self.history_len > 0:
-            self.qvel_history = np.roll(self.qvel_history, self.num_dofs)
-            self.qvel_history[: self.num_dofs] = dof_vel
-
-            last_motor_target = self.init_pos + self.last_action * self.action_scale
-            qpos_error = dof_pos - last_motor_target
-            self.qpos_error_history = np.roll(self.qpos_error_history, self.num_dofs)
-            self.qpos_error_history[: self.num_dofs] = qpos_error
-
-            self.gravity_history = np.roll(self.gravity_history, 3)
-            self.gravity_history[:3] = projected_gravity
 
         ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
         obs = np.concatenate(
@@ -264,12 +232,8 @@ class RLWalk:
                 self.last_action,
                 self.last_last_action,
                 self.last_last_last_action,
-                # phase,
                 feet_contacts,
                 ref,
-                self.qpos_error_history,  # is [] if history_len == 0
-                self.qvel_history,  # is [] if history_len == 0
-                self.gravity_history,  # is [] if history_len == 0
             ]
         )
 
