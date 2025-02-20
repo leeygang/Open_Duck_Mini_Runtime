@@ -302,7 +302,9 @@ class RLWalk:
 
                 self.last_last_last_action = self.last_last_action.copy()
                 self.last_last_action = self.last_action.copy()
-                self.last_action_action = action.copy()
+                # Is that it ???????????
+                # self.last_action_action = action.copy() # WTF MAN
+                self.last_action = action.copy()
 
                 # action = np.zeros(10)
 
