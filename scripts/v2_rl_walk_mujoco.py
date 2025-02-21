@@ -222,7 +222,11 @@ class RLWalk:
 
         feet_contacts = self.get_feet_contacts()
 
-        ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
+        try:
+            ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
+        except Exception as e:
+            print("ERROR", e)
+            return None
         obs = np.concatenate(
             [
                 projected_gravity,
