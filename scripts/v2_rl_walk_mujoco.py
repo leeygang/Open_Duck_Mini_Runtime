@@ -93,7 +93,7 @@ class RLWalk:
         self.hwi = HWI(serial_port)
         self.start()
 
-        self.imu = Imu(sampling_freq=self.control_freq, user_pitch_bias=self.pitch_bias)
+        self.imu = Imu(sampling_freq=int(self.control_freq/2), user_pitch_bias=self.pitch_bias)
 
         # Scales
         self.action_scale = action_scale
@@ -199,7 +199,6 @@ class RLWalk:
 
         if self.commands:
             self.last_commands = self.get_last_command()
-            # print(self.last_commands)
 
         s_get_present_positions = time.time()
         dof_pos = self.hwi.get_present_positions(
