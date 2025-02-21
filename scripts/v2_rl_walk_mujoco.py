@@ -16,7 +16,7 @@ from mini_bdx_runtime.reference_motion import ReferenceMotion
 
 
 # Commands
-X_RANGE = [-0.1, 0.15]
+X_RANGE = [-0.1, 0.1]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-0.5, 0.5]
 
