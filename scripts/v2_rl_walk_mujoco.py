@@ -116,7 +116,7 @@ class RLWalk:
 
         self.last_command_time = time.time()
 
-        self.RM = ReferenceMotion("./ref_motion/")
+        self.RM = ReferenceMotion("./ref_motion_higher_foot/")
         self.imitation_i = 0
 
     def add_fake_head(self, pos):
