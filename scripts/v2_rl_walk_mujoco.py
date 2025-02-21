@@ -72,7 +72,14 @@ class RLWalk:
         self.control_freq = control_freq
         self.pid = pid
 
-        self.saved_obs = []
+        # self.saved_obs = []
+        self.times = {
+            "obs": 0,
+            "infer": 0,
+            "add_fake_head": 0,
+            "make_action_dict": 0,
+            "set_position_all": 0,
+        }
 
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
@@ -257,15 +264,17 @@ class RLWalk:
             print("Starting")
             while True:
                 t = time.time()
-
+                
+                s_obs = time.time()
                 obs = self.get_obs()
                 if obs is None:
                     continue
+                self.times["obs"] = time.time() - s_obs
 
                 self.imitation_i += 1
                 self.imitation_i = self.imitation_i % 450
 
-                self.saved_obs.append(obs)
+                # self.saved_obs.append(obs)
 
                 if self.replay_obs is not None:
                     if i < len(self.replay_obs):
@@ -276,7 +285,9 @@ class RLWalk:
 
                 # obs = np.clip(obs, -100, 100)
 
+                s_infer = time.time()
                 action = self.policy.infer(obs)
+                self.times["infer"] = time.time() - s_infer
 
                 # action = np.clip(action, -1, 1)
 
@@ -289,13 +300,20 @@ class RLWalk:
 
                 robot_action = self.init_pos + action * self.action_scale
 
+                s_add_fake_head = time.time()
                 robot_action = self.add_fake_head(robot_action)
+                self.times["add_fake_head"] = time.time() - s_add_fake_head
 
+
+                s_make_action_dict = time.time()
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
+                self.times["make_action_dict"] = time.time() - s_make_action_dict
 
+                s_set_position_all = time.time()
                 self.hwi.set_position_all(action_dict)
+                self.times["set_position_all"] = time.time() - s_set_position_all
 
                 i += 1
 
@@ -306,13 +324,17 @@ class RLWalk:
                         "Policy control budget exceeded by",
                         np.around(took - 1 / self.control_freq, 3),
                     )
+                    print("===")
+                    for k, v in self.times.items():
+                        print(k, np.around(v, 3))
+                    print("===")
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
             self.hwi.freeze()
             pass
 
-        pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
+        # pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
         print("FREEZING")
         self.hwi.freeze()
         print("TURNING OFF")
