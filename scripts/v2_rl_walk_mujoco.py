@@ -75,6 +75,11 @@ class RLWalk:
         # self.saved_obs = []
         self.times = {
             "obs": 0,
+            "obs/IMU": 0,
+            "obs/get_present_positions": 0,
+            "obs/get_present_velocities": 0,
+            "obs/get_feet_contacts": 0,
+            "obs/get_reference_motion": 0,
             "infer": 0,
             "add_fake_head": 0,
             "make_action_dict": 0,
@@ -184,15 +189,19 @@ class RLWalk:
 
     def get_obs(self):
 
+
+        s_imu = time.time()
         imu_mat = self.imu.get_data(mat=True)
         if imu_mat is None:
             print("IMU ERROR")
             return None
+        self.times["obs/IMU"] = time.time() - s_imu
 
         if self.commands:
             self.last_commands = self.get_last_command()
             # print(self.last_commands)
 
+        s_get_present_positions = time.time()
         dof_pos = self.hwi.get_present_positions(
             ignore=[
                 "neck_pitch",
@@ -203,6 +212,9 @@ class RLWalk:
                 "right_antenna",
             ]
         )  # rad
+        self.times["obs/get_present_positions"] = time.time() - s_get_present_positions
+
+        s_get_present_velocities = time.time()
         dof_vel = self.hwi.get_present_velocities(
             ignore=[
                 "neck_pitch",
@@ -213,6 +225,7 @@ class RLWalk:
                 "right_antenna",
             ]
         )  # rad/s
+        self.times["obs/get_present_velocities"] = time.time() - s_get_present_velocities
 
         if len(dof_pos) != self.num_dofs:
             print(f"ERROR len(dof_pos) != {self.num_dofs}")
@@ -227,13 +240,14 @@ class RLWalk:
 
         cmds = self.last_commands
 
+        s_get_feet_contacts = time.time()
         feet_contacts = self.get_feet_contacts()
+        self.times["obs/get_feet_contacts"] = time.time() - s_get_feet_contacts
 
-        try:
-            ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
-        except Exception as e:
-            print("ERROR", e)
-            return None
+        s_get_reference_motion = time.time()
+        ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
+        self.times["obs/get_reference_motion"] = time.time() - s_get_reference_motion
+
         obs = np.concatenate(
             [
                 projected_gravity,
