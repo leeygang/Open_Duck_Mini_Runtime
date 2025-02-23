@@ -12,7 +12,8 @@ from mini_bdx_runtime.rl_utils import (
     make_action_dict,
 )
 from mini_bdx_runtime.imu import Imu
-from mini_bdx_runtime.reference_motion import ReferenceMotion
+# from mini_bdx_runtime.reference_motion import ReferenceMotion
+from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 
 
 # Commands
@@ -128,7 +129,8 @@ class RLWalk:
 
         self.last_command_time = time.time()
 
-        self.RM = ReferenceMotion("./new_ref_motion/")
+        self.PRM = PolyReferenceMotion("./polynomial_coefficients.json")
+        # self.RM = ReferenceMotion("./new_ref_motion/")
         self.imitation_i = 0
 
     def add_fake_head(self, pos):
@@ -244,7 +246,8 @@ class RLWalk:
         self.times["obs/get_feet_contacts"] = time.time() - s_get_feet_contacts
 
         s_get_reference_motion = time.time()
-        ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
+        # ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
+        ref = self.PRM.get_reference_motion(*cmds, self.imitation_i)
         self.times["obs/get_reference_motion"] = time.time() - s_get_reference_motion
 
         obs = np.concatenate(
