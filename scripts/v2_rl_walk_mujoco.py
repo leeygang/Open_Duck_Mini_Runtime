@@ -12,7 +12,6 @@ from mini_bdx_runtime.rl_utils import (
     make_action_dict,
 )
 from mini_bdx_runtime.imu import Imu
-# from mini_bdx_runtime.reference_motion import ReferenceMotion
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 
 
@@ -74,18 +73,6 @@ class RLWalk:
         self.pid = pid
 
         # self.saved_obs = []
-        self.times = {
-            "obs": 0,
-            "obs/IMU": 0,
-            "obs/get_present_positions": 0,
-            "obs/get_present_velocities": 0,
-            "obs/get_feet_contacts": 0,
-            "obs/get_reference_motion": 0,
-            "infer": 0,
-            "add_fake_head": 0,
-            "make_action_dict": 0,
-            "set_position_all": 0,
-        }
 
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
@@ -130,7 +117,6 @@ class RLWalk:
         self.last_command_time = time.time()
 
         self.PRM = PolyReferenceMotion("./polynomial_coefficients.json")
-        # self.RM = ReferenceMotion("./new_ref_motion/")
         self.imitation_i = 0
 
     def add_fake_head(self, pos):
@@ -191,18 +177,14 @@ class RLWalk:
 
     def get_obs(self):
 
-
-        s_imu = time.time()
         imu_mat = self.imu.get_data(mat=True)
         if imu_mat is None:
             print("IMU ERROR")
             return None
-        self.times["obs/IMU"] = time.time() - s_imu
 
         if self.commands:
             self.last_commands = self.get_last_command()
 
-        s_get_present_positions = time.time()
         dof_pos = self.hwi.get_present_positions(
             ignore=[
                 "neck_pitch",
@@ -213,9 +195,7 @@ class RLWalk:
                 "right_antenna",
             ]
         )  # rad
-        self.times["obs/get_present_positions"] = time.time() - s_get_present_positions
 
-        s_get_present_velocities = time.time()
         dof_vel = self.hwi.get_present_velocities(
             ignore=[
                 "neck_pitch",
@@ -226,7 +206,6 @@ class RLWalk:
                 "right_antenna",
             ]
         )  # rad/s
-        self.times["obs/get_present_velocities"] = time.time() - s_get_present_velocities
 
         if len(dof_pos) != self.num_dofs:
             print(f"ERROR len(dof_pos) != {self.num_dofs}")
@@ -241,14 +220,9 @@ class RLWalk:
 
         cmds = self.last_commands
 
-        s_get_feet_contacts = time.time()
         feet_contacts = self.get_feet_contacts()
-        self.times["obs/get_feet_contacts"] = time.time() - s_get_feet_contacts
 
-        s_get_reference_motion = time.time()
-        # ref = self.RM.get_closest_reference_motion(*cmds, self.imitation_i)
         ref = self.PRM.get_reference_motion(*cmds, self.imitation_i)
-        self.times["obs/get_reference_motion"] = time.time() - s_get_reference_motion
 
         obs = np.concatenate(
             [
@@ -281,11 +255,9 @@ class RLWalk:
             while True:
                 t = time.time()
                 
-                s_obs = time.time()
                 obs = self.get_obs()
                 if obs is None:
                     continue
-                self.times["obs"] = time.time() - s_obs
 
                 self.imitation_i += 1
                 self.imitation_i = self.imitation_i % 450
@@ -301,9 +273,7 @@ class RLWalk:
 
                 # obs = np.clip(obs, -100, 100)
 
-                s_infer = time.time()
                 action = self.policy.infer(obs)
-                self.times["infer"] = time.time() - s_infer
 
                 # action = np.clip(action, -1, 1)
 
@@ -316,20 +286,14 @@ class RLWalk:
 
                 robot_action = self.init_pos + action * self.action_scale
 
-                s_add_fake_head = time.time()
                 robot_action = self.add_fake_head(robot_action)
-                self.times["add_fake_head"] = time.time() - s_add_fake_head
 
 
-                s_make_action_dict = time.time()
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
-                self.times["make_action_dict"] = time.time() - s_make_action_dict
 
-                s_set_position_all = time.time()
                 self.hwi.set_position_all(action_dict)
-                self.times["set_position_all"] = time.time() - s_set_position_all
 
                 i += 1
 
@@ -340,10 +304,6 @@ class RLWalk:
                         "Policy control budget exceeded by",
                         np.around(took - 1 / self.control_freq, 3),
                     )
-                    print("===")
-                    for k, v in self.times.items():
-                        print(k, np.around(v, 3))
-                    print("===")
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
