@@ -1,4 +1,4 @@
-from pypot.feetech import FeetechSTS3215IO
+import rustypot
 import time
 import numpy as np
 from threading import Thread
@@ -6,14 +6,11 @@ from threading import Thread
 
 class FeetechPWMControl:
     def __init__(self, ids, init_pos_rad, usb_port="/dev/ttyACM0"):
-        self.io = FeetechSTS3215IO(
-            usb_port,
-            baudrate=1000000,
-            use_sync_read=True,
-        )
+        self.io = rustypot.feetech(usb_port, 1000000)
+
         self.ids = ids
 
-        self.io.set_mode({id: 2 for id in self.ids})
+        self.io.set_mode(self.ids, 2)
         self.kps = np.ones(len(self.ids)) * 32  # default kp
 
         self.init_pos_rad = init_pos_rad
@@ -35,27 +32,23 @@ class FeetechPWMControl:
         self.kps = np.array(kps)
 
     def disable_torque(self):
-        self.io.set_mode({id: 0 for id in self.ids})
+        self.io.set_mode(self.ids, 0)
         self.io.disable_torque(self.ids)
 
-    # def enable_torque(self):
-    #     self.io.enable_torque(self.ids)
-    #     self.io.set_mode({id: 2 for id in self.ids})
-
     def freeze(self):
-        present_position = list(self.io.get_present_position(self.ids))
+        present_position = list(self.io.read_present_position(self.ids))
+        present_position = np.rad2deg(present_position)
         print(present_position)
-        self.io.set_goal_position(
-            {id: present_position[i] for i, id in enumerate(self.ids)}
-        )
-        self.io.set_mode({id: 0 for id in self.ids})
+        self.io.write_goal_position(self.ids, np.deg2rad(present_position))
+        self.io.set_mode(self.ids, 0)
         self.io.enable_torque(self.ids)
 
     def update(self):
         while True:
             s = time.time()
             try:
-                self.present_positions = self.io.get_present_position(self.ids)
+                self.present_positions = np.rad2deg(self.io.read_present_position(self.ids))
+
                 # self.present_speeds = self.io.get_present_speed(self.ids)
             except Exception as e:
                 print(e)
@@ -80,7 +73,8 @@ class FeetechPWMControl:
                 for i in range(len(pwm_magnitudes))
             ]
             try:
-                self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
+                self.io.set_goal_time(self.ids, goal_times)
+                # self.io.set_goal_time({id: goal_times[i] for i, id in enumerate(self.ids)})
             except Exception as e:
                 print(e)
                 continue
@@ -94,11 +88,11 @@ class FeetechPWMControl:
 
             took = time.time() - s
             # print("Took : ", np.around(took, 3), ". Budget : ", np.around(1/self.control_freq, 3), "diff : ", ((1/self.control_freq - took)))
-            # if (1 / self.control_freq - took) < 0:
-            #     print(
-            #         "Low level control budget exceded by ",
-            #         np.around(took - 1 / self.control_freq, 3),
-            #     )
+            if (1 / self.control_freq - took) < 0:
+                print(
+                    "Low level control budget exceded by ",
+                    np.around(took - 1 / self.control_freq, 3),
+                )
             time.sleep(max(0, (1 / self.control_freq - took)))
             self.speed_decimation_index += 1
 

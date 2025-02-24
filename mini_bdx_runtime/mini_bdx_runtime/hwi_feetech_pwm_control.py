@@ -4,7 +4,8 @@ from typing import List
 import numpy as np
 
 # from pypot.feetech import FeetechSTS3215IO
-from mini_bdx_runtime.feetech_pwm_control import FeetechPWMControl
+# from mini_bdx_runtime.feetech_pwm_control import FeetechPWMControl
+from mini_bdx_runtime.feetech_pwm_control_rustypot import FeetechPWMControl
 
 
 class HWI:
