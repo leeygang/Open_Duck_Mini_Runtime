@@ -1,9 +1,9 @@
-import json
 import numpy as np
+import pickle
 
 class PolyReferenceMotion:
     def __init__(self, polynomial_coefficients: str):
-        data = json.load(open(polynomial_coefficients))
+        data = pickle.load(open(polynomial_coefficients, "rb"))
         self.dx_range = [0, 0]
         self.dy_range = [0, 0]
         self.dtheta_range = [0, 0]
@@ -116,22 +116,3 @@ class PolyReferenceMotion:
         t = np.clip(t, 0.0, 1.0)  # safeguard
         ret = self.sample_polynomial(t, self.data_array[ix][iy][itheta])
         return ret
-
-
-if __name__ == "__main__":
-
-    PRM = PolyReferenceMotion(
-        "/home/antoine/MISC/Open_Duck_reference_motion_generator/polynomial_coefficients.json"
-    )
-    vals = []
-    select_dim = -1
-    for i in range(PRM.nb_steps_in_period):
-        vals.append(PRM.get_reference_motion(0.0, -0.05, -0.1, i)[select_dim])
-
-    # plot
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    ts = np.arange(0, PRM.nb_steps_in_period)
-    plt.plot(ts, vals)
-    plt.show()
