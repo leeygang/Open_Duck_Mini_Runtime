@@ -1,18 +1,10 @@
-import adafruit_bno055
+from mini_bdx_runtime.imu import Imu
 import time
-import serial
-from scipy.spatial.transform import Rotation as R
 
-uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
-imu = adafruit_bno055.BNO055_UART(uart)
-
+imu = Imu(sampling_freq=30)
 while True:
-    try:
-        raw_orientation = imu.quaternion  # quat
-        euler = R.from_quat(raw_orientation).as_euler("xyz")
-        print(euler)
-    except Exception as e:
-        print(e)
-        continue
+    orientation_quat = imu.get_data()
+
+    print(orientation_quat)
 
     time.sleep(1 / 30)
