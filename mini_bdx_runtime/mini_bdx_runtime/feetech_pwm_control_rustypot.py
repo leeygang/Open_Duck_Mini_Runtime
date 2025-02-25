@@ -37,11 +37,8 @@ class FeetechPWMControl:
 
     def freeze(self):
         present_position = list(self.io.read_present_position(self.ids))
-        present_position = np.rad2deg(present_position)
-        print(present_position)
-        self.io.write_goal_position(self.ids, np.deg2rad(present_position))
+        self.io.write_goal_position(self.ids, present_position)
         self.io.set_mode(self.ids, 0)
-        self.io.enable_torque(self.ids)
 
     def update(self):
         while True:

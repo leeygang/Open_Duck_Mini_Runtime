@@ -6,7 +6,8 @@ import pygame
 import numpy as np
 import RPi.GPIO as GPIO
 
-from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
+# from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
+from mini_bdx_runtime.rustypot_control_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
     make_action_dict,
