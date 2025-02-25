@@ -117,7 +117,7 @@ class RLWalk:
 
         self.last_command_time = time.time()
 
-        self.PRM = PolyReferenceMotion("./polynomial_coefficients.json")
+        self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
         self.imitation_i = 0
 
     def add_fake_head(self, pos):
