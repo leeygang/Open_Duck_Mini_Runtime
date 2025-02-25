@@ -110,7 +110,7 @@ class HWI:
         }
 
         init_pos_with_offsets = {
-            joint: pos + self.joints_offsets[joint]
+            joint: np.rad2deg(pos + self.joints_offsets[joint])
             for joint, pos in self.init_pos.items()
         }
 
@@ -124,7 +124,7 @@ class HWI:
         self.low_torque_kps = np.ones(len(self.joints)) * 8  # default kp
 
         self.control = rustypot.FeetechController(
-            usb_port, 1000000, 100, list(self.joints.values()), list(self.kps)
+            usb_port, 1000000, 100, list(self.joints.values()), list(self.kps), list(init_pos_with_offsets.values())
         )
 
     def set_kps(self, kps):
