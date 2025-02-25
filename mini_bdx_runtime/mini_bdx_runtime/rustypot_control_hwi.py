@@ -129,10 +129,10 @@ class HWI:
 
     def set_kps(self, kps):
         self.kps = kps
-        self.control.set_kps(self.kps)
+        self.control.set_new_kps(self.kps)
 
     def turn_on(self):
-        self.control.set_kps(self.low_torque_kps)
+        self.control.set_new_kps(self.low_torque_kps)
         print("turn on : low KPS set")
         time.sleep(1)
 
@@ -141,7 +141,7 @@ class HWI:
 
         time.sleep(1)
 
-        self.control.set_kps(self.kps)
+        self.control.set_new_kps(self.kps)
         print("turn on : high kps")
 
     def turn_off(self):
@@ -160,7 +160,8 @@ class HWI:
             for joint, position in joints_positions.items()
         }
 
-        self.control.goal_positions = list(ids_positions.values())
+        self.control.set_new_target(list(ids_positions.values()))
+        # self.control.goal_positions = list(ids_positions.values())
 
     def get_present_positions(self, ignore=[]):
         """
@@ -171,7 +172,7 @@ class HWI:
         #     self.control.io.get_present_position(self.joints.values())
         # )
 
-        present_positions = np.deg2rad(self.control.present_positions)
+        present_positions = np.deg2rad(self.control.get_present_position())
         present_positions = [
             pos - self.joints_offsets[joint]
             for joint, pos in zip(self.joints.keys(), present_positions)
@@ -184,7 +185,7 @@ class HWI:
         Returns the present velocities in rad/s (default) or rev/min
         """
         # deg/s
-        present_velocities = np.array(self.control.present_speeds)
+        present_velocities = np.array(self.control.get_current_speed())
         present_velocities = [
             vel
             for joint, vel in zip(self.joints.keys(), present_velocities)
@@ -197,8 +198,8 @@ class HWI:
             present_velocities = np.deg2rad(present_velocities)  # rad/s
         return np.array(np.around(present_velocities, 3))
 
-    def get_present_voltages(self):
-        return np.array(self.control.io.get_present_voltage(self.joints.values())) * 0.1
+    # def get_present_voltages(self):
+    #     return np.array(self.control.io.get_present_voltage(self.joints.values())) * 0.1
 
     # def get_present_velocities(self, rad_s=True):
     #     """
