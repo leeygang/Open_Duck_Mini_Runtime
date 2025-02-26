@@ -39,13 +39,19 @@ starting_pos_rad = np.array(hwi.get_present_positions())
 freq = 50
 A = np.deg2rad(10)
 F = 0.1
+times = []
+start = time.time()
 while True:
-
+    if time.time() - start > 3:
+        break
     action = starting_pos_rad + A * np.sin(2*np.pi*F*time.time())
     action_dict = make_action_dict(action, joints_order)
+    s = time.time()
     hwi.set_position_all(action_dict)
+    took = time.time() - s
+    print(f"set_position_all took {took}s")
+    times.append(took)
     
     time.sleep(1/freq)
 
-
-
+print(f"Average set_position_all took {np.mean(times)}s")
