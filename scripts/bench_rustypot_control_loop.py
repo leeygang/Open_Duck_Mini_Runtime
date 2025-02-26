@@ -30,6 +30,7 @@ def make_action_dict(action, joints_order):
 
     return action_dict
 
+
 hwi = HWI("/dev/ttyACM0")
 hwi.turn_on()
 
@@ -42,17 +43,17 @@ F = 0.3
 times = []
 start = time.time()
 while True:
-    if time.time() - start > 3:
+    if time.time() - start > 5:
         break
-    action = starting_pos_rad + A * np.sin(2*np.pi*F*time.time())
+    action = starting_pos_rad + A * np.sin(2 * np.pi * F * time.time())
     action_dict = make_action_dict(action, joints_order)
     s = time.time()
     hwi.set_position_all(action_dict)
     took = time.time() - s
-    print(f"set_position_all took {took}s")
+    # print(f"set_position_all took {took}s")
     times.append(took)
-    
-    time.sleep(1/freq)
+
+    time.sleep(1 / freq)
 
 hwi.freeze()
 print(f"Average set_position_all took {np.mean(times)}s")
