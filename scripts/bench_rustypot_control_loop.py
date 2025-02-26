@@ -1,4 +1,4 @@
-from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
+from mini_bdx_runtime.rustypot_control_hwi import HWI
 import time
 import numpy as np
 
@@ -55,4 +55,5 @@ while True:
     
     time.sleep(1/freq)
 
+hwi.freeze()
 print(f"Average set_position_all took {np.mean(times)}s")
