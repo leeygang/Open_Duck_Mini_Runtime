@@ -45,6 +45,7 @@ while True:
     if time.time() - start > 3:
         break
     action = starting_pos_rad + A * np.sin(2*np.pi*F*time.time())
+    print(action)
     action_dict = make_action_dict(action, joints_order)
     s = time.time()
     hwi.set_position_all(action_dict)
