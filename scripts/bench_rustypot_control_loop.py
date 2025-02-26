@@ -38,12 +38,12 @@ time.sleep(1)
 
 starting_pos_rad = np.array(hwi.get_present_positions())
 freq = 50
-A = np.deg2rad(10)
+A = np.deg2rad(5)
 F = 0.3
 times = []
 start = time.time()
 while True:
-    if time.time() - start > 5:
+    if time.time() - start > 10:
         break
     action = starting_pos_rad + A * np.sin(2 * np.pi * F * time.time())
     action_dict = make_action_dict(action, joints_order)
