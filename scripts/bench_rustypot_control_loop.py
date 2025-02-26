@@ -12,8 +12,8 @@ joints_order = [
     "head_pitch",
     "head_yaw",
     "head_roll",
-    "left_antenna",
-    "right_antenna",
+    # "left_antenna",
+    # "right_antenna",
     "right_hip_yaw",
     "right_hip_roll",
     "right_hip_pitch",
@@ -47,6 +47,7 @@ while True:
     action = starting_pos_rad + A * np.sin(2*np.pi*F*time.time())
     print(action)
     action_dict = make_action_dict(action, joints_order)
+    print(action_dict)
     s = time.time()
     hwi.set_position_all(action_dict)
     took = time.time() - s
