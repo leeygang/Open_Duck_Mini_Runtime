@@ -19,7 +19,7 @@ class FeetechPWMControl:
         self.init_pos_rad = init_pos_rad
         self.init_pos_deg = np.rad2deg(self.init_pos_rad)
 
-        self.control_freq = 100  # Hz
+        self.control_freq = 200  # Hz
         self.goal_positions = [0] * len(self.ids)
         self.goal_positions = self.init_pos_deg
         self.present_positions = [0] * len(self.ids)
