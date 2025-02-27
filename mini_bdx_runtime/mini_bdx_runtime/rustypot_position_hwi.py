@@ -114,7 +114,7 @@ class HWI:
 
         time.sleep(1)
 
-        self.control.set_kps(list(self.joints.values()), self.kps)
+        self.io.set_kps(list(self.joints.values()), self.kps)
         print("turn on : high kps")
 
     def turn_off(self):
