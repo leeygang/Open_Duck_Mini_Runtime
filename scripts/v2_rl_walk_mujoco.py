@@ -7,7 +7,8 @@ import numpy as np
 import RPi.GPIO as GPIO
 
 # from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
-from mini_bdx_runtime.rustypot_control_hwi import HWI
+# from mini_bdx_runtime.rustypot_control_hwi import HWI
+from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
     make_action_dict,
@@ -308,12 +309,12 @@ class RLWalk:
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
-            self.hwi.freeze()
+            # self.hwi.freeze()
             pass
 
         # pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
-        print("FREEZING")
-        self.hwi.freeze()
+        # print("FREEZING")
+        # self.hwi.freeze()
         print("TURNING OFF")
 
 
