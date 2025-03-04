@@ -90,6 +90,11 @@ You can test that it's working by running
 python3 scripts/test_xbox_controller.py
 ```
 
+## Speaker wiring and configuration
+Follow this tutorial
+
+https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp?view=all
+
 
 ## Install the runtime
 

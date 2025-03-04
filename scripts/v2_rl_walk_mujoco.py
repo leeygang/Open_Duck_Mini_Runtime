@@ -1,10 +1,8 @@
 import time
 import pickle
-from queue import Queue
-from threading import Thread
-import pygame
+
+# import pygame
 import numpy as np
-import RPi.GPIO as GPIO
 
 # from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 # from mini_bdx_runtime.rustypot_control_hwi import HWI
@@ -15,20 +13,8 @@ from mini_bdx_runtime.rl_utils import (
 )
 from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
-
-
-# Commands
-X_RANGE = [-0.1, 0.15]
-Y_RANGE = [-0.2, 0.2]
-YAW_RANGE = [-0.5, 0.5]
-
-LEFT_FOOT_PIN = 22
-RIGHT_FOOT_PIN = 27
-GPIO.setwarnings(False)  # Ignore warning for now
-GPIO.setmode(GPIO.BCM)  # Use physical pin numbering
-GPIO.setup(LEFT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(RIGHT_FOOT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
+from mini_bdx_runtime.xbox_controller import XBoxController
+from mini_bdx_runtime.feet_contacts import FeetContacts
 
 joints_order = [
     "left_hip_yaw",
@@ -83,7 +69,11 @@ class RLWalk:
         self.hwi = HWI(serial_port)
         self.start()
 
-        self.imu = Imu(sampling_freq=int(self.control_freq/2), user_pitch_bias=self.pitch_bias)
+        self.imu = Imu(
+            sampling_freq=int(self.control_freq / 2), user_pitch_bias=self.pitch_bias
+        )
+
+        self.feet_contacts = FeetContacts()
 
         # Scales
         self.action_scale = action_scale
@@ -109,14 +99,7 @@ class RLWalk:
 
         self.command_freq = 10  # hz
         if self.commands:
-            pygame.init()
-            self._p1 = pygame.joystick.Joystick(0)
-            self._p1.init()
-            print(f"Loaded joystick with {self._p1.get_numaxes()} axes.")
-            self.cmd_queue = Queue(maxsize=1)
-            Thread(target=self.commands_worker, daemon=True).start()
-
-        self.last_command_time = time.time()
+            self.xbox_controller = XBoxController(self.command_freq)
 
         self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
         self.imitation_i = 0
@@ -126,57 +109,6 @@ class RLWalk:
         pos_with_head = np.insert(pos, 5, [0, 0, 0, 0, 0, 0])
         return np.array(pos_with_head)
 
-    def commands_worker(self):
-        while True:
-            self.cmd_queue.put(self.get_commands())
-            time.sleep(1 / self.command_freq)
-
-    def get_commands(self):
-        last_commands = self.last_commands
-        for event in pygame.event.get():
-            lin_vel_y = -1 * self._p1.get_axis(0)
-            lin_vel_x = -1 * self._p1.get_axis(1)
-            ang_vel = -1 * self._p1.get_axis(2)
-            if lin_vel_x >= 0:
-                lin_vel_x *= np.abs(X_RANGE[1])
-            else:
-                lin_vel_x *= np.abs(X_RANGE[0])
-
-            if lin_vel_y >= 0:
-                lin_vel_y *= np.abs(Y_RANGE[1])
-            else:
-                lin_vel_y *= np.abs(Y_RANGE[0])
-
-            if ang_vel >= 0:
-                ang_vel *= np.abs(YAW_RANGE[1])
-            else:
-                ang_vel *= np.abs(YAW_RANGE[0])
-
-            last_commands[0] = lin_vel_x
-            last_commands[1] = lin_vel_y
-            last_commands[2] = ang_vel
-
-        pygame.event.pump()  # process event queue
-
-        return np.around(last_commands, 3)
-
-    def get_last_command(self):
-        try:
-            self.last_commands = self.cmd_queue.get(False)  # non blocking
-        except Exception:
-            pass
-
-        return self.last_commands
-
-    def get_feet_contacts(self):
-        left = False
-        right = False
-        if GPIO.input(LEFT_FOOT_PIN) == GPIO.LOW:
-            left = True
-        if GPIO.input(RIGHT_FOOT_PIN) == GPIO.LOW:
-            right = True
-        return np.array([left, right])
-
     def get_obs(self):
 
         imu_mat = self.imu.get_data(mat=True)
@@ -185,7 +117,7 @@ class RLWalk:
             return None
 
         if self.commands:
-            self.last_commands = self.get_last_command()
+            self.last_commands = self.xbox_controller.get_last_command()
 
         dof_pos = self.hwi.get_present_positions(
             ignore=[
@@ -222,7 +154,7 @@ class RLWalk:
 
         cmds = self.last_commands
 
-        feet_contacts = self.get_feet_contacts()
+        feet_contacts = self.feet_contacts.get()
 
         ref = self.PRM.get_reference_motion(*cmds, self.imitation_i)
 
@@ -258,7 +190,7 @@ class RLWalk:
             print("Starting")
             while True:
                 t = time.time()
-                
+
                 obs = self.get_obs()
                 if obs is None:
                     continue
@@ -291,7 +223,6 @@ class RLWalk:
                 robot_action = self.init_pos + action * self.action_scale
 
                 robot_action = self.add_fake_head(robot_action)
-
 
                 action_dict = make_action_dict(
                     robot_action, joints_order
