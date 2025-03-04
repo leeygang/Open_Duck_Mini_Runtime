@@ -91,7 +91,7 @@ class HWI:
         }
 
         self.kps = np.ones(len(self.joints)) * 32  # default kp
-        self.low_torque_kps = np.ones(len(self.joints)) * 4  # default kp
+        self.low_torque_kps = np.ones(len(self.joints)) * 2  # default kp
 
         # self.control = rustypot.FeetechController(
         #     usb_port, 1000000, 100, list(self.joints.values()), list(self.kps), list(init_pos_with_offsets.values())
@@ -105,9 +105,6 @@ class HWI:
 
     def turn_on(self):
         self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
-        print("KPS")
-        print(self.io.get_kps(list(self.joints.values())))
-        print("===")
         # self.control.set_new_kps(self.low_torque_kps)
         print("turn on : low KPS set")
         time.sleep(1)
