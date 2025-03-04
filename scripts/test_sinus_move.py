@@ -14,7 +14,7 @@ control_freq = 50  # Hz
 A = 0.2
 F = 0.5
 while True:
-    target = 1 * np.sin(2 * np.pi * F * time.time())
+    target = A * np.sin(2 * np.pi * F * time.time())
 
     io.write_goal_position(ids, [target])
     present_pos = io.read_present_position(ids)[0]
