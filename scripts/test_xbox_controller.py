@@ -1,15 +1,7 @@
-import pygame
+from mini_bdx_runtime.xbox_controller import XBoxController
+import time
 
-pygame.init()
-_p1 = pygame.joystick.Joystick(0)
-_p1.init()
-print(f"Loaded joystick with {_p1.get_numaxes()} axes.")
-
-
+xbox = XBoxController(50)
 while True:
-    for event in pygame.event.get():
-        for i in range(_p1.get_numaxes()):
-            print(i, _p1.get_axis(i))
-        print("===")
-
-    pygame.event.pump()  # process event queue
+    print(xbox.get_last_command())
+    time.sleep(0.1)
