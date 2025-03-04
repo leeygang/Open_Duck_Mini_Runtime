@@ -18,7 +18,7 @@ from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 
 
 # Commands
-X_RANGE = [-0.1, 0.1]
+X_RANGE = [-0.1, 0.15]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-0.5, 0.5]
 
