@@ -243,10 +243,10 @@ class RLWalk:
         return obs
 
     def start(self):
-        self.hwi.turn_on()
         kps = [self.pid[0]] * 14
 
         self.hwi.set_kps(kps)
+        self.hwi.turn_on()
 
         time.sleep(2)
 
