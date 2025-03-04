@@ -247,7 +247,9 @@ class RLWalk:
         kds = [self.pid[0]] * 0
 
         self.hwi.set_kps(kps)
+        time.sleep(0.1)
         self.hwi.set_kds(kds)
+        time.sleep(0.1)
         self.hwi.turn_on()
 
         time.sleep(2)
