@@ -91,6 +91,7 @@ class HWI:
         }
 
         self.kps = np.ones(len(self.joints)) * 32  # default kp
+        self.kds = np.ones(len(self.joints)) * 0  # default kd
         self.low_torque_kps = np.ones(len(self.joints)) * 2  # default kp
 
         # self.control = rustypot.FeetechController(
@@ -102,6 +103,11 @@ class HWI:
         self.kps = kps
         self.io.set_kps(list(self.joints.values()), self.kps)
         # self.control.set_new_kps(self.kps)
+    
+    def set_kds(self, kds):
+        self.kds = kds
+        self.io.set_kds(list(self.joints.values()), self.kds)
+
 
     def turn_on(self):
         self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
