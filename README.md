@@ -132,3 +132,7 @@ This script will guide you through finding the joints offsets of your robot, tha
 cd scripts/
 python find_soft_offsets.py
 ```
+
+
+# TODO
+- [] rustypot python bindings install from wheels (see with Pierre)
