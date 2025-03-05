@@ -45,7 +45,8 @@ try:
             hwi.set_position_all(hwi.zero_pos)
             time.sleep(0.5)
             current_pos = hwi.get_present_positions()[i]
-            hwi.control.kps[i] = 0
+            # hwi.control.kps[i] = 0
+            hwi.io.set_kps([i], [0])
             input(
                 f"{joint_name} is now turned off. Move it to the desired zero position and press any key to confirm the offset"
             )
@@ -59,6 +60,7 @@ try:
             hwi.set_position_all(hwi.zero_pos)
             time.sleep(0.5)
             hwi.control.kps[i] = 32
+            # hwi.io.set_kps([i], [0])
             res = input("Is that ok ? (Y/n)").lower()
             if res == "Y" or res == "":
                 print("Ok, setting offset")
