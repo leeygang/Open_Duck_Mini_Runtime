@@ -149,7 +149,7 @@ class Imu:
             # Converting to correct axes
             euler = self.convert_axes(euler)
             euler[1] -= np.deg2rad(self.pitch_bias)
-            euler[2] = 0  # ignoring yaw
+            # euler[2] = 0  # ignoring yaw
 
             # gives scalar last, which is what isaac wants
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
