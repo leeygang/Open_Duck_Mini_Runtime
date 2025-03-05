@@ -2,7 +2,8 @@
 Find the offsets to set in self.joints_offsets in hwi_feetech_pwm_control.py
 """
 
-from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
+# from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
+from mini_bdx_runtime.rustypot_position_hwi import HWI
 import time
 
 input(
