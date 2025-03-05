@@ -28,7 +28,7 @@ hwi.joints_offsets = {
 }
 
 hwi.init_pos = hwi.zero_pos
-hwi.set_kds(list(hwi.joints.values()), [0] * len(hwi.joints))
+hwi.set_kds([0] * len(hwi.joints))
 hwi.turn_on()
 print("")
 print("")
