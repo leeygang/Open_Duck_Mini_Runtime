@@ -52,21 +52,19 @@ class XBoxController:
             last_commands[1] = lin_vel_y
             last_commands[2] = ang_vel
 
-            for i in range(10):
-                if self.p1.get_button(i):
-                    print(i, "pressed")
-                    # start_pressed = True
-                    # print("Start pressed")
-
+            if self.p1.get_button(0):  # A button
+                start_pressed = True
 
         pygame.event.pump()  # process event queue
 
-        return np.around(last_commands, 3)
+        return np.around(last_commands, 3), start_pressed
 
     def get_last_command(self):
         try:
-            self.last_commands = self.cmd_queue.get(False)  # non blocking
+            self.last_commands, start_pressed = self.cmd_queue.get(
+                False
+            )  # non blocking
         except Exception:
             pass
 
-        return self.last_commands
+        return self.last_commands, start_pressed
