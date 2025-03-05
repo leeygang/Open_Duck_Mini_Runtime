@@ -66,23 +66,39 @@ class HWI:
             "right_ankle": -0.796,
         }
 
+        # self.joints_offsets = {
+        #     "left_hip_yaw": 0.084,
+        #     "left_hip_roll": -0.112,
+        #     "left_hip_pitch": -0.024,
+        #     "left_knee": 0.005,
+        #     "left_ankle": -0.09,
+        #     "neck_pitch": 0.017,
+        #     "head_pitch": 0.114,
+        #     "head_yaw": -0.083,
+        #     "head_roll": 0.072,
+        #     # "left_antenna": 0,
+        #     # "right_antenna": 0,
+        #     "right_hip_yaw": -0.13499999999999998,
+        #     "right_hip_roll": 0.205,
+        #     "right_hip_pitch": 0.064,
+        #     "right_knee": -0.027999999999999997,
+        #     "right_ankle": -0.09799999999999999,
+        # }
         self.joints_offsets = {
-            "left_hip_yaw": 0.084,
-            "left_hip_roll": -0.112,
-            "left_hip_pitch": -0.024,
-            "left_knee": 0.005,
-            "left_ankle": -0.09,
-            "neck_pitch": 0.017,
-            "head_pitch": 0.114,
-            "head_yaw": -0.083,
-            "head_roll": 0.072,
-            # "left_antenna": 0,
-            # "right_antenna": 0,
-            "right_hip_yaw": -0.13499999999999998,
-            "right_hip_roll": 0.205,
-            "right_hip_pitch": 0.064,
-            "right_knee": -0.027999999999999997,
-            "right_ankle": -0.09799999999999999,
+            "left_hip_yaw": 0.123,
+            "left_hip_roll": -0.131,
+            "left_hip_pitch": -0.011,
+            "left_knee": 0.0,
+            "left_ankle": -0.107,
+            "neck_pitch": 0.061,
+            "head_pitch": 0.108,
+            "head_yaw": -0.08399999999999999,
+            "head_roll": 0.063,
+            "right_hip_yaw": -0.131,
+            "right_hip_roll": 0.089,
+            "right_hip_pitch": 0.06799999999999999,
+            "right_knee": 0.002,
+            "right_ankle": -0.093,
         }
 
         init_pos_with_offsets = {
@@ -103,7 +119,7 @@ class HWI:
         self.kps = kps
         self.io.set_kps(list(self.joints.values()), self.kps)
         # self.control.set_new_kps(self.kps)
-    
+
     def set_kds(self, kds):
         self.kds = kds
         self.io.set_kds(list(self.joints.values()), self.kds)
