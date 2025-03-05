@@ -66,8 +66,6 @@ class HWI:
             "right_ankle": -0.796,
         }
 
-        self.init_pos = self.zero_pos
-
         # self.joints_offsets = {
         #     "left_hip_yaw": 0.084,
         #     "left_hip_roll": -0.112,
@@ -87,8 +85,8 @@ class HWI:
         #     "right_ankle": -0.09799999999999999,
         # }
         self.joints_offsets = {
-            "left_hip_yaw": 0.123,
-            "left_hip_roll": -0.131,
+            "left_hip_yaw": 0.14,
+            "left_hip_roll": -0.05,
             "left_hip_pitch": -0.011,
             "left_knee": 0.0,
             "left_ankle": -0.107,
