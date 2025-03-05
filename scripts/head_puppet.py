@@ -3,14 +3,22 @@ Sets up the robot in init position, you control the head with the xbox controlle
 """
 
 
-from pypot.feetech import FeetechSTS3215IO
-from mini_bdx_runtime.hwi_feetech_pypot import HWI
+# from pypot.feetech import FeetechSTS3215IO
+# from mini_bdx_runtime.hwi_feetech_pypot import HWI
+from mini_bdx_runtime.rustypot_position_hwi import HWI
+from mini_bdx_runtime.eyes import Eyes
 import time
 import pygame
 import numpy as np
 
-
+eyes = Eyes()
 hwi = HWI()
+
+kps = [16] * 14
+kds = [0] * 14
+
+hwi.set_kps(kps)
+hwi.set_kds(kds)
 hwi.turn_on()
 
 
@@ -60,7 +68,7 @@ while True:
 
 
     # Convert from degrees to radians
-    print(head_yaw_deg)
+    # print(head_yaw_deg)
 
     hwi.set_position("head_yaw", head_yaw_pos_rad)
     hwi.set_position("head_roll", head_roll_pos_rad)

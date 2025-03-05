@@ -130,6 +130,15 @@ class HWI:
     # def freeze(self):
     #     self.control.freeze()
 
+    def set_position(self, joint_name, pos):
+        """
+        pos is in radians
+        """
+        id = self.joints[joint_name]
+        pos = pos + self.joints_offsets[joint_name]
+        self.io.write_goal_position([id], [pos])
+        # self.control.set_new_target([pos])
+
     def set_position_all(self, joints_positions):
         """
         joints_positions is a dictionary with joint names as keys and joint positions as values
