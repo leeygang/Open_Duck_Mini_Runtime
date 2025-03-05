@@ -108,6 +108,9 @@ class HWI:
         self.kds = kds
         self.io.set_kds(list(self.joints.values()), self.kds)
 
+    def set_kp(self, id, kp):
+        self.kps[id] = kp
+        self.io.set_kps([id], [kp])
 
     def turn_on(self):
         self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
