@@ -60,6 +60,7 @@ class XBoxController:
         return np.around(last_commands, 3), A_pressed
 
     def get_last_command(self):
+        A_pressed = False
         try:
             self.last_commands, A_pressed = self.cmd_queue.get(
                 False
