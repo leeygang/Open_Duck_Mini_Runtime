@@ -22,12 +22,13 @@ class Eyes:
         Thread(target=self.run, daemon=True).start()
 
     def run(self):
-        GPIO.output(RIGHT_EYE_GPIO, GPIO.LOW)
-        # GPIO.output(LEFT_EYE_GPIO, GPIO.LOW)
-        time.sleep(self.blink_duration)
-        GPIO.output(RIGHT_EYE_GPIO, GPIO.HIGH)
-        # GPIO.output(LEFT_EYE_GPIO, GPIO.HIGH)
+        while True:
+            GPIO.output(RIGHT_EYE_GPIO, GPIO.LOW)
+            # GPIO.output(LEFT_EYE_GPIO, GPIO.LOW)
+            time.sleep(self.blink_duration)
+            GPIO.output(RIGHT_EYE_GPIO, GPIO.HIGH)
+            # GPIO.output(LEFT_EYE_GPIO, GPIO.HIGH)
 
-        next_blink = np.random.rand() * 4  # seconds
+            next_blink = np.random.rand() * 4  # seconds
 
-        time.sleep(next_blink)
+            time.sleep(next_blink)
