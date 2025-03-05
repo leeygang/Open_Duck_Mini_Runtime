@@ -129,10 +129,10 @@ class RLWalk:
 
         dof_pos = self.hwi.get_present_positions(
             ignore=[
-                "neck_pitch",
-                "head_pitch",
-                "head_yaw",
-                "head_roll",
+                # "neck_pitch",
+                # "head_pitch",
+                # "head_yaw",
+                # "head_roll",
                 "left_antenna",
                 "right_antenna",
             ]
@@ -140,10 +140,10 @@ class RLWalk:
 
         dof_vel = self.hwi.get_present_velocities(
             ignore=[
-                "neck_pitch",
-                "head_pitch",
-                "head_yaw",
-                "head_roll",
+                # "neck_pitch",
+                # "head_pitch",
+                # "head_yaw",
+                # "head_roll",
                 "left_antenna",
                 "right_antenna",
             ]
