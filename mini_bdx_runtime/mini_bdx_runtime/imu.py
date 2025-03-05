@@ -54,9 +54,8 @@ class Imu:
         calibrated = self.imu.calibration_status[1] == 3
         print("Calibrating Gyro...")
         while not calibrated:
-            # calibrated = self.imu.calibration_status[1] == 3
-            # print("Calibration status: ", self.imu.calibration_status[1])
-            print("Calibration status: ", self.imu.calibration_status)
+            calibrated = self.imu.calibration_status[1] == 3
+            print("Calibration status: ", self.imu.calibration_status[1])
             time.sleep(0.1)
 
         # self.zero_euler = None
