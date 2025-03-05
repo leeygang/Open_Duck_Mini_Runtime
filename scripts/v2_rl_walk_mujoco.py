@@ -15,6 +15,7 @@ from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
+from mini_bdx_runtime.eyes import Eyes
 
 joints_order = [
     "left_hip_yaw",
@@ -72,6 +73,8 @@ class RLWalk:
         self.imu = Imu(
             sampling_freq=int(self.control_freq / 2), user_pitch_bias=self.pitch_bias
         )
+
+        self.eyes = Eyes()
 
         self.feet_contacts = FeetContacts()
 
