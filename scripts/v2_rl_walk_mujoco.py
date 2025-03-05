@@ -104,6 +104,8 @@ class RLWalk:
 
         self.last_commands = [0.0, 0, 0]
 
+        self.paused = False
+
         self.command_freq = 10  # hz
         if self.commands:
             self.xbox_controller = XBoxController(self.command_freq)
@@ -123,9 +125,6 @@ class RLWalk:
         if imu_mat is None:
             print("IMU ERROR")
             return None
-
-        if self.commands:
-            self.last_commands = self.xbox_controller.get_last_command()
 
         dof_pos = self.hwi.get_present_positions(
             ignore=[
@@ -198,6 +197,22 @@ class RLWalk:
             print("Starting")
             while True:
                 t = time.time()
+
+                if self.commands:
+                    self.last_commands, A_pressed = (
+                        self.xbox_controller.get_last_command()
+                    )
+
+                if A_pressed and not self.paused:
+                    self.paused = True
+                    print("PAUSE")
+                elif A_pressed and self.paused:
+                    self.paused = False
+                    print("UNPAUSE")
+
+                if self.paused:
+                    time.sleep(0.1)
+                    continue
 
                 obs = self.get_obs()
                 if obs is None:
