@@ -55,7 +55,7 @@ class RLWalk:
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path, awd=True)
 
-        self.num_dofs = 10
+        self.num_dofs = 14
 
         # Control
         self.control_freq = control_freq
@@ -91,6 +91,10 @@ class RLWalk:
             -0.63,
             1.368,
             -0.784,
+            0,
+            0,
+            0,
+            0,
             -0.003,
             -0.065,
             0.635,
@@ -108,8 +112,9 @@ class RLWalk:
         self.imitation_i = 0
 
     def add_fake_head(self, pos):
+        # add just the antennas now
         assert len(pos) == self.num_dofs
-        pos_with_head = np.insert(pos, 5, [0, 0, 0, 0, 0, 0])
+        pos_with_head = np.insert(pos, 5, [0, 0])
         return np.array(pos_with_head)
 
     def get_obs(self):
@@ -148,7 +153,7 @@ class RLWalk:
             print(f"ERROR len(dof_pos) != {self.num_dofs}")
             return None
 
-        if len(dof_vel) != 10:
+        if len(dof_vel) != self.num_dofs:
             print(f"ERROR len(dof_vel) != {self.num_dofs}")
             return None
 
