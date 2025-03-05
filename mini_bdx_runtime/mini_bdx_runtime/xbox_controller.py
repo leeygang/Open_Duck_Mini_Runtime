@@ -27,6 +27,7 @@ class XBoxController:
             time.sleep(1 / self.command_freq)
 
     def get_commands(self):
+        start_pressed = False
         last_commands = self.last_commands
         for event in pygame.event.get():
             lin_vel_y = -1 * self.p1.get_axis(0)
@@ -50,6 +51,11 @@ class XBoxController:
             last_commands[0] = lin_vel_x
             last_commands[1] = lin_vel_y
             last_commands[2] = ang_vel
+
+            if self.p1.get_button(7):
+                start_pressed = True
+                print("Start pressed")
+
 
         pygame.event.pump()  # process event queue
 
