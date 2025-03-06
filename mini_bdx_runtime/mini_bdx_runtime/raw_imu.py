@@ -2,6 +2,8 @@ import adafruit_bno055
 import board
 import busio
 import numpy as np
+import os
+import pickle
 
 from queue import Queue
 from threading import Thread
@@ -10,10 +12,11 @@ import time
 
 # TODO filter spikes
 class Imu:
-    def __init__(self, sampling_freq, user_pitch_bias=0, calibration=False):
+    def __init__(self, sampling_freq, user_pitch_bias=0, calibrate=False):
         self.sampling_freq = sampling_freq
         self.user_pitch_bias = user_pitch_bias
         self.nominal_pitch_bias = 25
+        self.calibrate = calibrate
 
         i2c = busio.I2C(board.SCL, board.SDA)
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
@@ -24,15 +27,53 @@ class Imu:
         # self.imu.mode = adafruit_bno055.NDOF_MODE
         # self.imu.mode = adafruit_bno055.NDOF_FMC_OFF_MODE
 
+        self.imu.axis_remap = (
+                adafruit_bno055.AXIS_REMAP_Y,
+                adafruit_bno055.AXIS_REMAP_X,
+                adafruit_bno055.AXIS_REMAP_Z,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE
+            )
+
         self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
 
-        # # calibrate imu
-        # calibrated = self.imu.calibration_status[1] == 3
-        # print("Calibrating Gyro...")
-        # while not calibrated:
-        #     calibrated = self.imu.calibration_status[1] == 3
-        #     print("Calibration status: ", self.imu.calibration_status[1])
-        #     time.sleep(0.1)
+        if self.calibrate:
+            self.imu.mode = adafruit_bno055.NDOF_MODE
+            calibrated = self.imu.calibrated
+            while not calibrated:
+                print("Calibration status: ", self.imu.calibration_status)
+                print("Calibrated : ", self.imu.calibrated)
+                calibrated = self.imu.calibrated
+                time.sleep(0.1)
+            print("CALIBRATION DONE")
+            offsets_accelerometer = self.imu.offsets_accelerometer
+            offsets_gyroscope = self.imu.offsets_gyroscope
+            offsets_magnetometer = self.imu.offsets_magnetometer
+
+            imu_calib_data = {
+                "offsets_accelerometer": offsets_accelerometer,
+                "offsets_gyroscope": offsets_gyroscope,
+                "offsets_magnetometer": offsets_magnetometer,
+            }
+            for k, v in imu_calib_data.items():
+                print(k, v)
+
+            pickle.dump(imu_calib_data, open("imu_calib_data.pkl", "wb"))
+
+            print("Saved", "imu_calib_data.pkl")
+            exit()
+
+        if os.path.exists("imu_calib_data.pkl"):
+            imu_calib_data = pickle.load(open("imu_calib_data.pkl", "rb"))
+            self.imu.offsets_accelerometer = imu_calib_data["offsets_accelerometer"]
+            self.imu.offsets_gyroscope = imu_calib_data["offsets_gyroscope"]
+            self.imu.offsets_magnetometer = imu_calib_data["offsets_magnetometer"]
+        else:
+            print("imu_calib_data.pkl not found")
+            print("Imu is running uncalibrated")
+
+
 
         self.last_imu_data = [0, 0, 0, 0]
         self.last_imu_data = {
@@ -59,14 +100,9 @@ class Imu:
             if gyro is None or accelero is None:
                 continue
 
-            # Converting to correct axes
-            # euler = self.convert_axes(euler)
-            # euler[1] -= np.deg2rad(self.pitch_bias)
-            # euler[2] = 0  # ignoring yaw
+            if gyro.any() is None or accelero.any() is None:
+                continue
 
-            # gives scalar last, which is what isaac wants
-            # final_orientation_quat = R.from_euler("xyz", euler).as_quat()
-            
             data = {
                 "gyro": gyro,
                 "accelero": accelero,
@@ -89,6 +125,7 @@ if __name__ == "__main__":
     imu = Imu(50)
     while True:
         data = imu.get_data()
+        # print(data)
         print("gyro", np.around(data["gyro"], 3))
         print("accelero", np.around(data["accelero"], 3))
         print("---")

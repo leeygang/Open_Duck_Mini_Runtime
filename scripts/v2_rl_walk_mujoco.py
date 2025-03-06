@@ -11,7 +11,8 @@ from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
     make_action_dict,
 )
-from mini_bdx_runtime.imu import Imu
+# from mini_bdx_runtime.imu import Imu
+from mini_bdx_runtime.raw_imu import Imu
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
@@ -121,10 +122,11 @@ class RLWalk:
 
     def get_obs(self):
 
-        imu_mat = self.imu.get_data(mat=True)
-        if imu_mat is None:
-            print("IMU ERROR")
-            return None
+        # imu_mat = self.imu.get_data(mat=True)
+        imu_data = self.imu.get_data()
+        # if imu_mat is None:
+        #     print("IMU ERROR")
+        #     return None
 
         dof_pos = self.hwi.get_present_positions(
             ignore=[
@@ -157,7 +159,7 @@ class RLWalk:
             return None
 
         # projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
-        projected_gravity = np.array(imu_mat).reshape((3, 3)).T @ np.array([0, 0, -1])
+        # projected_gravity = np.array(imu_mat).reshape((3, 3)).T @ np.array([0, 0, -1])
 
         cmds = self.last_commands
 
@@ -167,7 +169,9 @@ class RLWalk:
 
         obs = np.concatenate(
             [
-                projected_gravity,
+                imu_data["gyro"],
+                imu_data["accelero"],
+                # projected_gravity,
                 cmds,
                 dof_pos - self.init_pos,
                 dof_vel * 0.05,
