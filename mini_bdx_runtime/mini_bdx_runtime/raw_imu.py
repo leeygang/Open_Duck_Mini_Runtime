@@ -64,6 +64,10 @@ class Imu:
             # gives scalar last, which is what isaac wants
             # final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
+            print(gyro)
+            print(accelero)
+            
+
             data = {
                 "gyro": gyro,
                 "accelero": accelero,
