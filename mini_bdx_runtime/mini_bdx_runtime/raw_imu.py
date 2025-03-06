@@ -85,5 +85,8 @@ class Imu:
 if __name__ == "__main__":
     imu = Imu(50)
     while True:
-        print(imu.get_data())
+        data = imu.get_data()
+        print("gyro", np.around(data["gyro"], 3))
+        print("accelero", np.around(data["accelero"], 3))
+        print("---")
         time.sleep(1 / 25)
