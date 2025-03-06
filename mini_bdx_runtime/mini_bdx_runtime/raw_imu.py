@@ -56,6 +56,9 @@ class Imu:
                 print("[IMU]:", e)
                 continue
 
+            if gyro is None or accelero is None:
+                continue
+
             # Converting to correct axes
             # euler = self.convert_axes(euler)
             # euler[1] -= np.deg2rad(self.pitch_bias)
@@ -63,11 +66,7 @@ class Imu:
 
             # gives scalar last, which is what isaac wants
             # final_orientation_quat = R.from_euler("xyz", euler).as_quat()
-
-            print(gyro)
-            print(accelero)
             
-
             data = {
                 "gyro": gyro,
                 "accelero": accelero,
