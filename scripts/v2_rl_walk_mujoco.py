@@ -171,6 +171,8 @@ class RLWalk:
 
         if not self.standing:
             ref = self.PRM.get_reference_motion(*cmds[:3], self.imitation_i)
+        else:
+            ref = np.array([])
 
         obs = np.concatenate(
             [
@@ -184,7 +186,7 @@ class RLWalk:
                 self.last_last_action,
                 self.last_last_last_action,
                 feet_contacts,
-                ref if not self.standing else np.array([]),
+                ref
             ]
         )
 
