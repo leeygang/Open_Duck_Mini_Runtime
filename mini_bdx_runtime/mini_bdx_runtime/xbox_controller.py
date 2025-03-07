@@ -74,3 +74,11 @@ class XBoxController:
             pass
 
         return self.last_commands, A_pressed
+
+
+if __name__ == "__main__":
+    controller = XBoxController(20)
+
+    while True:
+        print(controller.get_last_command())
+        time.sleep(0.05)
