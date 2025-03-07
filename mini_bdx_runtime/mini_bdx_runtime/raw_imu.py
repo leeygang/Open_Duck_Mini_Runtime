@@ -14,8 +14,6 @@ import time
 class Imu:
     def __init__(self, sampling_freq, user_pitch_bias=0, calibrate=False):
         self.sampling_freq = sampling_freq
-        self.user_pitch_bias = user_pitch_bias
-        self.nominal_pitch_bias = 25
         self.calibrate = calibrate
 
         i2c = busio.I2C(board.SCL, board.SDA)
@@ -35,8 +33,6 @@ class Imu:
                 adafruit_bno055.AXIS_REMAP_NEGATIVE,
                 adafruit_bno055.AXIS_REMAP_NEGATIVE
             )
-
-        self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
 
         if self.calibrate:
             self.imu.mode = adafruit_bno055.NDOF_MODE
