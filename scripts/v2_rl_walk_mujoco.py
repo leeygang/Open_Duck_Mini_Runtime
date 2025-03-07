@@ -75,7 +75,7 @@ class RLWalk:
         self.start()
 
         self.imu = Imu(
-            sampling_freq=int(self.control_freq / 2), user_pitch_bias=self.pitch_bias
+            sampling_freq=int(self.control_freq), user_pitch_bias=self.pitch_bias
         )
 
         self.eyes = Eyes()
