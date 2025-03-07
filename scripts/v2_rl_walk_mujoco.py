@@ -49,6 +49,7 @@ class RLWalk:
         commands=False,
         pitch_bias=0,
         replay_obs=None,
+        standing=False,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
@@ -67,6 +68,8 @@ class RLWalk:
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
             self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
+
+        self.standing = standing
 
         self.hwi = HWI(serial_port)
         self.start()
@@ -103,7 +106,10 @@ class RLWalk:
             -0.796,
         ]
 
-        self.last_commands = [0.0, 0, 0]
+        if not self.standing:
+            self.last_commands = [0.0, 0, 0]
+        else:
+            self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         self.paused = False
 
@@ -111,8 +117,9 @@ class RLWalk:
         if self.commands:
             self.xbox_controller = XBoxController(self.command_freq)
 
-        self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
-        self.imitation_i = 0
+        if not self.standing:
+            self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
+            self.imitation_i = 0
 
     def add_fake_head(self, pos):
         # add just the antennas now
@@ -162,10 +169,12 @@ class RLWalk:
         # projected_gravity = np.array(imu_mat).reshape((3, 3)).T @ np.array([0, 0, -1])
 
         cmds = self.last_commands
+        print(cmds)
 
         feet_contacts = self.feet_contacts.get()
 
-        ref = self.PRM.get_reference_motion(*cmds, self.imitation_i)
+        if not self.standing:
+            ref = self.PRM.get_reference_motion(*cmds, self.imitation_i)
 
         obs = np.concatenate(
             [
@@ -179,7 +188,7 @@ class RLWalk:
                 self.last_last_action,
                 self.last_last_last_action,
                 feet_contacts,
-                ref,
+                ref if not self.standing else np.array([]),
             ]
         )
 
@@ -222,8 +231,9 @@ class RLWalk:
                 if obs is None:
                     continue
 
-                self.imitation_i += 1
-                self.imitation_i = self.imitation_i % 450
+                if not self.standing:
+                    self.imitation_i += 1
+                    self.imitation_i = self.imitation_i % 450
 
                 # self.saved_obs.append(obs)
 
@@ -296,6 +306,7 @@ if __name__ == "__main__":
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
+    parser.add_argument("--standing", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -308,6 +319,7 @@ if __name__ == "__main__":
         commands=args.commands,
         pitch_bias=args.pitch_bias,
         replay_obs=args.replay_obs,
+        standing=args.standing,
     )
     print("Done instantiating RLWalk")
     # rl_walk.start()
