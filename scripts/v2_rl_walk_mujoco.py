@@ -124,7 +124,7 @@ class RLWalk:
     def add_fake_head(self, pos):
         # add just the antennas now
         assert len(pos) == self.num_dofs
-        pos_with_head = np.insert(pos, 5, [0, 0])
+        pos_with_head = np.insert(pos, 9, [0, 0])
         return np.array(pos_with_head)
 
     def get_obs(self):
@@ -169,7 +169,6 @@ class RLWalk:
         # projected_gravity = np.array(imu_mat).reshape((3, 3)).T @ np.array([0, 0, -1])
 
         cmds = self.last_commands
-        print(cmds)
 
         feet_contacts = self.feet_contacts.get()
 

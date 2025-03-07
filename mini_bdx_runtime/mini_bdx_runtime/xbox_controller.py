@@ -40,10 +40,15 @@ class XBoxController:
         A_pressed = False
         last_commands = self.last_commands
         for event in pygame.event.get():
+            l_x = -1 * self.p1.get_axis(0)
+            l_y = -1 * self.p1.get_axis(1)
+            r_x = -1 * self.p1.get_axis(2)
+            r_y = -1 * self.p1.get_axis(3)
+
             if not self.standing_mode:
-                lin_vel_y = -1 * self.p1.get_axis(0)
-                lin_vel_x = -1 * self.p1.get_axis(1)
-                ang_vel = -1 * self.p1.get_axis(2)
+                lin_vel_y = l_x
+                lin_vel_x = l_y
+                ang_vel = r_x
                 if lin_vel_x >= 0:
                     lin_vel_x *= np.abs(X_RANGE[1])
                 else:
@@ -68,10 +73,9 @@ class XBoxController:
                 last_commands[2] = 0.0
                 last_commands[3] = 0.0 # neck pitch 0 for now
 
-                head_yaw = -1 * self.p1.get_axis(1)
-                head_pitch = -1 * self.p1.get_axis(0)
-                # head_roll = -1 * self.p1.get_axis(0)
-                head_roll = 0.0
+                head_yaw = l_x
+                head_pitch = l_y
+                head_roll = r_x
 
                 if head_yaw >= 0:
                     head_yaw *= np.abs(HEAD_YAW_RANGE[0])
@@ -88,8 +92,8 @@ class XBoxController:
                 else:
                     head_roll *= np.abs(HEAD_ROLL_RANGE[1])
 
-                last_commands[5] = head_pitch
-                last_commands[4] = head_yaw
+                last_commands[4] = head_pitch
+                last_commands[5] = head_yaw
                 last_commands[6] = head_roll
 
             if self.p1.get_button(0):  # A button
@@ -115,5 +119,5 @@ if __name__ == "__main__":
     controller = XBoxController(20)
 
     while True:
-        print(controller.get_last_command())
+        controller.get_last_command()
         time.sleep(0.05)
