@@ -136,7 +136,8 @@ class Imu:
 
 
 if __name__ == "__main__":
-    imu = Imu(50, calibrate=True)
+    # imu = Imu(50, calibrate=True)
+    imu = Imu(50)
     while True:
         data = imu.get_data()
         # print(data)

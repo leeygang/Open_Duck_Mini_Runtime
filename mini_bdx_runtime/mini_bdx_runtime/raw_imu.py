@@ -73,7 +73,9 @@ class Imu:
             print("imu_calib_data.pkl not found")
             print("Imu is running uncalibrated")
 
+        self.x_offset = 0
 
+        # self.tare_x()
 
         self.last_imu_data = [0, 0, 0, 0]
         self.last_imu_data = {
@@ -83,9 +85,27 @@ class Imu:
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
 
-    def convert_axes(self, euler):
-        euler = [np.pi + euler[1], euler[0], euler[2]]
-        return euler
+    def tare_x(self):
+        print("Taring x ...")
+        x_values = []
+        num_values = 100
+        ok = False
+        while not ok:
+            x_values.append(np.array(self.imu.acceleration)[0])
+
+            x_values = x_values[-num_values:]
+
+            if len(x_values) == num_values:
+                mean = np.mean(x_values)
+                std = np.std(x_values)
+                if std < 0.05:
+                    ok = True
+                    self.x_offset = mean
+                    print("Tare x done")
+                else:
+                    print(std)
+
+            time.sleep(0.01)
 
     def imu_worker(self):
         while True:
@@ -102,6 +122,8 @@ class Imu:
 
             if gyro.any() is None or accelero.any() is None:
                 continue
+
+            accelero[0] -= self.x_offset
 
             data = {
                 "gyro": gyro,
