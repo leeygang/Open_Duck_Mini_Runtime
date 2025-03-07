@@ -29,8 +29,6 @@ class XBoxController:
         print(f"Loaded joystick with {self.p1.get_numaxes()} axes.")
         self.cmd_queue = Queue(maxsize=1)
 
-        self.standing_mode = False
-
         Thread(target=self.commands_worker, daemon=True).start()
 
     def commands_worker(self):
@@ -47,7 +45,7 @@ class XBoxController:
             r_x = -1 * self.p1.get_axis(2)
             r_y = -1 * self.p1.get_axis(3)
 
-            if not self.standing_mode:
+            if not self.standing:
                 lin_vel_y = l_x
                 lin_vel_x = l_y
                 ang_vel = r_x
@@ -100,9 +98,6 @@ class XBoxController:
 
             if self.p1.get_button(0):  # A button
                 A_pressed = True
-            if self.p1.get_button(4):  # Y button
-                if self.standing:
-                    self.standing_mode = not self.standing_mode
 
         pygame.event.pump()  # process event queue
 
