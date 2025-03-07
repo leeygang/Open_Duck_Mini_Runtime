@@ -18,8 +18,10 @@ HEAD_ROLL_RANGE = [-0.5, 0.5]
 
 
 class XBoxController:
-    def __init__(self, command_freq):
+    def __init__(self, command_freq, standing=False):
         self.command_freq = command_freq
+        self.standing = standing
+
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         pygame.init()
         self.p1 = pygame.joystick.Joystick(0)
@@ -27,7 +29,7 @@ class XBoxController:
         print(f"Loaded joystick with {self.p1.get_numaxes()} axes.")
         self.cmd_queue = Queue(maxsize=1)
 
-        self.standing_mode = True
+        self.standing_mode = False
 
         Thread(target=self.commands_worker, daemon=True).start()
 
@@ -99,7 +101,8 @@ class XBoxController:
             if self.p1.get_button(0):  # A button
                 A_pressed = True
             if self.p1.get_button(4):  # Y button
-                self.standing_mode = not self.standing_mode
+                if self.standing:
+                    self.standing_mode = not self.standing_mode
 
         pygame.event.pump()  # process event queue
 

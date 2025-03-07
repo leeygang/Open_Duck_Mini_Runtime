@@ -106,16 +106,13 @@ class RLWalk:
             -0.796,
         ]
 
-        if not self.standing:
-            self.last_commands = [0.0, 0, 0]
-        else:
-            self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         self.paused = False
 
         self.command_freq = 10  # hz
         if self.commands:
-            self.xbox_controller = XBoxController(self.command_freq)
+            self.xbox_controller = XBoxController(self.command_freq, self.standing)
 
         if not self.standing:
             self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
@@ -173,7 +170,7 @@ class RLWalk:
         feet_contacts = self.feet_contacts.get()
 
         if not self.standing:
-            ref = self.PRM.get_reference_motion(*cmds, self.imitation_i)
+            ref = self.PRM.get_reference_motion(*cmds[:3], self.imitation_i)
 
         obs = np.concatenate(
             [
