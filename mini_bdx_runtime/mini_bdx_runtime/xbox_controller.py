@@ -10,11 +10,17 @@ Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-0.5, 0.5]
 YAW_RANGE = [-1.0, 1.0]
 
+# rads
+NECK_PITCH_RANGE = ([-0.34, 1.1],)
+HEAD_PITCH_RANGE = ([-0.78, 0.78],)
+HEAD_YAW_RANGE = ([-2.7, 2.7],)
+HEAD_ROLL_RANGE = ([-0.5, 0.5],)
+
 
 class XBoxController:
     def __init__(self, command_freq):
         self.command_freq = command_freq
-        self.last_commands = [0.0, 0, 0]
+        self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         pygame.init()
         self.p1 = pygame.joystick.Joystick(0)
         self.p1.init()
@@ -63,9 +69,7 @@ class XBoxController:
     def get_last_command(self):
         A_pressed = False
         try:
-            self.last_commands, A_pressed = self.cmd_queue.get(
-                False
-            )  # non blocking
+            self.last_commands, A_pressed = self.cmd_queue.get(False)  # non blocking
         except Exception:
             pass
 
