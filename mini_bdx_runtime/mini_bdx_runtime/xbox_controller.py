@@ -21,6 +21,7 @@ class XBoxController:
     def __init__(self, command_freq, standing=False):
         self.command_freq = command_freq
         self.standing = standing
+        self.head_control_mode = self.standing
 
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         pygame.init()
@@ -45,7 +46,7 @@ class XBoxController:
             r_x = -1 * self.p1.get_axis(2)
             r_y = -1 * self.p1.get_axis(3)
 
-            if not self.standing:
+            if not self.head_control_mode:
                 lin_vel_y = l_x
                 lin_vel_x = l_y
                 ang_vel = r_x
@@ -98,6 +99,10 @@ class XBoxController:
 
             if self.p1.get_button(0):  # A button
                 A_pressed = True
+
+            if self.p1.get_button(4):  # Y button
+                self.head_control_mode = not self.head_control_mode
+
 
         pygame.event.pump()  # process event queue
 
