@@ -8,9 +8,8 @@ import numpy as np
 # from mini_bdx_runtime.rustypot_control_hwi import HWI
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import (
-    make_action_dict,
-)
+from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
+
 # from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.raw_imu import Imu
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
@@ -50,6 +49,7 @@ class RLWalk:
         pitch_bias=0,
         replay_obs=None,
         standing=False,
+        cutoff_frequency=None,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
@@ -70,6 +70,12 @@ class RLWalk:
             self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
 
         self.standing = standing
+
+        self.action_filter = None
+        if cutoff_frequency is not None:
+            self.action_filter = LowPassActionFilter(
+                self.control_freq, cutoff_frequency
+            )
 
         self.hwi = HWI(serial_port)
         self.start()
@@ -186,7 +192,7 @@ class RLWalk:
                 self.last_last_action,
                 self.last_last_last_action,
                 feet_contacts,
-                ref
+                ref,
             ]
         )
 
@@ -206,6 +212,7 @@ class RLWalk:
         i = 0
         try:
             print("Starting")
+            start_t = time.time()
             while True:
                 t = time.time()
 
@@ -259,6 +266,14 @@ class RLWalk:
 
                 robot_action = self.add_fake_head(robot_action)
 
+                if self.action_filter is not None:
+                    self.action_filter.push(robot_action)
+                    filtered_robot_action = self.action_filter.get_filtered_action()
+                    if (
+                        time.time() - start_t > 1
+                    ):  # give time to the filter to stabilize
+                        robot_action = filtered_robot_action
+
                 action_dict = make_action_dict(
                     robot_action, joints_order
                 )  # Removes antennas
@@ -305,6 +320,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
     parser.add_argument("--standing", action="store_true", default=False)
+    parser.add_argument("--cutoff_frequency", type=float, default=None)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -318,6 +334,7 @@ if __name__ == "__main__":
         pitch_bias=args.pitch_bias,
         replay_obs=args.replay_obs,
         standing=args.standing,
+        cutoff_frequency=args.cutoff_frequency,
     )
     print("Done instantiating RLWalk")
     # rl_walk.start()
