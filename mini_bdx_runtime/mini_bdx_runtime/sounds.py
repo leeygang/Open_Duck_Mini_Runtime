@@ -1,16 +1,13 @@
-import pygame as pg
+import pygame
 import time
 import os
 import random
 
 
 class Sounds:
-    def __init__(self, volume, sound_directory):
-        """
-        Initializes the Sounds class by loading all .wav files in the given directory.
-        """
-        pg.mixer.init()
-        pg.mixer.music.set_volume(volume)
+    def __init__(self, volume=1.0, sound_directory="./"):
+        pygame.mixer.init()
+        pygame.mixer.music.set_volume(volume)
         self.sounds = {}
 
         # Load all .wav files in the directory
@@ -18,9 +15,9 @@ class Sounds:
             if file.endswith(".wav"):
                 sound_path = os.path.join(sound_directory, file)
                 try:
-                    self.sounds[file] = pg.mixer.Sound(sound_path)
+                    self.sounds[file] = pygame.mixer.Sound(sound_path)
                     print(f"Loaded: {file}")
-                except pg.error as e:
+                except pygame.error as e:
                     print(f"Failed to load {file}: {e}")
 
     def play(self, sound_name):
