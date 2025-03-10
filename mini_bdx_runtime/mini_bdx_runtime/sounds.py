@@ -1,6 +1,7 @@
 import pygame as pg
 import time
 import os
+import random
 
 
 class Sounds:
@@ -32,12 +33,19 @@ class Sounds:
         else:
             print(f"Sound '{sound_name}' not found!")
 
+    def play_random_sound(self):
+        """
+        Plays the specified sound if it exists.
+        """
+
+        sound_name = random.choice(list(self.sounds.keys()))
+        self.sounds[sound_name].play()
+
 
 # Example usage
 if __name__ == "__main__":
-    sound_player = Sounds(1.0,"../../scripts")
+    sound_player = Sounds(1.0, "../../scripts")
     time.sleep(1)
-    sound_player.play("happy1.wav")  # Replace with an actual file name
-    time.sleep(1)
-    sound_player.play("happy1.wav")  # Replace with an actual file name
-    time.sleep(1)
+    while True:
+        sound_player.play_random_sound()
+        time.sleep(3)
