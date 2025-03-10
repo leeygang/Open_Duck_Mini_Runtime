@@ -17,6 +17,7 @@ from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
 from mini_bdx_runtime.eyes import Eyes
 from mini_bdx_runtime.sounds import Sounds
+from mini_bdx_runtime.antennas import Antennas
 
 joints_order = [
     "left_hip_yaw",
@@ -118,8 +119,9 @@ class RLWalk:
         self.paused = False
 
         self.sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
+        self.antennas = Antennas()
 
-        self.command_freq = 10  # hz
+        self.command_freq = 20  # hz
         if self.commands:
             self.xbox_controller = XBoxController(self.command_freq, self.standing)
 
@@ -219,15 +221,20 @@ class RLWalk:
             while True:
                 A_pressed = False
                 X_pressed = False
+                left_trigger = 0
+                right_trigger = 0
                 t = time.time()
 
                 if self.commands:
-                    self.last_commands, A_pressed, X_pressed = (
+                    self.last_commands, A_pressed, X_pressed, left_trigger, right_trigger = (
                         self.xbox_controller.get_last_command()
                     )
 
                 if X_pressed:
                     self.sounds.play_random_sound()
+
+                self.antennas.set_position_left(right_trigger)
+                self.antennas.set_position_right(left_trigger)
 
                 if A_pressed and not self.paused:
                     self.paused = True

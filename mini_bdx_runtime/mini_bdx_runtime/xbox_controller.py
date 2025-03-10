@@ -24,6 +24,8 @@ class XBoxController:
         self.head_control_mode = self.standing
 
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.last_left_trigger = 0
+        self.last_right_trigger = 0
         pygame.init()
         self.p1 = pygame.joystick.Joystick(0)
         self.p1.init()
@@ -41,11 +43,22 @@ class XBoxController:
         A_pressed = False
         X_pressed = False
         last_commands = self.last_commands
+        left_trigger = self.last_left_trigger
+        right_trigger = self.last_right_trigger
         for event in pygame.event.get():
             l_x = -1 * self.p1.get_axis(0)
             l_y = -1 * self.p1.get_axis(1)
             r_x = -1 * self.p1.get_axis(2)
             r_y = -1 * self.p1.get_axis(3)
+
+            right_trigger = (self.p1.get_axis(4) + 1) / 2
+            left_trigger = (self.p1.get_axis(5) + 1) / 2
+            if left_trigger < 0.1:
+                left_trigger = 0
+            if right_trigger < 0.1:
+                right_trigger = 0
+            # print(f"Right trigger: {right_trigger}"
+            #       f"Left trigger: {left_trigger}")
 
             if not self.head_control_mode:
                 lin_vel_y = l_x
@@ -114,17 +127,18 @@ class XBoxController:
 
         pygame.event.pump()  # process event queue
 
-        return np.around(last_commands, 3), A_pressed, X_pressed
+        return np.around(last_commands, 3), A_pressed, X_pressed, left_trigger, right_trigger
 
     def get_last_command(self):
         A_pressed = False
         X_pressed = False
+
         try:
-            self.last_commands, A_pressed, X_pressed = self.cmd_queue.get(False)  # non blocking
+            self.last_commands, A_pressed, X_pressed, self.last_left_trigger, self.last_right_trigger = self.cmd_queue.get(False)  # non blocking
         except Exception:
             pass
 
-        return self.last_commands, A_pressed, X_pressed
+        return self.last_commands, A_pressed, X_pressed, self.last_left_trigger, self.last_right_trigger
 
 
 if __name__ == "__main__":
