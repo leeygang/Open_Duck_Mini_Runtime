@@ -5,7 +5,7 @@ import time
 import numpy as np
 
 
-X_RANGE = [-0.15, 0.2]
+X_RANGE = [-0.15, 0.15]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-0.5, 0.5]
 YAW_RANGE = [-1.0, 1.0]
