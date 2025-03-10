@@ -1,4 +1,5 @@
 import pygame as pg
+import time
 import os
 
 
@@ -34,5 +35,9 @@ class Sounds:
 
 # Example usage
 if __name__ == "__main__":
-    sound_player = Sounds()
-    sound_player.play("example.wav")  # Replace with an actual file name
+    sound_player = Sounds("../../scripts")
+    time.sleep(1)
+    sound_player.play("happy1.wav")  # Replace with an actual file name
+    time.sleep(1)
+    sound_player.play("happy1.wav")  # Replace with an actual file name
+    time.sleep(1)
