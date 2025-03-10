@@ -5,8 +5,7 @@ import time
 GPIO.setmode(GPIO.BCM)  # Use physical pin numbering
 # GPIO.setmode(GPIO.BOARD) #Définit le mode de numérotation (Board)
 GPIO.setwarnings(False) #On désactive les messages d'alerte
-
-LED = 23 #Définit le numéro du port GPIO qui alimente la led
+LED = 24 #Définit le numéro du port GPIO qui alimente la led
 
 GPIO.setup(LED, GPIO.OUT) #Active le contrôle du GPIO
 
