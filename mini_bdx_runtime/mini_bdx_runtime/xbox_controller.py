@@ -39,6 +39,7 @@ class XBoxController:
 
     def get_commands(self):
         A_pressed = False
+        X_pressed = False
         last_commands = self.last_commands
         for event in pygame.event.get():
             l_x = -1 * self.p1.get_axis(0)
@@ -100,22 +101,30 @@ class XBoxController:
             if self.p1.get_button(0):  # A button
                 A_pressed = True
 
+            if self.p1.get_button(3):  # X button
+                X_pressed = True
+
+            # for i in range(10):
+            #     if self.p1.get_button(i):
+            #         print(f"Button {i} pressed")
+
             if self.p1.get_button(4):  # Y button
                 self.head_control_mode = not self.head_control_mode
 
 
         pygame.event.pump()  # process event queue
 
-        return np.around(last_commands, 3), A_pressed
+        return np.around(last_commands, 3), A_pressed, X_pressed
 
     def get_last_command(self):
         A_pressed = False
+        X_pressed = False
         try:
-            self.last_commands, A_pressed = self.cmd_queue.get(False)  # non blocking
+            self.last_commands, A_pressed, X_pressed = self.cmd_queue.get(False)  # non blocking
         except Exception:
             pass
 
-        return self.last_commands, A_pressed
+        return self.last_commands, A_pressed, X_pressed
 
 
 if __name__ == "__main__":
