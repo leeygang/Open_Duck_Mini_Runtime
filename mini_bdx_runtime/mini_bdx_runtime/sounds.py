@@ -1,23 +1,38 @@
-import time
+import pygame as pg
 import os
-import pygame
-from glob import glob
+
 
 class Sounds:
-    def __init__(self, volume, sounds_path):
-        self.volume = volume
-        self.sounds_path = sounds_path
+    def __init__(self, volume, sound_directory):
+        """
+        Initializes the Sounds class by loading all .wav files in the given directory.
+        """
+        pg.mixer.init()
+        pg.mixer.music.set_volume(volume)
         self.sounds = {}
 
-        files = glob(sounds_path + "/*.wav")
-
-
-        freq = 44100    # audio CD quality
-        bitsize = -16   # unsigned 16 bit
-        channels = 1    # 1 is mono, 2 is stereo
-        buffer = 2048   # number of samples (experiment to get right sound)
-        pygame.mixer.init(freq, bitsize, channels, buffer)
-
-        pygame.mixer.music.set_volume(self.volume)
+        # Load all .wav files in the directory
+        for file in os.listdir(sound_directory):
+            if file.endswith(".wav"):
+                sound_path = os.path.join(sound_directory, file)
+                try:
+                    self.sounds[file] = pg.mixer.Sound(sound_path)
+                    print(f"Loaded: {file}")
+                except pg.error as e:
+                    print(f"Failed to load {file}: {e}")
 
     def play(self, sound_name):
+        """
+        Plays the specified sound if it exists.
+        """
+        if sound_name in self.sounds:
+            self.sounds[sound_name].play()
+            print(f"Playing: {sound_name}")
+        else:
+            print(f"Sound '{sound_name}' not found!")
+
+
+# Example usage
+if __name__ == "__main__":
+    sound_player = Sounds()
+    sound_player.play("example.wav")  # Replace with an actual file name
