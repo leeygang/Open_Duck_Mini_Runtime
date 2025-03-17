@@ -1,7 +1,5 @@
 # Open Duck Mini Runtime
 
-TODO : Write a description
-
 ## Raspberry Pi zero 2W setup
 
 ### Install Raspberry Pi OS
@@ -133,6 +131,3 @@ cd scripts/
 python find_soft_offsets.py
 ```
 
-
-# TODO
-- [] rustypot python bindings install from wheels (see with Pierre)
