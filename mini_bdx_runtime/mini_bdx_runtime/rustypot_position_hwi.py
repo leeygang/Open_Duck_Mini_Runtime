@@ -143,7 +143,7 @@ class HWI:
         print("turn on : high kps")
 
     def turn_off(self):
-        self.io.disable_torque()
+        self.io.disable_torque(list(self.joints.values()))
         # self.control.disable_torque()
 
     # def freeze(self):
