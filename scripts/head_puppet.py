@@ -2,9 +2,6 @@
 Sets up the robot in init position, you control the head with the xbox controller
 """
 
-
-# from pypot.feetech import FeetechSTS3215IO
-# from mini_bdx_runtime.hwi_feetech_pypot import HWI
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.eyes import Eyes
 import time
