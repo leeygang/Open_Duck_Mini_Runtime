@@ -21,3 +21,12 @@ class FeetContacts:
         if GPIO.input(RIGHT_FOOT_PIN) == GPIO.LOW:
             right = True
         return np.array([left, right])
+
+
+if __name__ == "__main__":
+    import time
+
+    feet_contacts = FeetContacts()
+    while True:
+        print(feet_contacts.get())
+        time.sleep(0.05)
