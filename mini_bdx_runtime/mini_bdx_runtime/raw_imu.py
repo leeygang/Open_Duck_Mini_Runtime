@@ -12,7 +12,7 @@ import time
 
 # TODO filter spikes
 class Imu:
-    def __init__(self, sampling_freq, user_pitch_bias=0, calibrate=False):
+    def __init__(self, sampling_freq, user_pitch_bias=0, calibrate=False, upside_down=True):
         self.sampling_freq = sampling_freq
         self.calibrate = calibrate
 
@@ -25,14 +25,16 @@ class Imu:
         # self.imu.mode = adafruit_bno055.NDOF_MODE
         # self.imu.mode = adafruit_bno055.NDOF_FMC_OFF_MODE
 
-        self.imu.axis_remap = (
-                adafruit_bno055.AXIS_REMAP_Y,
-                adafruit_bno055.AXIS_REMAP_X,
-                adafruit_bno055.AXIS_REMAP_Z,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE
-            )
+
+        if upside_down:
+            self.imu.axis_remap = (
+                    adafruit_bno055.AXIS_REMAP_Y,
+                    adafruit_bno055.AXIS_REMAP_X,
+                    adafruit_bno055.AXIS_REMAP_Z,
+                    adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                    adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                    adafruit_bno055.AXIS_REMAP_NEGATIVE
+                )
 
         if self.calibrate:
             self.imu.mode = adafruit_bno055.NDOF_MODE
@@ -140,7 +142,7 @@ class Imu:
 
 
 if __name__ == "__main__":
-    imu = Imu(50)
+    imu = Imu(50, upside_down=False)
     while True:
         data = imu.get_data()
         # print(data)

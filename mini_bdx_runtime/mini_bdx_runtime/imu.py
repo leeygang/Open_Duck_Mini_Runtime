@@ -15,7 +15,9 @@ from scipy.spatial.transform import Rotation as R
 
 # TODO filter spikes
 class Imu:
-    def __init__(self, sampling_freq, user_pitch_bias=0, calibrate=False):
+    def __init__(
+        self, sampling_freq, user_pitch_bias=0, calibrate=False, upside_down=True
+    ):
         self.sampling_freq = sampling_freq
         self.user_pitch_bias = user_pitch_bias
         self.nominal_pitch_bias = 25
@@ -33,13 +35,14 @@ class Imu:
         # self.imu.mode = adafruit_bno055.NDOF_MODE
         # self.imu.mode = adafruit_bno055.NDOF_FMC_OFF_MODE
 
-        self.imu.axis_remap = (
+        if upside_down:
+            self.imu.axis_remap = (
                 adafruit_bno055.AXIS_REMAP_Y,
                 adafruit_bno055.AXIS_REMAP_X,
                 adafruit_bno055.AXIS_REMAP_Z,
                 adafruit_bno055.AXIS_REMAP_NEGATIVE,
                 adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
             )
 
         self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
@@ -78,7 +81,6 @@ class Imu:
         else:
             print("imu_calib_data.pkl not found")
             print("Imu is running uncalibrated")
-
 
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
@@ -134,10 +136,9 @@ class Imu:
             return None
 
 
-
 if __name__ == "__main__":
-    # imu = Imu(50, calibrate=True)
-    imu = Imu(50)
+    imu = Imu(50, calibrate=True, upside_down=False)
+    # imu = Imu(50, upside_down=False)
     while True:
         data = imu.get_data()
         # print(data)
