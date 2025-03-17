@@ -20,7 +20,7 @@ class Imu:
     ):
         self.sampling_freq = sampling_freq
         self.user_pitch_bias = user_pitch_bias
-        self.nominal_pitch_bias = 25
+        self.nominal_pitch_bias = 0
         self.calibrate = calibrate
 
         # self.uart = serial.Serial("/dev/ttyS0", baudrate=9600)
