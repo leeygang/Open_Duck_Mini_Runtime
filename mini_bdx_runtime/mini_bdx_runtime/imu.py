@@ -44,6 +44,15 @@ class Imu:
                 adafruit_bno055.AXIS_REMAP_NEGATIVE,
                 adafruit_bno055.AXIS_REMAP_NEGATIVE,
             )
+        else:
+            self.imu.axis_remap = (
+                adafruit_bno055.AXIS_REMAP_Y,
+                adafruit_bno055.AXIS_REMAP_X,
+                adafruit_bno055.AXIS_REMAP_Z,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                adafruit_bno055.AXIS_REMAP_POSITIVE,
+                adafruit_bno055.AXIS_REMAP_POSITIVE,
+            )
 
         self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
 
@@ -75,9 +84,13 @@ class Imu:
 
         if os.path.exists("imu_calib_data.pkl"):
             imu_calib_data = pickle.load(open("imu_calib_data.pkl", "rb"))
+            self.imu.mode = adafruit_bno055.CONFIG_MODE
+            time.sleep(0.1)
             self.imu.offsets_accelerometer = imu_calib_data["offsets_accelerometer"]
             self.imu.offsets_gyroscope = imu_calib_data["offsets_gyroscope"]
             self.imu.offsets_magnetometer = imu_calib_data["offsets_magnetometer"]
+            self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+            time.sleep(0.1)
         else:
             print("imu_calib_data.pkl not found")
             print("Imu is running uncalibrated")

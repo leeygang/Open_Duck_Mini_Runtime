@@ -12,7 +12,9 @@ import time
 
 # TODO filter spikes
 class Imu:
-    def __init__(self, sampling_freq, user_pitch_bias=0, calibrate=False, upside_down=True):
+    def __init__(
+        self, sampling_freq, user_pitch_bias=0, calibrate=False, upside_down=True
+    ):
         self.sampling_freq = sampling_freq
         self.calibrate = calibrate
 
@@ -20,21 +22,30 @@ class Imu:
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
 
         # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-        self.imu.mode = adafruit_bno055.ACCGYRO_MODE
+        # self.imu.mode = adafruit_bno055.ACCGYRO_MODE
         # self.imu.mode = adafruit_bno055.GYRONLY_MODE
-        # self.imu.mode = adafruit_bno055.NDOF_MODE
+        self.imu.mode = adafruit_bno055.NDOF_MODE
         # self.imu.mode = adafruit_bno055.NDOF_FMC_OFF_MODE
-
 
         if upside_down:
             self.imu.axis_remap = (
-                    adafruit_bno055.AXIS_REMAP_Y,
-                    adafruit_bno055.AXIS_REMAP_X,
-                    adafruit_bno055.AXIS_REMAP_Z,
-                    adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                    adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                    adafruit_bno055.AXIS_REMAP_NEGATIVE
-                )
+                adafruit_bno055.AXIS_REMAP_Y,
+                adafruit_bno055.AXIS_REMAP_X,
+                adafruit_bno055.AXIS_REMAP_Z,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
+            )
+
+        else:
+            self.imu.axis_remap = (
+                adafruit_bno055.AXIS_REMAP_Y,
+                adafruit_bno055.AXIS_REMAP_X,
+                adafruit_bno055.AXIS_REMAP_Z,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                adafruit_bno055.AXIS_REMAP_POSITIVE,
+                adafruit_bno055.AXIS_REMAP_POSITIVE,
+            )
 
         if self.calibrate:
             self.imu.mode = adafruit_bno055.NDOF_MODE
@@ -64,9 +75,13 @@ class Imu:
 
         if os.path.exists("imu_calib_data.pkl"):
             imu_calib_data = pickle.load(open("imu_calib_data.pkl", "rb"))
+            self.imu.mode = adafruit_bno055.CONFIG_MODE
+            time.sleep(0.1)
             self.imu.offsets_accelerometer = imu_calib_data["offsets_accelerometer"]
             self.imu.offsets_gyroscope = imu_calib_data["offsets_gyroscope"]
             self.imu.offsets_magnetometer = imu_calib_data["offsets_magnetometer"]
+            self.imu.mode = adafruit_bno055.NDOF_MODE
+            time.sleep(0.1)
         else:
             print("imu_calib_data.pkl not found")
             print("Imu is running uncalibrated")
