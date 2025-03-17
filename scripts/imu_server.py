@@ -20,7 +20,7 @@ class IMUServer:
         self.server_socket.bind((self.host, self.port))
 
         if imu is None:
-            self.imu = Imu(50, user_pitch_bias=args.pitch_bias)
+            self.imu = Imu(50, user_pitch_bias=args.pitch_bias, upside_down=False)
         else:
             self.imu = imu
         self.stop = False
