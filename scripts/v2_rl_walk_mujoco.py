@@ -62,7 +62,7 @@ class RLWalk:
         self.control_freq = control_freq
         self.pid = pid
 
-        # self.saved_obs = []
+        self.saved_obs = []
 
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
@@ -252,7 +252,7 @@ class RLWalk:
                     self.imitation_i += 1
                     self.imitation_i = self.imitation_i % 450
 
-                # self.saved_obs.append(obs)
+                self.saved_obs.append(obs)
 
                 if self.replay_obs is not None:
                     if i < len(self.replay_obs):
@@ -307,7 +307,7 @@ class RLWalk:
             # self.hwi.freeze()
             pass
 
-        # pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
+        pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
         # print("FREEZING")
         # self.hwi.freeze()
         print("TURNING OFF")
