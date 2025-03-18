@@ -1,7 +1,5 @@
 # Open Duck Mini Runtime
 
-TODO : Write a description
-
 ## Raspberry Pi zero 2W setup
 
 ### Install Raspberry Pi OS
@@ -124,7 +122,7 @@ python imu_test.py
 
 ## Find the joints offsets
 
-This script will guide you through finding the joints offsets of your robot, that you can then write in `hwi_feetech_pwm_control.py` in `self.joints_offsets`
+This script will guide you through finding the joints offsets of your robot, that you can then write in `rustypot_position_hwi.py` in `self.joints_offsets`
 
 > This procedure won't be necessary in the future as we will be flashing the offsets directly in each motor's eeprom.
 
@@ -133,6 +131,3 @@ cd scripts/
 python find_soft_offsets.py
 ```
 
-
-# TODO
-- [] rustypot python bindings install from wheels (see with Pierre)
