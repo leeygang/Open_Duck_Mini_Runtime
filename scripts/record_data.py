@@ -7,7 +7,7 @@ io = FeetechSTS3215IO("/dev/ttyACM0")
 
 # accelerations = [0, 10, 50, 100, 200, 255]
 accelerations = [255]
-switch=True
+switch=False
 # kps = [4, 8, 16, 32]
 # kds = [0, 4, 8, 16, 32]
 
@@ -28,8 +28,8 @@ for acceleration in accelerations:
             # io.set_lock({1: 1})
             # time.sleep(1)
             # io.set_maximum_acceleration({1: acceleration})
-            io.set_acceleration({1: acceleration})
-            time.sleep(1)
+            # io.set_acceleration({1: acceleration})
+            # time.sleep(1)
             io.set_P_coefficient({1: kp})
             io.set_D_coefficient({1: kd})
 
@@ -53,28 +53,31 @@ for acceleration in accelerations:
                     sign = 1
                 return sign * raw_load * 0.001
 
-            io.set_goal_position({1: goal_position})
+            # io.set_goal_position({1: goal_position})
             s = time.time()
             set = False
             while True:
+                t = time.time() - s
+                goal_position = np.rad2deg(np.sin(t**2))
+                io.set_goal_position({1: goal_position})
                 present_position = np.deg2rad(io.get_present_position([1])[0])
                 present_speed = np.deg2rad(io.get_present_speed([1])[0])
                 present_load = convert_load(io.get_present_load([1])[0])
                 present_current = io.get_present_current([1])[0]
 
-                times.append(time.time() - s)
+                times.append(t)
                 positions.append(present_position)
                 goal_positions.append(np.deg2rad(goal_position))
                 speeds.append(present_speed)
                 loads.append(present_load)
                 currents.append(present_current)
 
-                if switch and time.time() - s > 0.2 and not set:
+                if switch and t > 0.2 and not set:
                     goal_position = -goal_position
                     io.set_goal_position({1: goal_position})
                     set = True
 
-                if time.time() - s > 3:
+                if t > 6:
                     break
 
                 time.sleep(0.01)
