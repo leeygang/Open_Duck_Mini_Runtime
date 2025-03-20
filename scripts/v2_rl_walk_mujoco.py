@@ -15,6 +15,7 @@ from mini_bdx_runtime.feet_contacts import FeetContacts
 from mini_bdx_runtime.eyes import Eyes
 from mini_bdx_runtime.sounds import Sounds
 from mini_bdx_runtime.antennas import Antennas
+from mini_bdx_runtime.projector import Projector
 
 joints_order = [
     "left_hip_yaw",
@@ -84,6 +85,7 @@ class RLWalk:
         )
 
         self.eyes = Eyes()
+        self.projector = Projector()
 
         self.feet_contacts = FeetContacts()
 
@@ -229,6 +231,7 @@ class RLWalk:
 
                 if X_pressed:
                     self.sounds.play_random_sound()
+                    self.projector.switch()
 
                 self.antennas.set_position_left(right_trigger)
                 self.antennas.set_position_right(left_trigger)
