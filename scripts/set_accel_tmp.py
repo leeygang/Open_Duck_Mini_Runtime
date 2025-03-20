@@ -14,6 +14,13 @@ args = parser.parse_args()
 
 current_id = int(args.id)
 io = FeetechSTS3215IO("/dev/ttyACM0")
+current_max_acceleration = io.get_maximum_acceleration([current_id])
+current_acceleration = io.get_acceleration([current_id])
+
+print(f"current max acceleration: {current_max_acceleration}")
+print(f"current acceleration: {current_acceleration}")
+
+
 io.set_lock({current_id: 0})
 
 io.set_maximum_acceleration({current_id: 0})
