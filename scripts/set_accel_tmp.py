@@ -12,7 +12,7 @@ parser.add_argument("--id", help="The id of the motor.", type=str, required=True
 args = parser.parse_args()
 
 
-current_id = args.id
+current_id = int(args.id)
 io = FeetechSTS3215IO("/dev/ttyACM0")
 io.set_lock({current_id: 0})
 
