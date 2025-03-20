@@ -6,7 +6,7 @@ import time
 io = FeetechSTS3215IO("/dev/ttyACM0")
 
 # accelerations = [0, 10, 50, 100, 200, 255]
-accelerations = [255]
+accelerations = [0]
 switch=False
 # kps = [4, 8, 16, 32]
 # kds = [0, 4, 8, 16, 32]
@@ -53,12 +53,12 @@ for acceleration in accelerations:
                     sign = 1
                 return sign * raw_load * 0.001
 
-            # io.set_goal_position({1: goal_position})
+            io.set_goal_position({1: goal_position})
             s = time.time()
             set = False
             while True:
                 t = time.time() - s
-                goal_position = np.rad2deg(np.sin(t**2))
+                # goal_position = np.rad2deg(np.sin(t**2))
                 io.set_goal_position({1: goal_position})
                 present_position = np.deg2rad(io.get_present_position([1])[0])
                 present_speed = np.deg2rad(io.get_present_speed([1])[0])
@@ -72,12 +72,12 @@ for acceleration in accelerations:
                 loads.append(present_load)
                 currents.append(present_current)
 
-                if switch and t > 0.2 and not set:
-                    goal_position = -goal_position
-                    io.set_goal_position({1: goal_position})
-                    set = True
+                # if switch and t > 0.2 and not set:
+                #     goal_position = -goal_position
+                #     io.set_goal_position({1: goal_position})
+                #     set = True
 
-                if t > 6:
+                if t > 3:
                     break
 
                 time.sleep(0.01)
