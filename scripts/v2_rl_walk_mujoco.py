@@ -27,8 +27,8 @@ joints_order = [
     "head_pitch",
     "head_yaw",
     "head_roll",
-    "left_antenna",
-    "right_antenna",
+    # "left_antenna",
+    # "right_antenna",
     "right_hip_yaw",
     "right_hip_roll",
     "right_hip_pitch",
@@ -303,18 +303,18 @@ class RLWalk:
                 #     self.motor_targets
                 # )  # Probably useless ?
 
-                self.motor_targets[5:9] = self.commands[3:]
 
-                if self.action_filter is not None:
-                    self.action_filter.push(self.motor_targets)
-                    filtered_motor_targets = self.action_filter.get_filtered_action()
-                    if (
-                        time.time() - start_t > 1
-                    ):  # give time to the filter to stabilize
-                        self.motor_targets = filtered_motor_targets
+                # if self.action_filter is not None:
+                #     self.action_filter.push(self.motor_targets)
+                #     filtered_motor_targets = self.action_filter.get_filtered_action()
+                #     if (
+                #         time.time() - start_t > 1
+                #     ):  # give time to the filter to stabilize
+                #         self.motor_targets = filtered_motor_targets
 
 
                 self.prev_motor_targets = self.motor_targets.copy()
+                self.motor_targets[5:9] = self.last_commands[3:]
 
                 action_dict = make_action_dict(
                     self.motor_targets, joints_order
