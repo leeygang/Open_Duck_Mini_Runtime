@@ -91,6 +91,8 @@ python3 scripts/test_xbox_controller.py
 ## Speaker wiring and configuration
 Follow this tutorial
 
+> For now, don't activate `/dev/zero` when they ask
+
 https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp?view=all
 
 
