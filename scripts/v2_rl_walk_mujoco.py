@@ -185,10 +185,10 @@ class RLWalk:
 
         feet_contacts = self.feet_contacts.get()
 
-        if not self.standing:
-            ref = self.PRM.get_reference_motion(*cmds[:3], self.imitation_i)
-        else:
-            ref = np.array([])
+        # if not self.standing:
+        #     ref = self.PRM.get_reference_motion(*cmds[:3], self.imitation_i)
+        # else:
+        #     ref = np.array([])
 
         obs = np.concatenate(
             [
@@ -203,7 +203,8 @@ class RLWalk:
                 self.last_last_last_action,
                 self.motor_targets,
                 feet_contacts,
-                ref,
+                # ref,
+                [self.imitation_i]
             ]
         )
 
@@ -264,7 +265,7 @@ class RLWalk:
 
                 if not self.standing:
                     self.imitation_i += 1
-                    self.imitation_i = self.imitation_i % 450
+                    self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
 
                 self.saved_obs.append(obs)
 
