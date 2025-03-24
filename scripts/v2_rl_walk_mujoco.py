@@ -14,7 +14,7 @@ from mini_bdx_runtime.eyes import Eyes
 from mini_bdx_runtime.sounds import Sounds
 from mini_bdx_runtime.antennas import Antennas
 from mini_bdx_runtime.projector import Projector
-from mini_bdx_runtime.rl_utils import make_action_dict
+from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
 
 joints_order = [
     "left_hip_yaw",
@@ -70,6 +70,12 @@ class RLWalk:
             self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
 
         self.standing = standing
+
+        self.action_filter = None
+        if cutoff_frequency is not None:
+            self.action_filter = LowPassActionFilter(
+                self.control_freq, cutoff_frequency
+            )
 
         self.hwi = HWI(serial_port)
         self.start()
@@ -297,6 +303,14 @@ class RLWalk:
                     self.prev_motor_targets
                     + self.max_motor_velocity * (1 / self.control_freq),  # control dt
                 )
+
+                if self.action_filter is not None:
+                    self.action_filter.push(self.motor_targets)
+                    filtered_motor_targets = self.action_filter.get_filtered_action()
+                    if (
+                        time.time() - start_t > 1
+                    ):  # give time to the filter to stabilize
+                        self.motor_targets = filtered_motor_targets
 
                 self.prev_motor_targets = self.motor_targets.copy()
                 # self.motor_targets[5:9] = self.last_commands[3:]
