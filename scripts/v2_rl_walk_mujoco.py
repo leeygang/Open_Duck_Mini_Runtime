@@ -14,6 +14,7 @@ from mini_bdx_runtime.eyes import Eyes
 from mini_bdx_runtime.sounds import Sounds
 from mini_bdx_runtime.antennas import Antennas
 from mini_bdx_runtime.projector import Projector
+from mini_bdx_runtime.rl_utils import make_action_dict
 
 joints_order = [
     "left_hip_yaw",
