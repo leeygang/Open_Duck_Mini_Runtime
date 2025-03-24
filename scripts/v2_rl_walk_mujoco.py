@@ -58,6 +58,7 @@ class RLWalk:
         self.policy = OnnxInfer(self.onnx_model_path, awd=True)
 
         self.num_dofs = 14
+        self.max_motor_velocity = 5.24  # rad/s
 
         # Control
         self.control_freq = control_freq
@@ -81,7 +82,9 @@ class RLWalk:
         self.start()
 
         self.imu = Imu(
-            sampling_freq=int(self.control_freq), user_pitch_bias=self.pitch_bias, upside_down=False
+            sampling_freq=int(self.control_freq),
+            user_pitch_bias=self.pitch_bias,
+            upside_down=False,
         )
 
         self.eyes = Eyes()
@@ -112,6 +115,9 @@ class RLWalk:
             1.379,
             -0.796,
         ]
+
+        self.motor_targets = self.init_pos.copy()
+        self.prev_motor_targets = self.init_pos.copy()
 
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
@@ -195,6 +201,7 @@ class RLWalk:
                 self.last_action,
                 self.last_last_action,
                 self.last_last_last_action,
+                self.motor_targets,
                 feet_contacts,
                 ref,
             ]
@@ -225,9 +232,13 @@ class RLWalk:
                 t = time.time()
 
                 if self.commands:
-                    self.last_commands, A_pressed, X_pressed, left_trigger, right_trigger = (
-                        self.xbox_controller.get_last_command()
-                    )
+                    (
+                        self.last_commands,
+                        A_pressed,
+                        X_pressed,
+                        left_trigger,
+                        right_trigger,
+                    ) = self.xbox_controller.get_last_command()
 
                 if X_pressed:
                     self.sounds.play_random_sound()
@@ -272,25 +283,41 @@ class RLWalk:
 
                 self.last_last_last_action = self.last_last_action.copy()
                 self.last_last_action = self.last_action.copy()
-                # self.last_action_action = action.copy() # WTF MAN
                 self.last_action = action.copy()
 
                 # action = np.zeros(10)
 
-                robot_action = self.init_pos + action * self.action_scale
+                # robot_action = self.init_pos + action * self.action_scale
+                self.motor_targets = self.init_pos + action * self.action_scale
 
-                robot_action = self.add_fake_head(robot_action)
+                self.motor_targets = np.clip(
+                    self.motor_targets,
+                    self.prev_motor_targets
+                    - self.max_motor_velocity * (1 / self.control_freq),  # control dt
+                    self.prev_motor_targets
+                    + self.max_motor_velocity * (1 / self.control_freq),  # control dt
+                )
+
+                # robot_action = self.add_fake_head(robot_action)
+                # self.motor_targets = self.add_fake_head(
+                #     self.motor_targets
+                # )  # Probably useless ?
+
+                self.motor_targets[5:9] = self.commands[3:]
 
                 if self.action_filter is not None:
-                    self.action_filter.push(robot_action)
-                    filtered_robot_action = self.action_filter.get_filtered_action()
+                    self.action_filter.push(self.motor_targets)
+                    filtered_motor_targets = self.action_filter.get_filtered_action()
                     if (
                         time.time() - start_t > 1
                     ):  # give time to the filter to stabilize
-                        robot_action = filtered_robot_action
+                        self.motor_targets = filtered_motor_targets
+
+
+                self.prev_motor_targets = self.motor_targets.copy()
 
                 action_dict = make_action_dict(
-                    robot_action, joints_order
+                    self.motor_targets, joints_order
                 )  # Removes antennas
 
                 self.hwi.set_position_all(action_dict)
