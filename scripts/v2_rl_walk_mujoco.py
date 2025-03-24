@@ -5,9 +5,7 @@ import numpy as np
 
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
 
-# from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.raw_imu import Imu
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 from mini_bdx_runtime.xbox_controller import XBoxController
@@ -71,12 +69,6 @@ class RLWalk:
             self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
 
         self.standing = standing
-
-        self.action_filter = None
-        if cutoff_frequency is not None:
-            self.action_filter = LowPassActionFilter(
-                self.control_freq, cutoff_frequency
-            )
 
         self.hwi = HWI(serial_port)
         self.start()
@@ -143,18 +135,10 @@ class RLWalk:
 
     def get_obs(self):
 
-        # imu_mat = self.imu.get_data(mat=True)
         imu_data = self.imu.get_data()
-        # if imu_mat is None:
-        #     print("IMU ERROR")
-        #     return None
 
         dof_pos = self.hwi.get_present_positions(
             ignore=[
-                # "neck_pitch",
-                # "head_pitch",
-                # "head_yaw",
-                # "head_roll",
                 "left_antenna",
                 "right_antenna",
             ]
@@ -162,10 +146,6 @@ class RLWalk:
 
         dof_vel = self.hwi.get_present_velocities(
             ignore=[
-                # "neck_pitch",
-                # "head_pitch",
-                # "head_yaw",
-                # "head_roll",
                 "left_antenna",
                 "right_antenna",
             ]
@@ -206,7 +186,7 @@ class RLWalk:
                 feet_contacts,
                 # ref,
                 # [self.imitation_i],
-                self.imitation_phase
+                self.imitation_phase,
             ]
         )
 
@@ -317,25 +297,10 @@ class RLWalk:
                     + self.max_motor_velocity * (1 / self.control_freq),  # control dt
                 )
 
-                # robot_action = self.add_fake_head(robot_action)
-                # self.motor_targets = self.add_fake_head(
-                #     self.motor_targets
-                # )  # Probably useless ?
-
-                # if self.action_filter is not None:
-                #     self.action_filter.push(self.motor_targets)
-                #     filtered_motor_targets = self.action_filter.get_filtered_action()
-                #     if (
-                #         time.time() - start_t > 1
-                #     ):  # give time to the filter to stabilize
-                #         self.motor_targets = filtered_motor_targets
-
                 self.prev_motor_targets = self.motor_targets.copy()
                 # self.motor_targets[5:9] = self.last_commands[3:]
 
-                action_dict = make_action_dict(
-                    self.motor_targets, joints_order
-                )  # Removes antennas
+                action_dict = make_action_dict(self.motor_targets, joints_order)
 
                 self.hwi.set_position_all(action_dict)
 
@@ -351,12 +316,9 @@ class RLWalk:
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
-            # self.hwi.freeze()
             pass
 
         pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
-        # print("FREEZING")
-        # self.hwi.freeze()
         print("TURNING OFF")
 
 
