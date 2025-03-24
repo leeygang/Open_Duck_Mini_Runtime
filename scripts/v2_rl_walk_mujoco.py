@@ -116,8 +116,8 @@ class RLWalk:
             -0.796,
         ]
 
-        self.motor_targets = self.init_pos.copy()
-        self.prev_motor_targets = self.init_pos.copy()
+        self.motor_targets = np.array(self.init_pos.copy())
+        self.prev_motor_targets = np.array(self.init_pos.copy())
 
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
