@@ -133,6 +133,7 @@ class RLWalk:
         if not self.standing:
             self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
             self.imitation_i = 0
+            self.imitation_phase = np.array([0, 0])
 
     def add_fake_head(self, pos):
         # add just the antennas now
@@ -204,7 +205,8 @@ class RLWalk:
                 self.motor_targets,
                 feet_contacts,
                 # ref,
-                [self.imitation_i]
+                # [self.imitation_i],
+                self.imitation_phase
             ]
         )
 
@@ -266,6 +268,22 @@ class RLWalk:
                 if not self.standing:
                     self.imitation_i += 1
                     self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
+                    self.imitation_phase = np.array(
+                        [
+                            np.cos(
+                                self.imitation_i
+                                / self.PRM.nb_steps_in_period
+                                * 2
+                                * np.pi
+                            ),
+                            np.sin(
+                                self.imitation_i
+                                / self.PRM.nb_steps_in_period
+                                * 2
+                                * np.pi
+                            ),
+                        ]
+                    )
 
                 self.saved_obs.append(obs)
 
@@ -304,7 +322,6 @@ class RLWalk:
                 #     self.motor_targets
                 # )  # Probably useless ?
 
-
                 # if self.action_filter is not None:
                 #     self.action_filter.push(self.motor_targets)
                 #     filtered_motor_targets = self.action_filter.get_filtered_action()
@@ -313,9 +330,8 @@ class RLWalk:
                 #     ):  # give time to the filter to stabilize
                 #         self.motor_targets = filtered_motor_targets
 
-
                 self.prev_motor_targets = self.motor_targets.copy()
-                self.motor_targets[5:9] = self.last_commands[3:]
+                # self.motor_targets[5:9] = self.last_commands[3:]
 
                 action_dict = make_action_dict(
                     self.motor_targets, joints_order
