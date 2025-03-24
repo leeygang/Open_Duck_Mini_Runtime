@@ -7,13 +7,12 @@ import numpy as np
 
 X_RANGE = [-0.15, 0.15]
 Y_RANGE = [-0.2, 0.2]
-YAW_RANGE = [-0.5, 0.5]
 YAW_RANGE = [-1.0, 1.0]
 
 # rads
 NECK_PITCH_RANGE = [-0.34, 1.1]
 HEAD_PITCH_RANGE = [-0.78, 0.78]
-HEAD_YAW_RANGE = [-2.7, 2.7]
+HEAD_YAW_RANGE = [-1.7, 1.7]
 HEAD_ROLL_RANGE = [-0.5, 0.5]
 
 
