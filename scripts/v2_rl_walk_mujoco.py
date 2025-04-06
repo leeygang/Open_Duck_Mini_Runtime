@@ -46,8 +46,8 @@ class RLWalk:
         action_scale=0.25,
         commands=False,
         pitch_bias=0,
+        save_obs=False,
         replay_obs=None,
-        standing=False,
         cutoff_frequency=None,
     ):
         self.commands = commands
@@ -63,13 +63,13 @@ class RLWalk:
         self.control_freq = control_freq
         self.pid = pid
 
-        self.saved_obs = []
+        self.save_obs = save_obs
+        if self.save_obs:
+            self.saved_obs = []
 
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
             self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
-
-        self.standing = standing
 
         self.action_filter = None
         if cutoff_frequency is not None:
@@ -127,12 +127,11 @@ class RLWalk:
 
         self.command_freq = 20  # hz
         if self.commands:
-            self.xbox_controller = XBoxController(self.command_freq, self.standing)
+            self.xbox_controller = XBoxController(self.command_freq)
 
-        if not self.standing:
-            self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
-            self.imitation_i = 0
-            self.imitation_phase = np.array([0, 0])
+        self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
+        self.imitation_i = 0
+        self.imitation_phase = np.array([0, 0])
 
     def add_fake_head(self, pos):
         # add just the antennas now
@@ -166,23 +165,14 @@ class RLWalk:
             print(f"ERROR len(dof_vel) != {self.num_dofs}")
             return None
 
-        # projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
-        # projected_gravity = np.array(imu_mat).reshape((3, 3)).T @ np.array([0, 0, -1])
-
         cmds = self.last_commands
 
         feet_contacts = self.feet_contacts.get()
-
-        # if not self.standing:
-        #     ref = self.PRM.get_reference_motion(*cmds[:3], self.imitation_i)
-        # else:
-        #     ref = np.array([])
 
         obs = np.concatenate(
             [
                 imu_data["gyro"],
                 imu_data["accelero"],
-                # projected_gravity,
                 cmds,
                 dof_pos - self.init_pos,
                 dof_vel * 0.05,
@@ -191,8 +181,6 @@ class RLWalk:
                 self.last_last_last_action,
                 self.motor_targets,
                 feet_contacts,
-                # ref,
-                # [self.imitation_i],
                 self.imitation_phase,
             ]
         )
@@ -252,27 +240,21 @@ class RLWalk:
                 if obs is None:
                     continue
 
-                if not self.standing:
-                    self.imitation_i += 1
-                    self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
-                    self.imitation_phase = np.array(
-                        [
-                            np.cos(
-                                self.imitation_i
-                                / self.PRM.nb_steps_in_period
-                                * 2
-                                * np.pi
-                            ),
-                            np.sin(
-                                self.imitation_i
-                                / self.PRM.nb_steps_in_period
-                                * 2
-                                * np.pi
-                            ),
-                        ]
-                    )
+                self.imitation_i += 1
+                self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
+                self.imitation_phase = np.array(
+                    [
+                        np.cos(
+                            self.imitation_i / self.PRM.nb_steps_in_period * 2 * np.pi
+                        ),
+                        np.sin(
+                            self.imitation_i / self.PRM.nb_steps_in_period * 2 * np.pi
+                        ),
+                    ]
+                )
 
-                self.saved_obs.append(obs)
+                if self.save_obs:
+                    self.saved_obs.append(obs)
 
                 if self.replay_obs is not None:
                     if i < len(self.replay_obs):
@@ -281,11 +263,7 @@ class RLWalk:
                         print("BREAKING ")
                         break
 
-                # obs = np.clip(obs, -100, 100)
-
                 action = self.policy.infer(obs)
-
-                # action = np.clip(action, -1, 1)
 
                 self.last_last_last_action = self.last_last_action.copy()
                 self.last_last_action = self.last_action.copy()
@@ -293,7 +271,6 @@ class RLWalk:
 
                 # action = np.zeros(10)
 
-                # robot_action = self.init_pos + action * self.action_scale
                 self.motor_targets = self.init_pos + action * self.action_scale
 
                 self.motor_targets = np.clip(
@@ -333,7 +310,8 @@ class RLWalk:
         except KeyboardInterrupt:
             pass
 
-        pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
+        if self.save_obs:
+            pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
         print("TURNING OFF")
 
 
@@ -354,9 +332,22 @@ if __name__ == "__main__":
         default=False,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
-    parser.add_argument("--replay_obs", type=str, required=False, default=None)
-    parser.add_argument("--standing", action="store_true", default=False)
+    parser.add_argument(
+        "--save_obs",
+        type=str,
+        required=False,
+        default=False,
+        help="save the run's observations",
+    )
+    parser.add_argument(
+        "--replay_obs",
+        type=str,
+        required=False,
+        default=None,
+        help="replay the observations from a previous run (can be from the robot or from mujoco)",
+    )
     parser.add_argument("--cutoff_frequency", type=float, default=None)
+
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -368,10 +359,9 @@ if __name__ == "__main__":
         control_freq=args.control_freq,
         commands=args.commands,
         pitch_bias=args.pitch_bias,
+        save_obs=args.save_obs,
         replay_obs=args.replay_obs,
-        standing=args.standing,
         cutoff_frequency=args.cutoff_frequency,
     )
     print("Done instantiating RLWalk")
-    # rl_walk.start()
     rl_walk.run()
