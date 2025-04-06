@@ -41,8 +41,12 @@ except Exception:
     res = scan()
     if res is not None:
         current_id = res
+    else:
+        print("Could not find motor. Exiting ...")
+        exit()
 
-print("current id: ", current_id)
+
+# print("current id: ", current_id)
 
 kp = io.get_P_coefficient([current_id])
 ki = io.get_I_coefficient([current_id])
@@ -51,10 +55,10 @@ max_acceleration = io.get_maximum_acceleration([current_id])
 acceleration = io.get_acceleration([current_id])
 mode = io.get_mode([current_id])
 
-print(f"PID : {kp}, {ki}, {kd}")
-print(f"max_acceleration: {max_acceleration}")
-print(f"acceleration: {acceleration}")
-print(f"mode: {mode}")
+# print(f"PID : {kp}, {ki}, {kd}")
+# print(f"max_acceleration: {max_acceleration}")
+# print(f"acceleration: {acceleration}")
+# print(f"mode: {mode}")
 
 io.set_lock({current_id: 0})
 io.set_mode({current_id: 0})
@@ -72,3 +76,14 @@ time.sleep(1)
 io.set_goal_position({current_id: 0})
 
 time.sleep(1)
+
+print("===")
+print("Done configuring motor.")
+print(f"Motor id: {current_id}")
+print(f"P coefficient : {io.get_P_coefficient([current_id])}")
+print(f"I coefficient : {io.get_I_coefficient([current_id])}")
+print(f"D coefficient : {io.get_D_coefficient([current_id])}")
+print(f"acceleration: {io.get_acceleration([current_id])}")
+print(f"max_acceleration: {io.get_maximum_acceleration([current_id])}")
+print(f"mode: {io.get_mode([current_id])}")
+print("===")
