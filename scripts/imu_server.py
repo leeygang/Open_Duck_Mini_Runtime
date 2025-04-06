@@ -8,14 +8,15 @@ import time
 import argparse
 
 
-
 class IMUServer:
     def __init__(self, imu=None):
         self.host = "0.0.0.0"
         self.port = 1234
 
         self.server_socket = socket.socket()
-        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # enable address reuse
+        self.server_socket.setsockopt(
+            socket.SOL_SOCKET, socket.SO_REUSEADDR, 1
+        )  # enable address reuse
 
         self.server_socket.bind((self.host, self.port))
 
@@ -26,7 +27,6 @@ class IMUServer:
         self.stop = False
 
         Thread(target=self.run, daemon=True).start()
-
 
     def run(self):
         while not self.stop:
@@ -41,8 +41,7 @@ class IMUServer:
                     time.sleep(1 / 30)
             except:
                 pass
-        
-    
+
         self.server_socket.close()
         print("thread closed")
         time.sleep(1)
@@ -61,4 +60,3 @@ if __name__ == "__main__":
         imu_server.stop = True
 
     time.sleep(2)
-

@@ -6,8 +6,7 @@ from queue import Queue
 from threading import Thread
 from scipy.spatial.transform import Rotation as R
 from FramesViewer.viewer import Viewer
-
-from mini_bdx_runtime.rl_utils import quat_rotate_inverse
+import argparse
 
 
 class IMUClient:
@@ -52,37 +51,26 @@ class IMUClient:
 
 if __name__ == "__main__":
 
-    client = IMUClient("192.168.248.253")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip", type=str, required=True, help="IP address of the robot")
+    args = parser.parse_args()
+
+    client = IMUClient(args.ip)
+
     fv = Viewer()
     fv.start()
     pose = np.eye(4)
     pose[:3, 3] = [0.1, 0.1, 0.1]
-    projected_gravities = []
     try:
         while True:
             quat = client.get_imu()
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
                 pose[:3, :3] = rot_mat
-                fv.pushFrame(pose, "aze")
-
-                # euler = R.from_quat(quat).as_euler("xyz")
-                # euler[2] = 0
-                # quat = R.from_euler("xyz", euler).as_quat()
-
-                projected_gravity = quat_rotate_inverse(quat, [0, 0, -1])
-                projected_gravities.append(projected_gravity)
+                fv.pushFrame(pose, "pose")
             except Exception as e:
                 print("error", e)
                 pass
             time.sleep(1 / 30)
     except KeyboardInterrupt:
         pass
-
-    # plot projected_gravities [[x, y, z], [x, y, z], ...]
-
-    # from matplotlib import pyplot as plt
-
-    # projected_gravities = np.array(projected_gravities)
-    # plt.plot(projected_gravities)
-    # plt.show()

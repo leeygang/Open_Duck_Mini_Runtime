@@ -84,7 +84,7 @@ class XBoxController:
             last_commands[0] = 0.0
             last_commands[1] = 0.0
             last_commands[2] = 0.0
-            last_commands[3] = 0.0 # neck pitch 0 for now
+            last_commands[3] = 0.0  # neck pitch 0 for now
 
             head_yaw = l_x
             head_pitch = l_y
@@ -123,21 +123,40 @@ class XBoxController:
             if self.p1.get_button(4):  # Y button
                 self.head_control_mode = not self.head_control_mode
 
-
         pygame.event.pump()  # process event queue
 
-        return np.around(last_commands, 3), A_pressed, X_pressed, left_trigger, right_trigger
+        return (
+            np.around(last_commands, 3),
+            A_pressed,
+            X_pressed,
+            left_trigger,
+            right_trigger,
+        )
 
     def get_last_command(self):
         A_pressed = False
         X_pressed = False
 
         try:
-            self.last_commands, A_pressed, X_pressed, self.last_left_trigger, self.last_right_trigger = self.cmd_queue.get(False)  # non blocking
+            (
+                self.last_commands,
+                A_pressed,
+                X_pressed,
+                self.last_left_trigger,
+                self.last_right_trigger,
+            ) = self.cmd_queue.get(
+                False
+            )  # non blocking
         except Exception:
             pass
 
-        return self.last_commands, A_pressed, X_pressed, self.last_left_trigger, self.last_right_trigger
+        return (
+            self.last_commands,
+            A_pressed,
+            X_pressed,
+            self.last_left_trigger,
+            self.last_right_trigger,
+        )
 
 
 if __name__ == "__main__":

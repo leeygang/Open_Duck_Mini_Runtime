@@ -85,7 +85,7 @@ The led on the controller should stop blinking and stay on.
 You can test that it's working by running
 
 ```bash
-python3 scripts/test_xbox_controller.py
+python3 mini_bdx_runtime/mini_bdx_runtime/xbox_controller.py
 ```
 
 ## Speaker wiring and configuration
@@ -118,9 +118,12 @@ pip install -e .
 ## Test the IMU
 
 ```bash
-cd scripts/
-python imu_test.py
+python3 mini_bdx_runtime/mini_bdx_runtime/raw_imu.py
 ```
+
+You can also run `python3 scripts/imu_server.py` on the robot and `python3 scripts/imu_client.py --ip <robot_ip>` on your computer to check that the frame is oriented correctly. 
+
+> To find the ip address of the robot, run `ifconfig` on the robot
 
 ## Find the joints offsets
 
