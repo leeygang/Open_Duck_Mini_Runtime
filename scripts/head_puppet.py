@@ -88,10 +88,6 @@ while True:
     neck_pitch_deg = -r_y * (limits["neck_pitch"][1] - limits["neck_pitch"][0]) / 2 + (limits["neck_pitch"][1] + limits["neck_pitch"][0]) / 2
     neck_pitch_pos_rad = np.deg2rad(neck_pitch_deg)
 
-
-    # Convert from degrees to radians
-    # print(head_yaw_deg)
-
     hwi.set_position("head_yaw", head_yaw_pos_rad)
     hwi.set_position("head_roll", head_roll_pos_rad)
     hwi.set_position("head_pitch", head_pitch_pos_rad)
