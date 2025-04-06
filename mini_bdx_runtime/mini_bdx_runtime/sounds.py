@@ -10,15 +10,18 @@ class Sounds:
         pygame.mixer.music.set_volume(volume)
         self.sounds = {}
         self.ok = True
-
-        for file in os.listdir(sound_directory):
-            if file.endswith(".wav"):
-                sound_path = os.path.join(sound_directory, file)
-                try:
-                    self.sounds[file] = pygame.mixer.Sound(sound_path)
-                    print(f"Loaded: {file}")
-                except pygame.error as e:
-                    print(f"Failed to load {file}: {e}")
+        try:
+            for file in os.listdir(sound_directory):
+                if file.endswith(".wav"):
+                    sound_path = os.path.join(sound_directory, file)
+                    try:
+                        self.sounds[file] = pygame.mixer.Sound(sound_path)
+                        print(f"Loaded: {file}")
+                    except pygame.error as e:
+                        print(f"Failed to load {file}: {e}")
+        except FileNotFoundError:
+            print(f"Directory {sound_directory} not found.")
+            self.ok = False
         if len(self.sounds) == 0:
             print("No sound files found in the directory.")
             self.ok = False
