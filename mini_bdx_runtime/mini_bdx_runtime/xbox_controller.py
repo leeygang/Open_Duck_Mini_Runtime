@@ -12,7 +12,7 @@ YAW_RANGE = [-1.0, 1.0]
 # rads
 NECK_PITCH_RANGE = [-0.34, 1.1]
 HEAD_PITCH_RANGE = [-0.78, 0.78]
-HEAD_YAW_RANGE = [-1.0, 1.0]
+HEAD_YAW_RANGE = [-0.5, 0.5]
 HEAD_ROLL_RANGE = [-0.5, 0.5]
 
 
