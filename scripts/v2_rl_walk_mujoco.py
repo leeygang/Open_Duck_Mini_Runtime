@@ -289,9 +289,10 @@ class RLWalk:
                     ):  # give time to the filter to stabilize
                         self.motor_targets = filtered_motor_targets
 
+                self.prev_motor_targets = self.motor_targets.copy()
+                
                 head_motor_targets = self.last_commands[3:] + self.motor_targets[5:9]
                 self.motor_targets[5:9] = head_motor_targets
-                self.prev_motor_targets = self.motor_targets.copy()
 
                 action_dict = make_action_dict(self.motor_targets, joints_order)
 
