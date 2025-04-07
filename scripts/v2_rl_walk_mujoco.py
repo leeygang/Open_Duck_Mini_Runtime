@@ -157,6 +157,9 @@ class RLWalk:
             ]
         )  # rad/s
 
+        if dof_pos is None or dof_vel is None:
+            return None
+
         if len(dof_pos) != self.num_dofs:
             print(f"ERROR len(dof_pos) != {self.num_dofs}")
             return None
@@ -290,7 +293,7 @@ class RLWalk:
                         self.motor_targets = filtered_motor_targets
 
                 self.prev_motor_targets = self.motor_targets.copy()
-                
+
                 head_motor_targets = self.last_commands[3:] + self.motor_targets[5:9]
                 self.motor_targets[5:9] = head_motor_targets
 

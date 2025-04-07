@@ -47,6 +47,8 @@ try:
             hwi.set_position_all(hwi.zero_pos)
             time.sleep(0.5)
             current_pos = hwi.get_present_positions()[i]
+            if current_pos is None:
+                continue
             # hwi.control.kps[i] = 0
             hwi.io.disable_torque([joint_id])
             input(

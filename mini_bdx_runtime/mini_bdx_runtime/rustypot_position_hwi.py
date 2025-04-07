@@ -182,8 +182,11 @@ class HWI:
         # present_positions = np.deg2rad(
         #     self.control.io.get_present_position(self.joints.values())
         # )
-
-        present_positions = self.io.read_present_position(list(self.joints.values()))
+        try:
+            present_positions = self.io.read_present_position(list(self.joints.values()))
+        except Exception as e:
+            print(e)
+            return None
         # present_positions = np.deg2rad(self.control.get_present_position())
         present_positions = [
             pos - self.joints_offsets[joint]
@@ -196,7 +199,11 @@ class HWI:
         """
         Returns the present velocities in rad/s (default) or rev/min
         """
-        present_velocities = self.io.read_present_velocity(list(self.joints.values()))
+        try:
+            present_velocities = self.io.read_present_velocity(list(self.joints.values()))
+        except Exception as e:
+            print(e)
+            return None
         # present_velocities = np.array(self.control.get_current_speed())
         present_velocities = [
             vel
