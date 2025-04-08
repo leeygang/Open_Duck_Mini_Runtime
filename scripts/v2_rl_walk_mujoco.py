@@ -16,26 +16,6 @@ from mini_bdx_runtime.antennas import Antennas
 from mini_bdx_runtime.projector import Projector
 from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
 
-joints_order = [
-    "left_hip_yaw",
-    "left_hip_roll",
-    "left_hip_pitch",
-    "left_knee",
-    "left_ankle",
-    "neck_pitch",
-    "head_pitch",
-    "head_yaw",
-    "head_roll",
-    # "left_antenna",
-    # "right_antenna",
-    "right_hip_yaw",
-    "right_hip_roll",
-    "right_hip_pitch",
-    "right_knee",
-    "right_ankle",
-]
-
-
 class RLWalk:
     def __init__(
         self,
@@ -62,6 +42,26 @@ class RLWalk:
         # Control
         self.control_freq = control_freq
         self.pid = pid
+
+        self.joints_order = [
+            "left_hip_yaw",
+            "left_hip_roll",
+            "left_hip_pitch",
+            "left_knee",
+            "left_ankle",
+            "neck_pitch",
+            "head_pitch",
+            "head_yaw",
+            "head_roll",
+            # "left_antenna",
+            # "right_antenna",
+            "right_hip_yaw",
+            "right_hip_roll",
+            "right_hip_pitch",
+            "right_knee",
+            "right_ankle",
+        ]
+
 
         self.save_obs = save_obs
         if self.save_obs:
@@ -297,7 +297,7 @@ class RLWalk:
                 head_motor_targets = self.last_commands[3:] + self.motor_targets[5:9]
                 self.motor_targets[5:9] = head_motor_targets
 
-                action_dict = make_action_dict(self.motor_targets, joints_order)
+                action_dict = make_action_dict(self.motor_targets, self.joints_order)
 
                 self.hwi.set_position_all(action_dict)
 
