@@ -30,6 +30,8 @@ sudo apt upgrade
 sudo apt install git
 sudo apt install python3-pip
 sudo apt install python3-virtualenvwrapper
+(optional) sudo apt install python3-picamzero
+
 ```
 
 Add this to the end of the `.bashrc`:
