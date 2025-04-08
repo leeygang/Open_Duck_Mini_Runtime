@@ -8,7 +8,7 @@ import base64
 from v2_rl_walk_mujoco import RLWalk
 from threading import Thread
 import cv2
-from picamzero import Camera
+from mini_bdx_runtime.camera import Cam
 
 # TODO mission : find an object ?
 
@@ -16,7 +16,7 @@ from picamzero import Camera
 # Your Tools class
 class Tools:
     def __init__(self):
-        self.cam = Camera()
+        self.cam = Cam()
         self.rl_walk = RLWalk(
             "/home/bdxv2/BEST_WALK_ONNX_2.onnx",
             cutoff_frequency=40,
@@ -40,16 +40,9 @@ class Tools:
     #     os.system(command)
     #     return url
 
-    # Function to encode the image as base64
-    def encode_image(self, image_path: str):
-        # check if the image exists
-        if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Image file not found: {image_path}")
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
 
-    def move_forward(self, seconds=1):
-        seconds = min(seconds, 3)
+    def move_forward(self, seconds=2):
+        seconds = max(2, min(seconds, 5))
         print(f"Moving forward for {seconds} seconds")
         self.rl_walk.last_commands[0] = 0.15
         time.sleep(seconds)
@@ -57,8 +50,8 @@ class Tools:
         print("Stopped moving forward")
         return f"Moved forward for {seconds} seconds successfully"
 
-    def turn_left(self, seconds=1):
-        seconds = min(seconds, 3)
+    def turn_left(self, seconds=2):
+        seconds = max(2, min(seconds, 5))
         print(f"Turning left for {seconds} seconds")
         self.rl_walk.last_commands[2] = 1.0
         time.sleep(seconds)
@@ -66,8 +59,8 @@ class Tools:
         print("Stopped turning left")
         return f"Turned left for {seconds} seconds successfully"
 
-    def turn_right(self, seconds=1):
-        seconds = min(seconds, 3)
+    def turn_right(self, seconds=2):
+        seconds = max(2, min(seconds, 5))
         print(f"Turning right for {seconds} seconds")
         self.rl_walk.last_commands[2] = -1.0
         time.sleep(seconds)
@@ -75,8 +68,8 @@ class Tools:
         print("Stopped turning right")
         return f"Turned right for {seconds} seconds successfully"
 
-    def move_backward(self, seconds=1):
-        seconds = min(seconds, 3)
+    def move_backward(self, seconds=2):
+        seconds = max(2, min(seconds, 5))
         print(f"Moving backward for {seconds} seconds")
         self.rl_walk.last_commands[0] = -0.15
         time.sleep(seconds)
@@ -86,11 +79,8 @@ class Tools:
 
     def take_picture(self):
         # https://projects.raspberrypi.org/en/projects/getting-started-with-picamera/5
-        self.cam.take_photo("/home/bdxv2/aze.jpg")
-        path = None  # TODO cam.take_photo(f"{home_dir}/Desktop/new_image.jpg")
-        # path = "/home/antoine/aze.jpg"
         print("Taking a picture...")
-        image64 = self.encode_image(path)
+        image64 = self.cam.get_encoded_image()
         url = ("data:image/jpeg;base64," + image64,)
         time.sleep(1)
         print("Picture taken")
@@ -110,7 +100,7 @@ openai_tools = [
             "properties": {
                 "seconds": {
                     "type": "integer",
-                    "description": "Number of seconds to move forward (max 3)",
+                    "description": "Number of seconds to move forward (min 2, max 5)",
                 }
             },
             "required": ["seconds"],
@@ -126,7 +116,7 @@ openai_tools = [
             "properties": {
                 "seconds": {
                     "type": "integer",
-                    "description": "Number of seconds to move backward (max 3)",
+                    "description": "Number of seconds to move backward (min 2, max 5)",
                 }
             },
             "required": ["seconds"],
@@ -142,7 +132,7 @@ openai_tools = [
             "properties": {
                 "seconds": {
                     "type": "integer",
-                    "description": "Number of seconds to turn left (max 3)",
+                    "description": "Number of seconds to turn left (min 2, max 5)",
                 }
             },
             "required": ["seconds"],
@@ -158,7 +148,7 @@ openai_tools = [
             "properties": {
                 "seconds": {
                     "type": "integer",
-                    "description": "Number of seconds to turn right (max 3)",
+                    "description": "Number of seconds to turn right (min 2, max 5)",
                 }
             },
             "required": ["seconds"],
@@ -192,15 +182,20 @@ messages = [
         "content": (
             "You are a cute little biped robot that can move around using the following tools: "
             "`move_forward`, `move_backward`, `turn_left`, `turn_right` and 'take_picture'. "
+            "moving forward for 1 second will make you move forward by about 15 centimeters"
+            "turning for 1 second will make you turn about 45 degrees"
             "You can only perform one action at a time. If multiple actions are needed, call them step by step."
             "Explain what you are doing along the way"
             "Always start by taking a picture of the environment so you can see where you are. "
             "When you take a picture, describe what you see in the image. "
+            "make sure not to hit any walls or objects. Take pictures regularly to know where you are."
+            "When given a goal to find something, if you found it, navigate to be in front of it, facing it"
+            "Maybe it's a good idea to turn 360 degrees to check all directions"
         ),
     },
     {
         "role": "user",
-        "content": "Explore your environment, make sure not to hit any walls or objects. Take pictures regularly to know where you are.",
+        "content": "Find the yellow vaccum cleaner !",
     },
 ]
 

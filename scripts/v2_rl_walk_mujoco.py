@@ -12,7 +12,7 @@ from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
 from mini_bdx_runtime.eyes import Eyes
 from mini_bdx_runtime.sounds import Sounds
-from mini_bdx_runtime.antennas import Antennas
+# from mini_bdx_runtime.antennas import Antennas
 from mini_bdx_runtime.projector import Projector
 from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
 
@@ -123,7 +123,7 @@ class RLWalk:
         self.paused = False
 
         self.sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
-        self.antennas = Antennas()
+        # self.antennas = Antennas()
 
         self.command_freq = 20  # hz
         if self.commands:
@@ -225,8 +225,8 @@ class RLWalk:
                     self.sounds.play_random_sound()
                     self.projector.switch()
 
-                self.antennas.set_position_left(right_trigger)
-                self.antennas.set_position_right(left_trigger)
+                # self.antennas.set_position_left(right_trigger)
+                # self.antennas.set_position_right(left_trigger)
 
                 if A_pressed and not self.paused:
                     self.paused = True
@@ -305,11 +305,11 @@ class RLWalk:
 
                 took = time.time() - t
                 # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
-                if (1 / self.control_freq - took) < 0:
-                    print(
-                        "Policy control budget exceeded by",
-                        np.around(took - 1 / self.control_freq, 3),
-                    )
+                # if (1 / self.control_freq - took) < 0:
+                #     print(
+                #         "Policy control budget exceeded by",
+                #         np.around(took - 1 / self.control_freq, 3),
+                #     )
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:

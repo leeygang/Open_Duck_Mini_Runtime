@@ -1,6 +1,9 @@
 from openai import OpenAI
 import os
 import base64
+from mini_bdx_runtime.camera import Cam
+
+cam = Cam()
 
 client = OpenAI()
 
@@ -25,8 +28,8 @@ def encode_image(image_path: str):
 #     }],
 # )
 
-image64 = encode_image("/home/antoine/aze.jpg")
-
+# image64 = encode_image("/home/antoine/aze.jpg")
+image64 = cam.get_encoded_image()
 response = client.responses.create(
     model="gpt-4o-mini",
     input=[{
