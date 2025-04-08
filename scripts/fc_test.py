@@ -4,23 +4,31 @@ import json
 import os
 from io import BytesIO
 import base64
+
 from v2_rl_walk_mujoco import RLWalk
 from threading import Thread
-
+import cv2
+from picamzero import Camera
 
 # TODO mission : find an object ?
+
 
 # Your Tools class
 class Tools:
     def __init__(self):
+        self.cam = Camera()
         self.rl_walk = RLWalk(
-            "/home/bdxv2/BEST_WALK_ONNX_2.onnx", cutoff_frequency=40,
+            "/home/bdxv2/BEST_WALK_ONNX_2.onnx",
+            cutoff_frequency=40,
         )
 
         Thread(target=self.rl_walk.run, daemon=True).start()
 
     # def upload_image(self, image_path: str):
     #     image_name = os.path.basename(image_path)
+    #     im = cv2.imread(image_path)
+    #     im = cv2.resize(im, (512, 512))
+    #     cv2.imwrite(image_path, im)
     #     # command = (
     #     #     f"scp {image_path} apirrone@s-nguyen.net:/home/apirrone/webserv/images/"
     #     # )
@@ -33,12 +41,12 @@ class Tools:
     #     return url
 
     # Function to encode the image as base64
-    # def encode_image(self, image_path: str):
-    #     # check if the image exists
-    #     if not os.path.exists(image_path):
-    #         raise FileNotFoundError(f"Image file not found: {image_path}")
-    #     with open(image_path, "rb") as image_file:
-    #         return base64.b64encode(image_file.read()).decode("utf-8")
+    def encode_image(self, image_path: str):
+        # check if the image exists
+        if not os.path.exists(image_path):
+            raise FileNotFoundError(f"Image file not found: {image_path}")
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode("utf-8")
 
     def move_forward(self, seconds=1):
         seconds = min(seconds, 3)
@@ -76,16 +84,18 @@ class Tools:
         print("Stopped moving backward")
         return f"Moved backward for {seconds} seconds successfully"
 
-    # def take_picture(self):
-    #     # https://projects.raspberrypi.org/en/projects/getting-started-with-picamera/5
-    #     path = None  # TODO cam.take_photo(f"{home_dir}/Desktop/new_image.jpg")
-    #     path = "/home/bdxv2/aze.jpg"
-    #     # encoded = self.encode_image(path)
-    #     print("Taking a picture...")
-    #     url = self.upload_image(path)
-    #     time.sleep(1)
-    #     print("Picture taken")
-    #     return url
+    def take_picture(self):
+        # https://projects.raspberrypi.org/en/projects/getting-started-with-picamera/5
+        self.cam.take_photo("/home/bdxv2/aze.jpg")
+        path = None  # TODO cam.take_photo(f"{home_dir}/Desktop/new_image.jpg")
+        # path = "/home/antoine/aze.jpg"
+        print("Taking a picture...")
+        image64 = self.encode_image(path)
+        url = ("data:image/jpeg;base64," + image64,)
+        time.sleep(1)
+        print("Picture taken")
+        return url
+
 
 # Tool instance
 tools_instance = Tools()
@@ -155,16 +165,16 @@ openai_tools = [
             "additionalProperties": False,
         },
     },
-    # {
-    #     "type": "function",
-    #     "name": "take_picture",
-    #     "description": "Take a picture",
-    #     "parameters": {
-    #         "type": "object",
-    #         "properties": {},
-    #         # No required properties for taking a picture
-    #     },
-    # },
+    {
+        "type": "function",
+        "name": "take_picture",
+        "description": "Take a picture",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            # No required properties for taking a picture
+        },
+    },
 ]
 
 # Mapping function names to actual methods
@@ -173,7 +183,7 @@ function_map = {
     "move_backward": tools_instance.move_backward,
     "turn_left": tools_instance.turn_left,
     "turn_right": tools_instance.turn_right,
-    # "take_picture": tools_instance.take_picture,
+    "take_picture": tools_instance.take_picture,
 }
 
 messages = [
@@ -181,11 +191,11 @@ messages = [
         "role": "system",
         "content": (
             "You are a cute little biped robot that can move around using the following tools: "
-            "`move_forward`, `move_backward`, `turn_left` and `turn_right`. "
+            "`move_forward`, `move_backward`, `turn_left`, `turn_right` and 'take_picture'. "
             "You can only perform one action at a time. If multiple actions are needed, call them step by step."
             "Explain what you are doing along the way"
             "Always start by taking a picture of the environment so you can see where you are. "
-            # "When you take a picture, describe what you see in the image. "
+            "When you take a picture, describe what you see in the image. "
         ),
     },
     {
@@ -201,7 +211,7 @@ function_map = {
     "move_backward": tools_instance.move_backward,
     "turn_left": tools_instance.turn_left,
     "turn_right": tools_instance.turn_right,
-    # "take_picture": tools_instance.take_picture,
+    "take_picture": tools_instance.take_picture,
 }
 
 
@@ -217,8 +227,8 @@ def call_function(name, args):
         return function_map[name](args["seconds"])
     elif name == "turn_right":
         return function_map[name](args["seconds"])
-    # elif name == "take_picture":
-    #     return function_map[name]()
+    elif name == "take_picture":
+        return function_map[name]()
     else:
         raise ValueError(f"Unknown function name: {name}")
 
@@ -242,38 +252,32 @@ while True:
         name = tool_call.name
         args = json.loads(tool_call.arguments)
 
-        result = call_function(name, args)
+        result = call_function(name, args)[0]
         messages.append(tool_call)
-        # if tool_call.name == "take_picture":
-        #     # result is an image URL
-        #     image_message = {
-        #         "type": "input_image",
-        #         "image_url": result,  # This is the URL of the image
-        #     }
+        if tool_call.name == "take_picture":
+            # result is an image URL
 
-        #     # Add an optional prompt or let GPT interpret the image
-        #     messages.append(
-        #         {
-        #             "role": "user",
-        #             "content": [
-        #                 image_message
-        #             ],  # Can also include {"type": "text", "text": "What do you see?"}
-        #         }
-        #     )
+            # Add an optional prompt or let GPT interpret the image
+            messages.append(
+                {
+                    "role": "user",
+                    "content": [{"type": "input_image", "image_url": result}],
+                }
+            )
 
-        #     messages.append(
-        #         {
-        #             "type": "function_call_output",
-        #             "call_id": tool_call.call_id,
-        #             "output": "Image taken and provided above.",
-        #         }
-        #     )
-        # else:
+            messages.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": tool_call.call_id,
+                    "output": "Image taken and provided above.",
+                }
+            )
+        else:
 
-        messages.append(
-            {
-                "type": "function_call_output",
-                "call_id": tool_call.call_id,
-                "output": str(result),
-            }
-        )
+            messages.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": tool_call.call_id,
+                    "output": str(result),
+                }
+            )
