@@ -86,6 +86,9 @@ class Tools:
         print("Picture taken")
         return url
 
+    def play_happy_sound(self):
+        self.rl_walk.sounds.play_happy()
+        return "Played happy sound"
 
 # Tool instance
 tools_instance = Tools()
@@ -165,6 +168,16 @@ openai_tools = [
             # No required properties for taking a picture
         },
     },
+    {
+        "type": "function",
+        "name": "play_happy_sound",
+        "description": "Play a happy sound",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            # No required properties for playing a sound
+        },
+    }
 ]
 
 # Mapping function names to actual methods
@@ -181,7 +194,7 @@ messages = [
         "role": "system",
         "content": (
             "You are a cute little biped robot that can move around using the following tools: "
-            "`move_forward`, `move_backward`, `turn_left`, `turn_right` and 'take_picture'. "
+            "`move_forward`, `move_backward`, `turn_left`, `turn_right`, 'play_happy_sound' and 'take_picture'. "
             "moving forward for 1 second will make you move forward by about 15 centimeters"
             "turning for 1 second will make you turn about 45 degrees"
             "You can only perform one action at a time. If multiple actions are needed, call them step by step."
@@ -189,13 +202,19 @@ messages = [
             "Always start by taking a picture of the environment so you can see where you are. "
             "When you take a picture, describe what you see in the image. "
             "make sure not to hit any walls or objects. Take pictures regularly to know where you are."
-            "When given a goal to find something, if you found it, navigate to be in front of it, facing it"
-            "Maybe it's a good idea to turn 360 degrees to check all directions"
+            "Maybe it's a good idea to turn 360 degrees to check all directions. (no need if you already found it)"
+            "When given a goal to find something, if you found it, navigate to be in front of it, facing it. You want to be about 1 meter close to it"
+            "When you are 1 meter close to the object, play the happy sound"
+            ""
         ),
     },
+    # {
+    #     "role": "user",
+    #     "content": "Find the yellow vaccum cleaner !",
+    # },
     {
         "role": "user",
-        "content": "Find the yellow vaccum cleaner !",
+        "content": "Explore, and when you see a person, play the happy sound",
     },
 ]
 
@@ -207,6 +226,7 @@ function_map = {
     "turn_left": tools_instance.turn_left,
     "turn_right": tools_instance.turn_right,
     "take_picture": tools_instance.take_picture,
+    "play_happy_sound": tools_instance.play_happy_sound,
 }
 
 
@@ -224,13 +244,15 @@ def call_function(name, args):
         return function_map[name](args["seconds"])
     elif name == "take_picture":
         return function_map[name]()
+    elif name == "play_happy_sound":
+        return function_map[name]()
     else:
         raise ValueError(f"Unknown function name: {name}")
 
 
 while True:
     response = client.responses.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         input=messages,
         tools=openai_tools,
     )
@@ -238,8 +260,10 @@ while True:
     if len(response.output) == 1 and response.output[0].type == "function_call":
         print("Only function call, no text response")
     else:
-        print(response.output[0].content[0].text)
-
+        try:
+            print(response.output[0].content[0].text)
+        except:
+            print("Error occurred while processing response")
     for tool_call in response.output:
         if tool_call.type != "function_call":
             continue

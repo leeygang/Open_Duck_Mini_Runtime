@@ -43,11 +43,16 @@ class Sounds:
         sound_name = random.choice(list(self.sounds.keys()))
         self.sounds[sound_name].play()
 
+    def play_happy(self):
+        self.sounds["happy1.wav"].play()
+
+
 
 # Example usage
 if __name__ == "__main__":
     sound_player = Sounds(1.0, "../assets/")
     time.sleep(1)
     while True:
-        sound_player.play_random_sound()
+        # sound_player.play_random_sound()
+        sound_player.play_happy()
         time.sleep(3)
