@@ -12,9 +12,10 @@ from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
 from mini_bdx_runtime.eyes import Eyes
 from mini_bdx_runtime.sounds import Sounds
-# from mini_bdx_runtime.antennas import Antennas
+from mini_bdx_runtime.antennas import Antennas
 from mini_bdx_runtime.projector import Projector
 from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
+from mini_bdx_runtime.buttons import Buttons
 
 class RLWalk:
     def __init__(
@@ -123,11 +124,12 @@ class RLWalk:
         self.paused = False
 
         self.sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
-        # self.antennas = Antennas()
+        self.antennas = Antennas()
 
         self.command_freq = 20  # hz
         if self.commands:
             self.xbox_controller = XBoxController(self.command_freq)
+            self.buttons = Buttons()
 
         self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
         self.imitation_i = 0
@@ -218,9 +220,12 @@ class RLWalk:
             print("Starting")
             start_t = time.time()
             while True:
-                A_pressed = False
-                X_pressed = False
-                LB_pressed = False
+                # A_pressed = False
+                # B_pressed = False
+                # X_pressed = False
+                # Y_pressed = False
+                # LB_pressed = False
+                # RB_pressed = False
                 left_trigger = 0
                 right_trigger = 0
                 up_down = 0
@@ -230,42 +235,50 @@ class RLWalk:
                     (
                         self.last_commands,
                         A_pressed,
+                        B_pressed,
                         X_pressed,
+                        Y_pressed,
                         LB_pressed,
+                        RB_pressed,
                         left_trigger,
                         right_trigger,
                         up_down
                     ) = self.xbox_controller.get_last_command()
 
-                if up_down == 1:
-                    self.phase_frequency_factor += 0.05
-                    print(f"Phase frequency factor {self.phase_frequency_factor}")
-                elif up_down == -1:
-                    self.phase_frequency_factor -= 0.05
-                    print(f"Phase frequency factor {self.phase_frequency_factor}")
+                    self.buttons.update(A_pressed, B_pressed, X_pressed, Y_pressed, LB_pressed, RB_pressed)
+
+                    if up_down == 1:
+                        self.phase_frequency_factor += 0.05
+                        print(f"Phase frequency factor {self.phase_frequency_factor}")
+                    elif up_down == -1:
+                        self.phase_frequency_factor -= 0.05
+                        print(f"Phase frequency factor {self.phase_frequency_factor}")
 
 
-                # if LB_pressed:
-                #     self.phase_frequency_factor = 1.2
-                # else:
-                #     self.phase_frequency_factor = 1.0
+                    if self.buttons.LB.is_pressed:
+                        self.phase_frequency_factor = 1.3
+                    else:
+                        self.phase_frequency_factor = 1.0
 
-                # self.phase_frequency_factor = self.get_phase_frequency_factor(self.last_commands[0])
-                # print(f"Phase frequency factor {self.phase_frequency_factor}")
+                    # self.phase_frequency_factor = self.get_phase_frequency_factor(self.last_commands[0])
+                    # print(f"Phase frequency factor {self.phase_frequency_factor}")
 
-                if X_pressed:
-                    self.sounds.play_random_sound()
-                    self.projector.switch()
+                    if self.buttons.X.triggered:
+                        self.projector.switch()
 
-                # self.antennas.set_position_left(right_trigger)
-                # self.antennas.set_position_right(left_trigger)
+                    if self.buttons.B.triggered:
+                        self.sounds.play_random_sound()
 
-                if A_pressed and not self.paused:
-                    self.paused = True
-                    print("PAUSE")
-                elif A_pressed and self.paused:
-                    self.paused = False
-                    print("UNPAUSE")
+                    self.antennas.set_position_left(right_trigger)
+                    self.antennas.set_position_right(left_trigger)
+
+                    if self.buttons.A.triggered:
+                        self.paused = not self.paused
+                        if self.paused:
+                            print("PAUSE")
+                        else:
+                            print("UNPAUSE")
+
 
                 if self.paused:
                     time.sleep(0.1)
