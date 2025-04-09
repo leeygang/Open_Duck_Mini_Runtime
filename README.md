@@ -138,3 +138,22 @@ cd scripts/
 python find_soft_offsets.py
 ```
 
+## Run the walk !
+
+Download the [latest policy checkpoint ](https://github.com/apirrone/Open_Duck_Mini/blob/v2/BEST_WALK_ONNX_2.onnx) and copy it to your duck.
+
+`cd scripts/`
+
+`python v2_rl_walk_mujoco.py --onnx_model_path <path_to>/BEST_WALK_ONNX_2.onnx -p 32 --commands --cutoff_frequency 40`
+
+
+
+```
+- The commands are : 
+- A to pause/unpause
+- X to turn on/off the projector
+- B to play a random sound
+- Y to turn on/off head control (very experimental, I don't recommend trying that, it can break your duck's head)
+- left and right triggers to control the left and right antennas
+- LB (new!) press and hold to increase the walking frequency, kind of a sprint mode 🙂
+```
