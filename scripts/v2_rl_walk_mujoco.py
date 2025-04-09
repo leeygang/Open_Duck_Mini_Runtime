@@ -254,11 +254,11 @@ class RLWalk:
 
                     if self.buttons.dpad_up.triggered:
                         self.phase_frequency_factor_offset += 0.05
-                        print(f"Phase frequency factor offset {self.phase_frequency_factor_offset}")
+                        print(f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}")
                     
                     if self.buttons.dpad_down.triggered:
                         self.phase_frequency_factor_offset -= 0.05
-                        print(f"Phase frequency factor offset {self.phase_frequency_factor_offset}")
+                        print(f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}")
 
                     if self.buttons.LB.is_pressed:
                         self.phase_frequency_factor = 1.3
