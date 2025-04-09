@@ -135,6 +135,7 @@ class RLWalk:
         self.imitation_i = 0
         self.imitation_phase = np.array([0, 0])
         self.phase_frequency_factor = 1.0
+        self.phase_frequency_factor_offset = 0.0
 
     def add_fake_head(self, pos):
         # add just the antennas now
@@ -247,14 +248,17 @@ class RLWalk:
                         Y_pressed,
                         LB_pressed,
                         RB_pressed,
+                        up_down == 1,
+                        up_down == -1
                     )
 
-                    if up_down == 1:
-                        self.phase_frequency_factor += 0.05
-                        print(f"Phase frequency factor {self.phase_frequency_factor}")
-                    elif up_down == -1:
-                        self.phase_frequency_factor -= 0.05
-                        print(f"Phase frequency factor {self.phase_frequency_factor}")
+                    if self.buttons.dpad_up.triggered:
+                        self.phase_frequency_factor_offset += 0.05
+                        print(f"Phase frequency factor offset {self.phase_frequency_factor_offset}")
+                    
+                    if self.buttons.dpad_down.triggered:
+                        self.phase_frequency_factor_offset -= 0.05
+                        print(f"Phase frequency factor offset {self.phase_frequency_factor_offset}")
 
                     if self.buttons.LB.is_pressed:
                         self.phase_frequency_factor = 1.3
@@ -288,7 +292,7 @@ class RLWalk:
                 if obs is None:
                     continue
 
-                self.imitation_i += 1 * self.phase_frequency_factor
+                self.imitation_i += 1 * (self.phase_frequency_factor + self.phase_frequency_factor_offset)
                 self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
                 self.imitation_phase = np.array(
                     [
