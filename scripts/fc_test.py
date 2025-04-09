@@ -214,7 +214,7 @@ messages = [
     # },
     {
         "role": "user",
-        "content": "Explore, and when you see a person, play the happy sound",
+        "content": "Find the waste bin and turn around it. Play the happy sound when you are done",
     },
 ]
 

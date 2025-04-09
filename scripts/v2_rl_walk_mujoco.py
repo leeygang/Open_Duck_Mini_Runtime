@@ -132,6 +132,7 @@ class RLWalk:
         self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
         self.imitation_i = 0
         self.imitation_phase = np.array([0, 0])
+        self.phase_frequency_factor = 1.0
 
     def add_fake_head(self, pos):
         # add just the antennas now
@@ -200,6 +201,17 @@ class RLWalk:
 
         time.sleep(2)
 
+    def get_phase_frequency_factor(self, x_velocity):
+
+        max_phase_frequency = 1.2
+        min_phase_frequency = 1.0
+
+
+        # Perform linear interpolation
+        freq = min_phase_frequency + (abs(x_velocity) / 0.15) * (max_phase_frequency - min_phase_frequency)
+
+        return freq
+
     def run(self):
         i = 0
         try:
@@ -208,8 +220,10 @@ class RLWalk:
             while True:
                 A_pressed = False
                 X_pressed = False
+                LB_pressed = False
                 left_trigger = 0
                 right_trigger = 0
+                up_down = 0
                 t = time.time()
 
                 if self.commands:
@@ -217,9 +231,27 @@ class RLWalk:
                         self.last_commands,
                         A_pressed,
                         X_pressed,
+                        LB_pressed,
                         left_trigger,
                         right_trigger,
+                        up_down
                     ) = self.xbox_controller.get_last_command()
+
+                if up_down == 1:
+                    self.phase_frequency_factor += 0.05
+                    print(f"Phase frequency factor {self.phase_frequency_factor}")
+                elif up_down == -1:
+                    self.phase_frequency_factor -= 0.05
+                    print(f"Phase frequency factor {self.phase_frequency_factor}")
+
+
+                # if LB_pressed:
+                #     self.phase_frequency_factor = 1.2
+                # else:
+                #     self.phase_frequency_factor = 1.0
+
+                # self.phase_frequency_factor = self.get_phase_frequency_factor(self.last_commands[0])
+                # print(f"Phase frequency factor {self.phase_frequency_factor}")
 
                 if X_pressed:
                     self.sounds.play_random_sound()
@@ -243,7 +275,7 @@ class RLWalk:
                 if obs is None:
                     continue
 
-                self.imitation_i += 1
+                self.imitation_i += 1 * self.phase_frequency_factor
                 self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
                 self.imitation_phase = np.array(
                     [

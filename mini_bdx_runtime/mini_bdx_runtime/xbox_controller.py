@@ -1,3 +1,4 @@
+from abc import update_abstractmethods
 import pygame
 from threading import Thread
 from queue import Queue
@@ -41,6 +42,7 @@ class XBoxController:
     def get_commands(self):
         A_pressed = False
         X_pressed = False
+        LB_pressed = False
         last_commands = self.last_commands
         left_trigger = self.last_left_trigger
         right_trigger = self.last_right_trigger
@@ -116,6 +118,9 @@ class XBoxController:
             if self.p1.get_button(3):  # X button
                 X_pressed = True
 
+            if self.p1.get_button(6):  # LB button
+                LB_pressed = True
+
             # for i in range(10):
             #     if self.p1.get_button(i):
             #         print(f"Button {i} pressed")
@@ -123,27 +128,33 @@ class XBoxController:
             if self.p1.get_button(4):  # Y button
                 self.head_control_mode = not self.head_control_mode
 
+        up_down = self.p1.get_hat(0)[1]
         pygame.event.pump()  # process event queue
 
         return (
             np.around(last_commands, 3),
             A_pressed,
             X_pressed,
+            LB_pressed,
             left_trigger,
             right_trigger,
+            up_down
         )
 
     def get_last_command(self):
         A_pressed = False
         X_pressed = False
-
+        LB_pressed = False
+        up_down = 0
         try:
             (
                 self.last_commands,
                 A_pressed,
                 X_pressed,
+                LB_pressed,
                 self.last_left_trigger,
                 self.last_right_trigger,
+                up_down
             ) = self.cmd_queue.get(
                 False
             )  # non blocking
@@ -154,8 +165,10 @@ class XBoxController:
             self.last_commands,
             A_pressed,
             X_pressed,
+            LB_pressed,
             self.last_left_trigger,
             self.last_right_trigger,
+            up_down
         )
 
 
