@@ -327,13 +327,13 @@ class RLWalk:
 
                 self.motor_targets = self.init_pos + action * self.action_scale
 
-                self.motor_targets = np.clip(
-                    self.motor_targets,
-                    self.prev_motor_targets
-                    - self.max_motor_velocity * (1 / self.control_freq),  # control dt
-                    self.prev_motor_targets
-                    + self.max_motor_velocity * (1 / self.control_freq),  # control dt
-                )
+                # self.motor_targets = np.clip(
+                #     self.motor_targets,
+                #     self.prev_motor_targets
+                #     - self.max_motor_velocity * (1 / self.control_freq),  # control dt
+                #     self.prev_motor_targets
+                #     + self.max_motor_velocity * (1 / self.control_freq),  # control dt
+                # )
 
                 if self.action_filter is not None:
                     self.action_filter.push(self.motor_targets)
@@ -402,7 +402,7 @@ if __name__ == "__main__":
         default=None,
         help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
-    parser.add_argument("--cutoff_frequency", type=float, default=40)
+    parser.add_argument("--cutoff_frequency", type=float, default=None)
 
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
