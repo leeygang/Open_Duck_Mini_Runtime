@@ -6,7 +6,7 @@ import rustypot
 
 
 class HWI:
-    def __init__(self, usb_port="/dev/ttyACM0"):
+    def __init__(self, offsets, usb_port="/dev/ttyACM0"):
 
         # Order matters here
         self.joints = {
@@ -100,22 +100,7 @@ class HWI:
         #     "right_knee": 0.002,
         #     "right_ankle": -0.093,
         # }
-        self.joints_offsets = {
-            "left_hip_yaw" : 0.082,
-            "left_hip_roll" : -0.089,
-            "left_hip_pitch" : -0.004,
-            "left_knee" : 0.077,
-            "left_ankle" : -0.1,
-            "neck_pitch" : 0.057,
-            "head_pitch" : 0.069,
-            "head_yaw" : -0.101,
-            "head_roll" : 0.08,
-            "right_hip_yaw" : -0.166,
-            "right_hip_roll" : 0.115,
-            "right_hip_pitch" : 0.089,
-            "right_knee" : -0.098,
-            "right_ankle" : -0.125
-        }
+        self.joints_offsets = offsets
 
         init_pos_with_offsets = {
             joint: np.rad2deg(pos + self.joints_offsets[joint])

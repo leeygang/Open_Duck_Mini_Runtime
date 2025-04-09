@@ -3,6 +3,10 @@ import pickle
 
 import numpy as np
 
+import json
+import os
+import sys
+
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 
@@ -78,13 +82,79 @@ class RLWalk:
                 self.control_freq, cutoff_frequency
             )
 
-        self.hwi = HWI(serial_port)
+       
+ 
+        IMU_upside_down = False
+        self.phase_frequency_factor_offset = 0.0
+        
+        # Read config file
+        print("Read Config")
+        try:
+            with open('config.json') as f:
+                buf = f.read()
+                config_data = json.loads(buf)
+                print("Ok")
+                f.close()
+        except:
+            # check file exists if it does'nt create an empty config.
+            if os.path.isfile("config.json") == False:
+                with open("config.json","w") as newFile:
+                    newFile.write("{\n")
+                    newFile.write(" ""start_paused"": false,\n")
+                    newFile.write(" ""imu_upside_down"": false,\n")
+                    newFile.write(" ""phase_frequency_factor_offset"": 0.0,\n")
+                    newFile.write(" ""left_hip_yaw"": 0.0,\n")
+                    newFile.write(" ""left_hip_roll"": 0.0,\n")
+                    newFile.write(" ""left_hip_pitch"": 0.0,\n")
+                    newFile.write(" ""left_knee"": 0.0,\n")
+                    newFile.write(" ""left_ankle"": 0.0,\n")
+                    newFile.write(" ""neck_pitch"": 0.0,\n")
+                    newFile.write(" ""head_pitch"": 0.0,\n")
+                    newFile.write(" ""head_yaw"": 0.0,\n")
+                    newFile.write(" ""head_roll"": 0.0,\n")
+                    newFile.write(" ""right_hip_yaw"": 0.0,\n")
+                    newFile.write(" ""right_hip_roll"": 0.0,\n")
+                    newFile.write(" ""right_hip_pitch"": 0.0,\n")
+                    newFile.write(" ""right_knee"": 0.0,\n")
+                    newFile.write(" ""right_ankle"": 0.0\n")
+                    newFile.write("}")
+                    newFile.close()
+                    print("Config not found, new config.json file created, aborting execution")
+                    print("Fill out config file with motor offsets using find_soft_offsets.py")
+                    sys.exit()
+            
+               
+        joint_offsets = {
+            "left_hip_yaw": config_data.get("left_hip_yaw"),
+            "left_hip_roll": config_data.get("left_hip_roll"),
+            "left_hip_pitch": config_data.get("left_hip_pitch"),
+            "left_knee": config_data.get("left_knee"),
+            "left_ankle": config_data.get("left_ankle"),
+            "neck_pitch": config_data.get("neck_pitch"),
+            "head_pitch": config_data.get("head_pitch"),
+            "head_yaw": config_data.get("head_yaw"),
+            "head_roll": config_data.get("head_roll"),
+            "right_hip_yaw": config_data.get("right_hip_yaw"),
+            "right_hip_roll": config_data.get("right_hip_roll"),
+            "right_hip_pitch": config_data.get("right_hip_pitch"),
+            "right_knee": config_data.get("right_knee"),
+            "right_ankle": config_data.get("right_ankle")
+            }
+                                  
+        self.hwi = HWI(joint_offsets, serial_port)       
+               
+        IMU_upside_down = config_data.get("imu_upside_down")
+        self.phase_frequency_factor_offset = config_data.get("phase_frequency_factor_offset")
+        
+
+ 
+        # end Config load section        
         self.start()
 
         self.imu = Imu(
             sampling_freq=int(self.control_freq),
             user_pitch_bias=self.pitch_bias,
-            upside_down=False,
+            upside_down=IMU_upside_down,
         )
 
         self.eyes = Eyes()
@@ -121,7 +191,7 @@ class RLWalk:
 
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        self.paused = False
+        self.paused = config_data.get("start_paused")
 
         self.sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
         self.antennas = Antennas()
@@ -136,6 +206,7 @@ class RLWalk:
         self.imitation_phase = np.array([0, 0])
         self.phase_frequency_factor = 1.0
         self.phase_frequency_factor_offset = 0.0
+
 
     def add_fake_head(self, pos):
         # add just the antennas now

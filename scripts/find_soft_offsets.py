@@ -9,8 +9,7 @@ import time
 input(
     "Press any key to start. The robot will move to its zero position. Make sure it is safe to do so. At any time, press ctrl+c to stop, the motors will be turned off."
 )
-hwi = HWI()
-hwi.joints_offsets = {
+joints_offsets = {
     "left_hip_yaw": 0,
     "left_hip_roll": 0,
     "left_hip_pitch": 0,
@@ -26,6 +25,9 @@ hwi.joints_offsets = {
     "right_knee": 0,
     "right_ankle": 0,
 }
+
+hwi = HWI(joints_offsets)
+
 
 hwi.init_pos = hwi.zero_pos
 hwi.set_kds([0] * len(hwi.joints))
