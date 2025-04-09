@@ -17,6 +17,7 @@ from mini_bdx_runtime.projector import Projector
 from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
 from mini_bdx_runtime.buttons import Buttons
 
+
 class RLWalk:
     def __init__(
         self,
@@ -62,7 +63,6 @@ class RLWalk:
             "right_knee",
             "right_ankle",
         ]
-
 
         self.save_obs = save_obs
         if self.save_obs:
@@ -208,9 +208,10 @@ class RLWalk:
         max_phase_frequency = 1.2
         min_phase_frequency = 1.0
 
-
         # Perform linear interpolation
-        freq = min_phase_frequency + (abs(x_velocity) / 0.15) * (max_phase_frequency - min_phase_frequency)
+        freq = min_phase_frequency + (abs(x_velocity) / 0.15) * (
+            max_phase_frequency - min_phase_frequency
+        )
 
         return freq
 
@@ -220,12 +221,6 @@ class RLWalk:
             print("Starting")
             start_t = time.time()
             while True:
-                # A_pressed = False
-                # B_pressed = False
-                # X_pressed = False
-                # Y_pressed = False
-                # LB_pressed = False
-                # RB_pressed = False
                 left_trigger = 0
                 right_trigger = 0
                 up_down = 0
@@ -242,10 +237,17 @@ class RLWalk:
                         RB_pressed,
                         left_trigger,
                         right_trigger,
-                        up_down
+                        up_down,
                     ) = self.xbox_controller.get_last_command()
 
-                    self.buttons.update(A_pressed, B_pressed, X_pressed, Y_pressed, LB_pressed, RB_pressed)
+                    self.buttons.update(
+                        A_pressed,
+                        B_pressed,
+                        X_pressed,
+                        Y_pressed,
+                        LB_pressed,
+                        RB_pressed,
+                    )
 
                     if up_down == 1:
                         self.phase_frequency_factor += 0.05
@@ -253,7 +255,6 @@ class RLWalk:
                     elif up_down == -1:
                         self.phase_frequency_factor -= 0.05
                         print(f"Phase frequency factor {self.phase_frequency_factor}")
-
 
                     if self.buttons.LB.is_pressed:
                         self.phase_frequency_factor = 1.3
@@ -278,7 +279,6 @@ class RLWalk:
                             print("PAUSE")
                         else:
                             print("UNPAUSE")
-
 
                 if self.paused:
                     time.sleep(0.1)
@@ -350,11 +350,11 @@ class RLWalk:
 
                 took = time.time() - t
                 # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
-                # if (1 / self.control_freq - took) < 0:
-                #     print(
-                #         "Policy control budget exceeded by",
-                #         np.around(took - 1 / self.control_freq, 3),
-                #     )
+                if (1 / self.control_freq - took) < 0:
+                    print(
+                        "Policy control budget exceeded by",
+                        np.around(took - 1 / self.control_freq, 3),
+                    )
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
@@ -379,7 +379,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--commands",
         action="store_true",
-        default=False,
+        default=True,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
     parser.add_argument(
@@ -396,7 +396,7 @@ if __name__ == "__main__":
         default=None,
         help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
-    parser.add_argument("--cutoff_frequency", type=float, default=None)
+    parser.add_argument("--cutoff_frequency", type=float, default=40)
 
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]

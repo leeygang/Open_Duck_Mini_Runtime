@@ -144,7 +144,7 @@ Download the [latest policy checkpoint ](https://github.com/apirrone/Open_Duck_M
 
 `cd scripts/`
 
-`python v2_rl_walk_mujoco.py --onnx_model_path <path_to>/BEST_WALK_ONNX_2.onnx -p 32 --commands --cutoff_frequency 40`
+`python v2_rl_walk_mujoco.py --onnx_model_path <path_to>/BEST_WALK_ONNX_2.onnx`
 
 
 
