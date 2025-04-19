@@ -355,7 +355,8 @@ class RLWalk:
                 time.sleep(max(0, 1 / self.control_freq - took))
 
         except KeyboardInterrupt:
-            pass
+            if self.duck_config.antennas:
+                self.antennas.stop()
 
         if self.save_obs:
             pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
