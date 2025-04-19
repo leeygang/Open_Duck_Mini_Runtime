@@ -2,11 +2,6 @@ import time
 import pickle
 
 import numpy as np
-
-import json
-import os
-import sys
-
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 
@@ -107,7 +102,9 @@ class RLWalk:
         self.imitation_i = 0
         self.imitation_phase = np.array([0, 0])
         self.phase_frequency_factor = 1.0
-        self.phase_frequency_factor_offset = 0.0
+        self.phase_frequency_factor_offset = (
+            self.duck_config.phase_frequency_factor_offset
+        )
 
         # Optional expression features
         if self.duck_config.eyes:
@@ -120,12 +117,6 @@ class RLWalk:
             )
         if self.duck_config.antennas:
             self.antennas = Antennas()
-
-    def add_fake_head(self, pos):
-        # add just the antennas now
-        assert len(pos) == self.num_dofs
-        pos_with_head = np.insert(pos, 9, [0, 0])
-        return np.array(pos_with_head)
 
     def get_obs(self):
 
@@ -259,13 +250,16 @@ class RLWalk:
                     # print(f"Phase frequency factor {self.phase_frequency_factor}")
 
                     if self.buttons.X.triggered:
-                        self.projector.switch()
+                        if self.duck_config.projector:
+                            self.projector.switch()
 
                     if self.buttons.B.triggered:
-                        self.sounds.play_random_sound()
+                        if self.duck_config.speaker:
+                            self.sounds.play_random_sound()
 
-                    self.antennas.set_position_left(right_trigger)
-                    self.antennas.set_position_right(left_trigger)
+                    if self.duck_config.antennas:
+                        self.antennas.set_position_left(right_trigger)
+                        self.antennas.set_position_right(left_trigger)
 
                     if self.buttons.A.triggered:
                         self.paused = not self.paused
@@ -397,7 +391,7 @@ if __name__ == "__main__":
         default=None,
         help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
-    parser.add_argument("--cutoff_frequency", type=float, default=40)
+    parser.add_argument("--cutoff_frequency", type=float, default=None)
 
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
