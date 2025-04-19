@@ -1,21 +1,9 @@
 from mini_bdx_runtime.rustypot_position_hwi import HWI
+from mini_bdx_runtime.duck_config import DuckConfig
+import time
 
-joints_offsets = {
-    "left_hip_yaw": 0,
-    "left_hip_roll": 0,
-    "left_hip_pitch": 0,
-    "left_knee": 0,
-    "left_ankle": 0,
-    "neck_pitch": 0,
-    "head_pitch": 0,
-    "head_yaw": 0,
-    "head_roll": 0,
-    "right_hip_yaw": 0,
-    "right_hip_roll": 0,
-    "right_hip_pitch": 0,
-    "right_knee": 0,
-    "right_ankle": 0,
-}
+duck_config = DuckConfig()
 
-hwi = HWI(joints_offsets)
+hwi = HWI(duck_config)
 hwi.turn_off()
+time.sleep(1)

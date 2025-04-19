@@ -3,10 +3,20 @@ from typing import Optional
 
 
 class DuckConfig:
-    def __init__(self, config_json_path: Optional[str] = None):
-        self.json_config = (
-            json.load(open(config_json_path, "r")) if config_json_path else {}
-        )
+    def __init__(self, config_json_path: Optional[str] = "~/duck_config.json"):
+        """
+        Looks for duck_config.json in the home directory by default.
+        If not found, uses default values.
+        """
+        try:
+            self.json_config = (
+                json.load(open(config_json_path, "r")) if config_json_path else {}
+            )
+        except FileNotFoundError:
+            print(
+                f"Warning : didn't find the config json file at {config_json_path}, using default values"
+            )
+            self.json_config = {}
 
         if config_json_path is None:
             print("Warning : didn't provide a config json path, using default values")

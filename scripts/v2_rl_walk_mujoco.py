@@ -20,15 +20,17 @@ from mini_bdx_runtime.antennas import Antennas
 from mini_bdx_runtime.projector import Projector
 from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
 from mini_bdx_runtime.buttons import Buttons
+from mini_bdx_runtime.duck_config import DuckConfig
 
 
 class RLWalk:
     def __init__(
         self,
         onnx_model_path: str,
+        duck_config_path: str = "~/duck_config.json",
         serial_port: str = "/dev/ttyACM0",
         control_freq: float = 50,
-        pid=[32, 0, 0],
+        pid=[30, 0, 0],
         action_scale=0.25,
         commands=False,
         pitch_bias=0,
@@ -36,6 +38,9 @@ class RLWalk:
         replay_obs=None,
         cutoff_frequency=None,
     ):
+
+        self.duck_config = DuckConfig(config_json_path=duck_config_path)
+
         self.commands = commands
         self.pitch_bias = pitch_bias
 
@@ -48,25 +53,6 @@ class RLWalk:
         # Control
         self.control_freq = control_freq
         self.pid = pid
-
-        self.joints_order = [
-            "left_hip_yaw",
-            "left_hip_roll",
-            "left_hip_pitch",
-            "left_knee",
-            "left_ankle",
-            "neck_pitch",
-            "head_pitch",
-            "head_yaw",
-            "head_roll",
-            # "left_antenna",
-            # "right_antenna",
-            "right_hip_yaw",
-            "right_hip_roll",
-            "right_hip_pitch",
-            "right_knee",
-            "right_ankle",
-        ]
 
         self.save_obs = save_obs
         if self.save_obs:
@@ -82,83 +68,15 @@ class RLWalk:
                 self.control_freq, cutoff_frequency
             )
 
-       
- 
-        IMU_upside_down = False
-        self.phase_frequency_factor_offset = 0.0
-        
-        # Read config file
-        print("Read Config")
-        try:
-            with open('config.json') as f:
-                buf = f.read()
-                config_data = json.loads(buf)
-                print("Ok")
-                f.close()
-        except:
-            # check file exists if it does'nt create an empty config.
-            if os.path.isfile("config.json") == False:
-                with open("config.json","w") as newFile:
-                    newFile.write("{\n")
-                    newFile.write(" ""start_paused"": false,\n")
-                    newFile.write(" ""imu_upside_down"": false,\n")
-                    newFile.write(" ""phase_frequency_factor_offset"": 0.0,\n")
-                    newFile.write(" ""left_hip_yaw"": 0.0,\n")
-                    newFile.write(" ""left_hip_roll"": 0.0,\n")
-                    newFile.write(" ""left_hip_pitch"": 0.0,\n")
-                    newFile.write(" ""left_knee"": 0.0,\n")
-                    newFile.write(" ""left_ankle"": 0.0,\n")
-                    newFile.write(" ""neck_pitch"": 0.0,\n")
-                    newFile.write(" ""head_pitch"": 0.0,\n")
-                    newFile.write(" ""head_yaw"": 0.0,\n")
-                    newFile.write(" ""head_roll"": 0.0,\n")
-                    newFile.write(" ""right_hip_yaw"": 0.0,\n")
-                    newFile.write(" ""right_hip_roll"": 0.0,\n")
-                    newFile.write(" ""right_hip_pitch"": 0.0,\n")
-                    newFile.write(" ""right_knee"": 0.0,\n")
-                    newFile.write(" ""right_ankle"": 0.0\n")
-                    newFile.write("}")
-                    newFile.close()
-                    print("Config not found, new config.json file created, aborting execution")
-                    print("Fill out config file with motor offsets using find_soft_offsets.py")
-                    sys.exit()
-            
-               
-        joint_offsets = {
-            "left_hip_yaw": config_data.get("left_hip_yaw"),
-            "left_hip_roll": config_data.get("left_hip_roll"),
-            "left_hip_pitch": config_data.get("left_hip_pitch"),
-            "left_knee": config_data.get("left_knee"),
-            "left_ankle": config_data.get("left_ankle"),
-            "neck_pitch": config_data.get("neck_pitch"),
-            "head_pitch": config_data.get("head_pitch"),
-            "head_yaw": config_data.get("head_yaw"),
-            "head_roll": config_data.get("head_roll"),
-            "right_hip_yaw": config_data.get("right_hip_yaw"),
-            "right_hip_roll": config_data.get("right_hip_roll"),
-            "right_hip_pitch": config_data.get("right_hip_pitch"),
-            "right_knee": config_data.get("right_knee"),
-            "right_ankle": config_data.get("right_ankle")
-            }
-                                  
-        self.hwi = HWI(joint_offsets, serial_port)       
-               
-        IMU_upside_down = config_data.get("imu_upside_down")
-        self.phase_frequency_factor_offset = config_data.get("phase_frequency_factor_offset")
-        
+        self.hwi = HWI(self.duck_config, serial_port)
 
- 
-        # end Config load section        
         self.start()
 
         self.imu = Imu(
             sampling_freq=int(self.control_freq),
             user_pitch_bias=self.pitch_bias,
-            upside_down=IMU_upside_down,
+            upside_down=self.duck_config.imu_upside_down,
         )
-
-        self.eyes = Eyes()
-        self.projector = Projector()
 
         self.feet_contacts = FeetContacts()
 
@@ -169,44 +87,39 @@ class RLWalk:
         self.last_last_action = np.zeros(self.num_dofs)
         self.last_last_last_action = np.zeros(self.num_dofs)
 
-        self.init_pos = [
-            0.002,
-            0.053,
-            -0.63,
-            1.368,
-            -0.784,
-            0,
-            0,
-            0,
-            0,
-            -0.003,
-            -0.065,
-            0.635,
-            1.379,
-            -0.796,
-        ]
+        self.init_pos = list(self.hwi.init_pos.values())
 
         self.motor_targets = np.array(self.init_pos.copy())
         self.prev_motor_targets = np.array(self.init_pos.copy())
 
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        self.paused = config_data.get("start_paused")
-
-        self.sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
-        self.antennas = Antennas()
+        self.paused = self.duck_config.start_paused
 
         self.command_freq = 20  # hz
         if self.commands:
             self.xbox_controller = XBoxController(self.command_freq)
             self.buttons = Buttons()
 
+        # Reference motion, but we only really need the length of one phase
+        # TODO
         self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
         self.imitation_i = 0
         self.imitation_phase = np.array([0, 0])
         self.phase_frequency_factor = 1.0
         self.phase_frequency_factor_offset = 0.0
 
+        # Optional expression features
+        if self.duck_config.eyes:
+            self.eyes = Eyes()
+        if self.duck_config.projector:
+            self.projector = Projector()
+        if self.duck_config.speaker:
+            self.sounds = Sounds(
+                volume=1.0, sound_directory="../mini_bdx_runtime/assets/"
+            )
+        if self.duck_config.antennas:
+            self.antennas = Antennas()
 
     def add_fake_head(self, pos):
         # add just the antennas now
@@ -322,16 +235,20 @@ class RLWalk:
                         LB_pressed,
                         RB_pressed,
                         up_down == 1,
-                        up_down == -1
+                        up_down == -1,
                     )
 
                     if self.buttons.dpad_up.triggered:
                         self.phase_frequency_factor_offset += 0.05
-                        print(f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}")
-                    
+                        print(
+                            f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}"
+                        )
+
                     if self.buttons.dpad_down.triggered:
                         self.phase_frequency_factor_offset -= 0.05
-                        print(f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}")
+                        print(
+                            f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}"
+                        )
 
                     if self.buttons.LB.is_pressed:
                         self.phase_frequency_factor = 1.3
@@ -365,7 +282,9 @@ class RLWalk:
                 if obs is None:
                     continue
 
-                self.imitation_i += 1 * (self.phase_frequency_factor + self.phase_frequency_factor_offset)
+                self.imitation_i += 1 * (
+                    self.phase_frequency_factor + self.phase_frequency_factor_offset
+                )
                 self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
                 self.imitation_phase = np.array(
                     [
@@ -419,7 +338,9 @@ class RLWalk:
                 head_motor_targets = self.last_commands[3:] + self.motor_targets[5:9]
                 self.motor_targets[5:9] = head_motor_targets
 
-                action_dict = make_action_dict(self.motor_targets, self.joints_order)
+                action_dict = make_action_dict(
+                    self.motor_targets, list(self.hwi.joints.keys())
+                )
 
                 self.hwi.set_position_all(action_dict)
 
@@ -447,8 +368,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
+    parser.add_argument(
+        "--duck_config_path", type=str, required=False, default="~/duck_config.json"
+    )
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
-    parser.add_argument("-p", type=int, default=32)
+    parser.add_argument("-p", type=int, default=30)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=50)
@@ -481,6 +405,7 @@ if __name__ == "__main__":
     print("Done parsing args")
     rl_walk = RLWalk(
         args.onnx_model_path,
+        duck_config_path=args.duck_config_path,
         action_scale=args.action_scale,
         pid=pid,
         control_freq=args.control_freq,
