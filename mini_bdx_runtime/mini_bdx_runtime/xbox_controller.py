@@ -1,9 +1,9 @@
-from abc import update_abstractmethods
 import pygame
 from threading import Thread
 from queue import Queue
 import time
 import numpy as np
+from mini_bdx_runtime.buttons import Buttons
 
 
 X_RANGE = [-0.15, 0.15]
@@ -38,6 +38,8 @@ class XBoxController:
         self.Y_pressed = False
         self.LB_pressed = False
         self.RB_pressed = False
+
+        self.buttons = Buttons()
 
         Thread(target=self.commands_worker, daemon=True).start()
 
@@ -192,19 +194,23 @@ class XBoxController:
         except Exception:
             pass
 
-        return (
-            self.last_commands,
+        self.buttons.update(
             A_pressed,
             B_pressed,
             X_pressed,
             Y_pressed,
             LB_pressed,
             RB_pressed,
-            self.last_left_trigger,
-            self.last_right_trigger,
-            up_down,
+            up_down == 1,
+            up_down == -1,
         )
 
+        return (
+            self.last_commands,
+            self.buttons,
+            self.last_left_trigger,
+            self.last_right_trigger,
+        )
 
 if __name__ == "__main__":
     controller = XBoxController(20)

@@ -7,7 +7,6 @@ import numpy as np
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.duck_config import DuckConfig
 from mini_bdx_runtime.xbox_controller import XBoxController
-from mini_bdx_runtime.buttons import Buttons
 
 
 from mini_bdx_runtime.eyes import Eyes
@@ -18,7 +17,6 @@ from mini_bdx_runtime.projector import Projector
 duck_config = DuckConfig()
 
 xbox_controller = XBoxController(50, only_head_control=True)
-buttons = Buttons()
 
 if duck_config.speaker:
     sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
@@ -47,28 +45,9 @@ limits = {
 
 try:
     while True:
-        (
-            last_commands,
-            A_pressed,
-            B_pressed,
-            X_pressed,
-            Y_pressed,
-            LB_pressed,
-            RB_pressed,
-            left_trigger,
-            right_trigger,
-            up_down,
-        ) = xbox_controller.get_last_command()
 
-        buttons.update(
-            A_pressed,
-            B_pressed,
-            X_pressed,
-            Y_pressed,
-            LB_pressed,
-            RB_pressed,
-            up_down == 1,
-            up_down == -1,
+        last_commands, buttons, left_trigger, right_trigger = (
+            xbox_controller.get_last_command()
         )
 
         l_x = last_commands[5]
