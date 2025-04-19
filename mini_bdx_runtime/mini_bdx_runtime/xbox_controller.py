@@ -212,20 +212,6 @@ class XBoxController:
             self.last_right_trigger,
         )
 
-        return (
-            self.last_commands,
-            A_pressed,
-            B_pressed,
-            X_pressed,
-            Y_pressed,
-            LB_pressed,
-            RB_pressed,
-            self.last_left_trigger,
-            self.last_right_trigger,
-            up_down,
-        )
-
-
 if __name__ == "__main__":
     controller = XBoxController(20)
 

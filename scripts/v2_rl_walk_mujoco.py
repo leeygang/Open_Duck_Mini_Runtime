@@ -14,7 +14,6 @@ from mini_bdx_runtime.sounds import Sounds
 from mini_bdx_runtime.antennas import Antennas
 from mini_bdx_runtime.projector import Projector
 from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
-from mini_bdx_runtime.buttons import Buttons
 from mini_bdx_runtime.duck_config import DuckConfig
 
 import os
@@ -98,7 +97,6 @@ class RLWalk:
         self.command_freq = 20  # hz
         if self.commands:
             self.xbox_controller = XBoxController(self.command_freq)
-            self.buttons = Buttons()
 
         # Reference motion, but we only really need the length of one phase
         # TODO
@@ -206,34 +204,12 @@ class RLWalk:
             while True:
                 left_trigger = 0
                 right_trigger = 0
-                up_down = 0
                 t = time.time()
 
                 if self.commands:
-                    (
-                        self.last_commands,
-                        A_pressed,
-                        B_pressed,
-                        X_pressed,
-                        Y_pressed,
-                        LB_pressed,
-                        RB_pressed,
-                        left_trigger,
-                        right_trigger,
-                        up_down,
-                    ) = self.xbox_controller.get_last_command()
-
-                    self.buttons.update(
-                        A_pressed,
-                        B_pressed,
-                        X_pressed,
-                        Y_pressed,
-                        LB_pressed,
-                        RB_pressed,
-                        up_down == 1,
-                        up_down == -1,
+                    self.last_commands, self.buttons, left_trigger, right_trigger = (
+                        self.xbox_controller.get_last_command()
                     )
-
                     if self.buttons.dpad_up.triggered:
                         self.phase_frequency_factor_offset += 0.05
                         print(
@@ -250,9 +226,6 @@ class RLWalk:
                         self.phase_frequency_factor = 1.3
                     else:
                         self.phase_frequency_factor = 1.0
-
-                    # self.phase_frequency_factor = self.get_phase_frequency_factor(self.last_commands[0])
-                    # print(f"Phase frequency factor {self.phase_frequency_factor}")
 
                     if self.buttons.X.triggered:
                         if self.duck_config.projector:

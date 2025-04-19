@@ -45,18 +45,6 @@ limits = {
 
 try:
     while True:
-        # (
-        #     last_commands,
-        #     A_pressed,
-        #     B_pressed,
-        #     X_pressed,
-        #     Y_pressed,
-        #     LB_pressed,
-        #     RB_pressed,
-        #     left_trigger,
-        #     right_trigger,
-        #     up_down,
-        # ) = xbox_controller.get_last_command()
 
         last_commands, buttons, left_trigger, right_trigger = (
             xbox_controller.get_last_command()
