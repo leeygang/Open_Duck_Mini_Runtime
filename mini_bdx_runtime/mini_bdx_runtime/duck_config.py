@@ -6,13 +6,17 @@ HOME_DIR = os.path.expanduser("~")
 
 
 class DuckConfig:
+
     def __init__(
-        self, config_json_path: Optional[str] = f"{HOME_DIR}/duck_config.json"
+        self,
+        config_json_path: Optional[str] = f"{HOME_DIR}/duck_config.json",
+        ignore_default: bool = False,
     ):
         """
         Looks for duck_config.json in the home directory by default.
         If not found, uses default values.
         """
+        self.default = False
         try:
             self.json_config = (
                 json.load(open(config_json_path, "r")) if config_json_path else {}
@@ -22,9 +26,25 @@ class DuckConfig:
                 f"Warning : didn't find the config json file at {config_json_path}, using default values"
             )
             self.json_config = {}
+            self.default = True
 
         if config_json_path is None:
             print("Warning : didn't provide a config json path, using default values")
+            self.default = True
+
+        if self.default and not ignore_default:
+            print("")
+            print("")
+            print("")
+            print("")
+            print("======")
+            print(
+                "WARNING : Running with default values probably won't work well. Please make a duck_config.json file and set the parameters."
+            )
+            res = input("Do you still want to run ? (y/N)")
+            if res.lower() != "y":
+                print("Exiting...")
+                exit(1)
 
         self.start_paused = self.json_config.get("start_paused", False)
         self.imu_upside_down = self.json_config.get("imu_upside_down", False)

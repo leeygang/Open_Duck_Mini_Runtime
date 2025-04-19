@@ -6,7 +6,7 @@ from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.duck_config import DuckConfig
 import time
 
-dummy_config = DuckConfig(config_json_path=None)
+dummy_config = DuckConfig(config_json_path=None, ignore_default=True)
 
 print("======")
 print(
