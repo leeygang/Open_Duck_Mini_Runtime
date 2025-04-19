@@ -17,12 +17,16 @@ from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
 from mini_bdx_runtime.buttons import Buttons
 from mini_bdx_runtime.duck_config import DuckConfig
 
+import os
+
+HOME_DIR = os.path.expanduser("~")
+
 
 class RLWalk:
     def __init__(
         self,
         onnx_model_path: str,
-        duck_config_path: str = "~/duck_config.json",
+        duck_config_path: str = f"{HOME_DIR}/duck_config.json",
         serial_port: str = "/dev/ttyACM0",
         control_freq: float = 50,
         pid=[30, 0, 0],
@@ -363,7 +367,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
     parser.add_argument(
-        "--duck_config_path", type=str, required=False, default="~/duck_config.json"
+        "--duck_config_path",
+        type=str,
+        required=False,
+        default=f"{HOME_DIR}/duck_config.json",
     )
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
     parser.add_argument("-p", type=int, default=30)

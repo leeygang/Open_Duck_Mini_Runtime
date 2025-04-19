@@ -1,9 +1,14 @@
 import json
 from typing import Optional
+import os
+
+HOME_DIR = os.path.expanduser("~")
 
 
 class DuckConfig:
-    def __init__(self, config_json_path: Optional[str] = "~/duck_config.json"):
+    def __init__(
+        self, config_json_path: Optional[str] = f"{HOME_DIR}/duck_config.json"
+    ):
         """
         Looks for duck_config.json in the home directory by default.
         If not found, uses default values.
