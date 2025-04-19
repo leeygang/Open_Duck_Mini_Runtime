@@ -378,7 +378,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
-    parser.add_argument("-p", type=int, default=25)
+    parser.add_argument("-p", type=int, default=30)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=50)
