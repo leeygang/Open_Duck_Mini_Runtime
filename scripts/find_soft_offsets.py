@@ -60,7 +60,7 @@ try:
             hwi.io.enable_torque([joint_id])
             # hwi.control.kps[i] = 32
             res = input("Is that ok ? (Y/n)").lower()
-            if res == "Y" or res == "":
+            if res == "y" or res == "":
                 print("Ok, setting offset")
                 hwi.joints_offsets[joint_name] = offset
                 ok = True
