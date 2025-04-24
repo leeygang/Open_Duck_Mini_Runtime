@@ -127,6 +127,14 @@ You can also run `python3 scripts/imu_server.py` on the robot and `python3 scrip
 
 > To find the ip address of the robot, run `ifconfig` on the robot
 
+## Test motors
+
+This will allow you to verify all your motors are connected and configured.
+
+```bash
+python3 scripts/check_motors.py
+```
+
 ## Make your duck_config.json
 
 Copy `example_config.json` in the home directory of your duck and rename it `duck_config.json`.
