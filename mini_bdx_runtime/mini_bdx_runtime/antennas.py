@@ -68,3 +68,7 @@ if __name__ == "__main__":
         antennas.set_position_right(np.sin(2 * np.pi * 1 * time.time()))
 
         time.sleep(1 / 50)
+
+        if time.time() - s > 5:
+            break
+        
