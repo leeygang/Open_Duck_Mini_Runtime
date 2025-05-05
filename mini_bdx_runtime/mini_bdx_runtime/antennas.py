@@ -1,10 +1,12 @@
 import RPi.GPIO as GPIO
+import numpy as np
 import time
 
 LEFT_ANTENNA_PIN = 13
 RIGHT_ANTENNA_PIN = 12
 LEFT_SIGN = 1
 RIGHT_SIGN = -1
+
 
 class Antennas:
     def __init__(self):
@@ -27,7 +29,6 @@ class Antennas:
 
     def set_position_right(self, position):
         self.set_position(2, position, RIGHT_SIGN)
-
 
     def set_position(self, servo, value, sign=1):
         """
@@ -57,15 +58,13 @@ class Antennas:
         self.pwm2.stop()
         GPIO.cleanup()
 
-# if __name__ == "__main__":
-#     servo_control = Antennas()
 
-#     try:
-#         while True:
-#             servo_num = int(input("Enter servo number (1 or 2): "))
-#             value = float(input("Enter position (-1 to 1): "))
-#             servo_control.set_position(servo_num, value)
+if __name__ == "__main__":
+    antennas = Antennas()
 
-#     except KeyboardInterrupt:
-#         print("Stopping servos...")
-#         servo_control.stop()
+    s = time.time()
+    while True:
+        antennas.set_position_left(np.sin(2 * np.pi * 1 * time.time()))
+        antennas.set_position_right(np.sin(2 * np.pi * 1 * time.time()))
+
+        time.sleep(1 / 50)

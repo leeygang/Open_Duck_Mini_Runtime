@@ -8,12 +8,11 @@ antennas = Antennas()
 
 
 while True:
-    _, _, _, left_trigger, right_trigger = (
-        controller.get_last_command()
-    )
+
+    _, _, left_trigger, right_trigger = controller.get_last_command()
 
     antennas.set_position_left(right_trigger)
     antennas.set_position_right(left_trigger)
 
     # print(left_trigger, right_trigger)
-    time.sleep(1/50)
+    time.sleep(1 / 50)
