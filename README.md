@@ -116,6 +116,13 @@ git checkout v2
 pip install -e .
 ```
 
+In Raspberry Pi 5, you need to perform the following operations
+
+```bash
+pip uninstall -y RPi.GPIO
+pip install lgpio
+```
+
 
 ## Test the IMU
 
