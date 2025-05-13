@@ -28,7 +28,8 @@ plt.subplot(4, 1, 4)
 plt.plot(data["times"], data["currents"], label="current (mA)")
 plt.legend()
 
-plt.suptitle(f"Acceleration: {data['acceleration']}, KP: {data['kp']}, KD: {data['kd']}")
+# plt.suptitle(f"Acceleration: {data['acceleration']}, KP: {data['kp']}, KD: {data['kd']}")
+plt.suptitle(f"KP: {data['kp']}, firmware: {data['fw_version']}")
 plt.tight_layout()
 
 plt.show()
