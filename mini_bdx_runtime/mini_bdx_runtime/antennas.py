@@ -1,74 +1,64 @@
-import RPi.GPIO as GPIO
-import numpy as np
+import board
+import pwmio
+import math
 import time
 
-LEFT_ANTENNA_PIN = 13
-RIGHT_ANTENNA_PIN = 12
+LEFT_ANTENNA_PIN = board.D13
+RIGHT_ANTENNA_PIN = board.D12
 LEFT_SIGN = 1
 RIGHT_SIGN = -1
+MIN_UPDATE_INTERVAL = 1 / 50  # 20ms
+
+
+def value_to_duty_cycle(v):
+    pulse_width_ms = 1.5 + (v * 0.5)  # 1ms to 2ms
+    duty_cycle = int((pulse_width_ms / 20) * 65535)
+    return min(max(duty_cycle, 3277), 6553)
 
 
 class Antennas:
     def __init__(self):
-
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(LEFT_ANTENNA_PIN, GPIO.OUT)
-        GPIO.setup(RIGHT_ANTENNA_PIN, GPIO.OUT)
-
-        self.pwm1 = GPIO.PWM(LEFT_ANTENNA_PIN, 50)
-        self.pwm2 = GPIO.PWM(RIGHT_ANTENNA_PIN, 50)
-
-        self.pwm1.start(0)
-        self.pwm2.start(0)
-
-    def map_input_to_angle(self, value):
-        return 90 + (value * 90)
+        neutral_duty = value_to_duty_cycle(0)
+        self.pwm_left = pwmio.PWMOut(LEFT_ANTENNA_PIN, frequency=50, duty_cycle=neutral_duty)
+        self.pwm_right = pwmio.PWMOut(RIGHT_ANTENNA_PIN, frequency=50, duty_cycle=neutral_duty)
 
     def set_position_left(self, position):
-        self.set_position(1, position, LEFT_SIGN)
+        self.set_position(self.pwm_left, position, LEFT_SIGN)
 
     def set_position_right(self, position):
-        self.set_position(2, position, RIGHT_SIGN)
+        self.set_position(self.pwm_right, position, RIGHT_SIGN)
 
-    def set_position(self, servo, value, sign=1):
-        """
-        Moves the servo based on an input value in the range [-1, 1].
-        :param servo: 1 for the first servo, 2 for the second servo
-        :param value: A float between -1 and 1
-        """
-
+    def set_position(self, pwm, value, sign=1):
         # if value == 0:
         #     return
         if -1 <= value <= 1:
-            angle = self.map_input_to_angle(value * sign)
-
-            duty = 2 + (angle / 18)  # Convert angle to duty cycle (1ms-2ms)
-            if servo == 1:
-                self.pwm1.ChangeDutyCycle(duty)
-            elif servo == 2:
-                self.pwm2.ChangeDutyCycle(duty)
-            else:
-                print("Invalid servo number!")
-            # time.sleep(0.01)  # Allow time for movement
+            duty_cycle = value_to_duty_cycle(value * sign) # Convert value to duty cycle (1ms-2ms)
+            pwm.duty_cycle = duty_cycle
         else:
             print("Invalid input! Enter a value between -1 and 1.")
 
     def stop(self):
-        self.pwm1.stop()
-        self.pwm2.stop()
-        GPIO.cleanup()
+        time.sleep(MIN_UPDATE_INTERVAL)
+        self.set_position_left(0)
+        self.set_position_right(0)
+        time.sleep(MIN_UPDATE_INTERVAL)
+        self.pwm_left.deinit()
+        self.pwm_right.deinit()
 
 
 if __name__ == "__main__":
     antennas = Antennas()
 
-    s = time.time()
-    while True:
-        antennas.set_position_left(np.sin(2 * np.pi * 1 * time.time()))
-        antennas.set_position_right(np.sin(2 * np.pi * 1 * time.time()))
+    try:
+        start_time = time.monotonic()
+        current_time = start_time
 
-        time.sleep(1 / 50)
+        while current_time - start_time < 5:
+            value = math.sin(2 * math.pi * 1 * current_time)
+            antennas.set_position_left(value)
+            antennas.set_position_right(value)
+            time.sleep(MIN_UPDATE_INTERVAL)
+            current_time = time.monotonic()
 
-        if time.time() - s > 5:
-            break
-        
+    finally:
+        antennas.stop()

@@ -330,6 +330,11 @@ class RLWalk:
         except KeyboardInterrupt:
             if self.duck_config.antennas:
                 self.antennas.stop()
+            if self.duck_config.eyes:
+                self.eyes.stop()
+            if self.duck_config.projector:
+                self.projector.stop()
+            self.feet_contacts.stop()
 
         if self.save_obs:
             pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))

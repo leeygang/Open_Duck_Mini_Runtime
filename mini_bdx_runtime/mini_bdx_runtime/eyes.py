@@ -1,40 +1,58 @@
-import RPi.GPIO as GPIO
-import numpy as np
+import board
+import digitalio
+import random
 import time
-from threading import Thread
+from threading import Thread, Event
 
-LEFT_EYE_GPIO = 24
-RIGHT_EYE_GPIO = 23
+LEFT_EYE_PIN = board.D24
+RIGHT_EYE_PIN = board.D23
 
 
 class Eyes:
-    def __init__(self):
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
-        GPIO.setup(RIGHT_EYE_GPIO, GPIO.OUT)
-        GPIO.setup(LEFT_EYE_GPIO, GPIO.OUT)
+    def __init__(self, blink_duration=0.1, min_interval=1.0, max_interval=4.0):
+        self.left_eye = digitalio.DigitalInOut(LEFT_EYE_PIN)
+        self.left_eye.direction = digitalio.Direction.OUTPUT
 
-        GPIO.output(RIGHT_EYE_GPIO, GPIO.HIGH)
-        GPIO.output(LEFT_EYE_GPIO, GPIO.HIGH)
+        self.right_eye = digitalio.DigitalInOut(RIGHT_EYE_PIN)
+        self.right_eye.direction = digitalio.Direction.OUTPUT
 
-        self.blink_duration = 0.1
+        self.blink_duration = blink_duration
+        self.min_interval = min_interval
+        self.max_interval = max_interval
 
-        Thread(target=self.run, daemon=True).start()
+        self._stop_event = Event()
+        self._thread = Thread(target=self.run, daemon=True)
+        self._thread.start()
+
+    def _set_eyes(self, state):
+        self.left_eye.value = state
+        self.right_eye.value = state
 
     def run(self):
-        while True:
-            GPIO.output(RIGHT_EYE_GPIO, GPIO.LOW)
-            GPIO.output(LEFT_EYE_GPIO, GPIO.LOW)
-            time.sleep(self.blink_duration)
-            GPIO.output(RIGHT_EYE_GPIO, GPIO.HIGH)
-            GPIO.output(LEFT_EYE_GPIO, GPIO.HIGH)
+        try:
+            while not self._stop_event.is_set():
+                self._set_eyes(False)
+                time.sleep(self.blink_duration)
+                self._set_eyes(True)
+                next_blink = random.uniform(self.min_interval, self.max_interval)
+                time.sleep(next_blink)
+        except Exception as err:
+            print(f"Error in eye thread: {err}")
+            self._stop_event.set()
 
-            next_blink = np.random.rand() * 4  # seconds
-
-            time.sleep(next_blink)
+    def stop(self):
+        self._stop_event.set()
+        self._thread.join()
+        self._set_eyes(False)
+        self.left_eye.deinit()
+        self.right_eye.deinit()
 
 
 if __name__ == "__main__":
-	e = Eyes()
-	while True:
-		time.sleep(1)
+    e = Eyes()
+    try:
+        while True:
+            time.sleep(1)
+    finally:
+        e.stop()
+
