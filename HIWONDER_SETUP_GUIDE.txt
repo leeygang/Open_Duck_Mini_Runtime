@@ -1,0 +1,710 @@
+================================================================================
+HIWONDER HTD-45H SERVO SETUP GUIDE
+Complete step-by-step instructions for configuration and integration
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. Understanding the Hardware Setup
+2. Where to Run Scripts (PC vs Raspberry Pi)
+3. Phase 1: Initial Setup on PC
+4. Phase 2: Integration on Raspberry Pi
+5. Port Names Reference
+6. Quick Test Commands
+7. Troubleshooting
+8. Recommendations
+
+================================================================================
+1. UNDERSTANDING THE HARDWARE SETUP
+================================================================================
+
+Question: Does hiwonder_hwi control servo through the board or directly?
+
+Answer: THROUGH THE BOARD - The hiwonder_hwi.py sends commands to servos
+VIA the Hiwonder control board.
+
+Hardware Architecture:
+----------------------
+    Computer/Raspberry Pi
+        ↓ (USB connection)
+    Hiwonder Servo Control Board  ← Acts as USB-to-Serial converter + power hub
+        ↓ (Serial protocol, daisy-chained)
+    Servo 1 (ID 100) → Servo 2 (ID 101) → Servo 3 (ID 102) ...
+
+What the Control Board Does:
+-----------------------------
+✓ USB-to-TTL serial conversion (appears as /dev/ttyUSB0 on Linux)
+✓ Power regulation and distribution to servos
+✓ Sometimes voltage/current monitoring
+✓ Protection circuitry
+
+What hiwonder_hwi.py Does:
+---------------------------
+✓ Opens the serial port (/dev/ttyUSB0) that the control board creates
+✓ Sends Hiwonder/LewanSoul protocol commands directly to servos
+✓ The board is "transparent" - it just passes serial data through
+
+This is similar to how your Feetech servos work with their motor control board!
+
+================================================================================
+2. WHERE TO RUN SCRIPTS (PC vs Raspberry Pi)
+================================================================================
+
+You have TWO options depending on what you're doing:
+
+Option A: Initial Testing on PC (Recommended First)
+----------------------------------------------------
+Setup:
+    PC (Linux/macOS/Windows)
+      ↓ USB cable
+    Hiwonder Control Board
+      ↓ Servo connectors
+    Hiwonder Servos (daisy-chained)
+      ↓ External power supply (6-8.4V)
+
+When to use:
+- Initial servo testing and configuration
+- Changing servo IDs
+- Finding offsets
+- Debugging servo issues
+
+Requirements on PC:
+- Python 3.7+
+- PySerial: pip install pyserial
+- The servo control board connected via USB
+- External power supply for servos
+
+Option B: On Raspberry Pi (For Integration)
+--------------------------------------------
+Setup:
+    Raspberry Pi
+      ↓ USB cable (or GPIO UART)
+    Hiwonder Control Board
+      ↓ Servo connectors
+    Hiwonder Servos
+      ↓ External power supply
+
+When to use:
+- After initial configuration on PC
+- Integrating with Duck Mini walking system
+- Running the full robot
+
+Requirements on Raspberry Pi:
+- Same Python packages as PC
+- SSH access (or screen/keyboard)
+- Control board connected via USB
+
+================================================================================
+3. PHASE 1: INITIAL SETUP ON PC ⭐ (EASIER FOR TESTING)
+================================================================================
+
+Step 1: Connect Hardware
+------------------------
+1. Plug Hiwonder control board into PC via USB
+2. Connect servos to control board (can daisy-chain multiple servos)
+3. Connect power supply (6-8.4V) to control board
+   ⚠️ IMPORTANT: Do NOT power servos from USB 5V - use external power!
+
+Step 2: Find the Serial Port
+-----------------------------
+On Linux/macOS:
+    ls /dev/tty* | grep -E "USB|ACM"
+    # Should show: /dev/ttyUSB0 or /dev/ttyACM0
+
+On Windows:
+    1. Open Device Manager
+    2. Go to: Ports (COM & LPT)
+    3. Look for: USB Serial Port (COM3, COM4, etc.)
+
+Step 3: Install PySerial (if not already installed)
+----------------------------------------------------
+    pip install pyserial
+
+Step 4: Test Connection
+------------------------
+Run this command to verify servos are responding:
+
+    python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
+    s = HiwonderServo('/dev/ttyUSB0'); \
+    print('Found servos:', s.scan_servos(max_id=10)); \
+    s.close()"
+
+    Expected output: Found servos: [1]  (or whatever IDs are connected)
+
+⚠️ If you see "Found servos: []", check:
+   - Power supply is connected and turned on
+   - USB cable is properly connected
+   - Port name is correct (/dev/ttyUSB0 or your specific port)
+
+Step 5: Configure Servo IDs (ONE SERVO AT A TIME!)
+---------------------------------------------------
+⚠️ IMPORTANT: Connect only ONE servo at a time to avoid ID conflicts!
+
+Brand new Hiwonder servos have default ID = 1
+
+For Servo 1:
+    python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --id 100
+
+    # The script will:
+    # 1. Find the servo (tries ID 1 first, then scans)
+    # 2. Show current status (position, voltage, temperature)
+    # 3. Test movement
+    # 4. Change ID to 100
+    # 5. Verify the change worked
+
+Unplug Servo 1, plug in Servo 2:
+    python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --id 101
+
+Repeat for each servo:
+    python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --id 102
+    python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --id 103
+    # etc.
+
+ID Convention Recommendations:
+- Feetech servos: 10-33 (existing in your Duck Mini)
+- Hiwonder servos: 100-199 (to avoid conflicts)
+- Broadcast ID: 254 (don't use - affects all servos)
+
+Step 6: Edit Code Configuration
+--------------------------------
+Now connect ALL your configured servos and update the code:
+
+1. Open: mini_bdx_runtime/mini_bdx_runtime/hiwonder_hwi.py
+
+2. Find the __init__ method in HiwonderHWI class (around line 210)
+
+3. Update self.joints dictionary with your servo IDs:
+
+    self.joints = {
+        "hiwonder_joint_1": 100,  # Your first Hiwonder servo
+        "hiwonder_joint_2": 101,  # Your second Hiwonder servo
+        "hiwonder_joint_3": 102,  # Add more as needed
+    }
+
+4. Update self.init_pos with standing positions (in radians):
+
+    self.init_pos = {
+        "hiwonder_joint_1": 0.0,      # Example: straight (0°)
+        "hiwonder_joint_2": 0.524,    # Example: 30°
+        "hiwonder_joint_3": -0.349,   # Example: -20°
+    }
+
+    Note: Radians = Degrees × (π/180)
+          30° = 0.524 rad
+          45° = 0.785 rad
+          90° = 1.571 rad
+
+Step 7: Check All Servos
+-------------------------
+Verify all configured servos are responding:
+
+    python3 scripts/check_hiwonder_motors.py
+
+    When prompted:
+    - Enter serial port: /dev/ttyUSB0 (or your port)
+
+    The script will:
+    ✓ Scan for all servos on the bus
+    ✓ Check each configured joint from your code
+    ✓ Read position, voltage, temperature for each
+    ✓ Optionally test movement for each servo
+
+Step 8: Calibrate Mechanical Offsets
+-------------------------------------
+⚠️ MOST IMPORTANT STEP! This compensates for mechanical assembly variations.
+
+    python3 scripts/find_hiwonder_offsets.py
+
+    When prompted:
+    - Enter serial port: /dev/ttyUSB0 (or your port)
+    - Confirm you want to continue (servos will move!)
+
+    For EACH servo:
+    1. Script moves servo to center position (500 units)
+    2. Script turns off servo torque
+    3. ⭐ YOU manually move the servo to the mechanically correct ZERO position
+       (This is where the joint should be at 0° for your robot's geometry)
+    4. Press Enter
+    5. Script calculates the offset
+    6. Script writes offset to servo's EEPROM (persistent storage)
+    7. Script tests the result - verify it looks correct!
+    8. Confirm (y) or retry (n)
+
+    Example output at the end:
+
+    Calculated offsets:
+      hiwonder_joint_1: -15
+      hiwonder_joint_2: 23
+      hiwonder_joint_3: 0
+
+    For duck_config.json (optional software offsets in radians):
+    "joints_offsets": {
+        "hiwonder_joint_1": -0.0628,
+        "hiwonder_joint_2": 0.0963,
+        "hiwonder_joint_3": 0.0000,
+    }
+
+    ✓ Offsets are now stored in servo EEPROM - they'll remember even after power off!
+    ✓ You can also add software offsets in duck_config.json if needed later
+
+Step 9: Final Test on PC
+-------------------------
+Run the built-in test to verify everything works:
+
+    python3 -m mini_bdx_runtime.hiwonder_hwi
+
+    This will:
+    - Scan for servos
+    - Test movement on the first servo found
+    - Read diagnostics (voltage, temperature)
+
+✅ If everything works, you're ready to move to Raspberry Pi!
+
+================================================================================
+4. PHASE 2: INTEGRATION ON RASPBERRY PI
+================================================================================
+
+Step 1: Transfer Files to Raspberry Pi
+---------------------------------------
+Option A: Using git (if you committed changes):
+
+    # On PC - commit your configuration
+    git add mini_bdx_runtime/mini_bdx_runtime/hiwonder_hwi.py
+    git commit -m "Configure Hiwonder servo IDs and init positions"
+    git push
+
+    # On Raspberry Pi - pull changes
+    ssh pi@<raspberry_pi_ip>
+    cd ~/Open_Duck_Mini_Runtime
+    git pull
+
+Option B: Using scp (if you haven't committed):
+
+    # From PC - copy files to Pi
+    scp -r mini_bdx_runtime pi@<pi-ip>:~/Open_Duck_Mini_Runtime/
+    scp -r scripts pi@<pi-ip>:~/Open_Duck_Mini_Runtime/
+
+Step 2: Connect Hardware to Raspberry Pi
+-----------------------------------------
+1. Unplug Hiwonder control board from PC
+2. Plug it into Raspberry Pi USB port
+3. Keep power supply connected to control board
+4. Servos should still be connected (daisy-chained)
+
+Step 3: Test Connection on Pi
+------------------------------
+SSH into your Raspberry Pi:
+
+    ssh pi@<raspberry_pi_ip>
+    cd ~/Open_Duck_Mini_Runtime
+
+Test that Pi can see the servos:
+
+    python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
+    s = HiwonderServo('/dev/ttyUSB0'); \
+    print('Found servos:', s.scan_servos(max_id=120)); \
+    s.close()"
+
+    Expected: Found servos: [100, 101, 102, ...]  (your configured IDs)
+
+Step 4: Check Servos on Pi
+---------------------------
+    python3 scripts/check_hiwonder_motors.py
+
+    When prompted:
+    - Enter serial port: /dev/ttyUSB0
+
+    Verify all servos respond correctly
+
+Step 5: Recalibrate Offsets (if needed)
+----------------------------------------
+If servos are now mounted on the robot in their final positions, you may need
+to recalibrate the mechanical offsets:
+
+    python3 scripts/find_hiwonder_offsets.py
+
+    When prompted:
+    - Enter serial port: /dev/ttyUSB0
+
+    Follow the same calibration process as on PC
+
+⚠️ Note: Only recalibrate if the mechanical zero position is different now
+         that servos are mounted on the robot!
+
+Step 6: Choose Integration Approach
+------------------------------------
+See HIWONDER_INTEGRATION.md for three options:
+
+Option A: Standalone Feature (Recommended to start)
+    - Use Hiwonder servos for a new feature independent of main locomotion
+    - Example: tail, ears, additional expression features
+    - Keep existing Feetech servos for legs and head
+
+Option B: Hybrid Interface
+    - Control both Feetech and Hiwonder servos simultaneously
+    - Feetech on /dev/ttyACM0 (motor control board)
+    - Hiwonder on /dev/ttyUSB0 (servo control board)
+    - Requires creating hybrid_hwi.py (code provided in documentation)
+
+Option C: Complete Replacement
+    - Replace all Feetech servos with Hiwonder
+    - Simple import change in v2_rl_walk_mujoco.py
+    - Update joint naming to match existing convention
+
+Step 7: Test Integration
+-------------------------
+Depending on your chosen approach:
+
+For Standalone Feature:
+    # Create your feature module
+    # Add to duck_config.json
+    # Test in isolation
+
+For Hybrid or Replacement:
+    # Update v2_rl_walk_mujoco.py
+    # Test with walking policy
+    python3 scripts/v2_rl_walk_mujoco.py --onnx_model_path <path>
+
+================================================================================
+5. PORT NAMES REFERENCE
+================================================================================
+
+Device                          | Linux/macOS           | Windows      | Notes
+--------------------------------|-----------------------|--------------|------------------
+Hiwonder Control Board          | /dev/ttyUSB0          | COM3, COM4   | Most common
+                                | /dev/ttyUSB1          |              |
+                                | /dev/ttyACM0          |              | ESP32-based boards
+                                |                       |              |
+CH340/CP2102 USB-TTL adapter    | /dev/ttyUSB0          | COM#         | Generic adapters
+                                |                       |              |
+Raspberry Pi GPIO UART          | /dev/ttyAMA0          | N/A          | Direct wiring
+                                | /dev/serial0          |              | (requires level shifter)
+                                |                       |              |
+Feetech Motor Control Board     | /dev/ttyACM0          | COM#         | Your existing board
+(for reference)                 |                       |              |
+
+How to Find Your Port:
+----------------------
+Linux/macOS:
+    ls /dev/tty* | grep -E "USB|ACM"
+
+    # Or with more detail:
+    ls -l /dev/tty* | grep -E "USB|ACM"
+
+Windows:
+    1. Open Device Manager (Win+X, then M)
+    2. Expand "Ports (COM & LPT)"
+    3. Look for "USB Serial Port (COM#)"
+
+Raspberry Pi specific:
+    ls /dev/tty*
+    # Usually /dev/ttyUSB0 for USB adapters
+    # /dev/ttyAMA0 or /dev/serial0 for GPIO UART
+
+================================================================================
+6. QUICK TEST COMMANDS
+================================================================================
+
+Test on PC (Linux/macOS):
+--------------------------
+    # Scan for servos
+    python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
+    s = HiwonderServo('/dev/ttyUSB0'); \
+    print('Found servos:', s.scan_servos(max_id=10)); \
+    s.close()"
+
+    # Test movement on servo ID 1
+    python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
+    s = HiwonderServo('/dev/ttyUSB0'); \
+    s.move_servo(1, 500, 1000); \
+    import time; time.sleep(1.5); \
+    print('Position:', s.read_position(1)); \
+    s.close()"
+
+Test on PC (Windows):
+---------------------
+    # Scan for servos (use your COM port)
+    python -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; s = HiwonderServo('COM3'); print('Found servos:', s.scan_servos(max_id=10)); s.close()"
+
+Test on Raspberry Pi (via SSH):
+--------------------------------
+    ssh pi@<raspberry_pi_ip>
+
+    # Same commands as PC
+    python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
+    s = HiwonderServo('/dev/ttyUSB0'); \
+    print('Found servos:', s.scan_servos(max_id=120)); \
+    s.close()"
+
+Built-in Hardware Test:
+------------------------
+    # Runs comprehensive test on first servo found
+    python3 -m mini_bdx_runtime.hiwonder_hwi
+
+Configuration Scripts:
+----------------------
+    # Configure servo ID
+    python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --id 100
+
+    # Check all servos
+    python3 scripts/check_hiwonder_motors.py
+    # (will prompt for port)
+
+    # Calibrate offsets
+    python3 scripts/find_hiwonder_offsets.py
+    # (will prompt for port)
+
+================================================================================
+7. TROUBLESHOOTING
+================================================================================
+
+Problem: "No servos found" / scan_servos returns []
+----------------------------------------------------
+Solutions:
+✓ Check power supply is connected and turned on (6-8.4V)
+✓ Verify USB cable is properly connected
+✓ Try a different USB port
+✓ Check port name is correct:
+    Linux/macOS: ls /dev/tty* | grep USB
+    Windows: Check Device Manager
+✓ Try different baud rates (115200 is default, but some boards use 9600 or 38400)
+✓ Check servo wiring (TX→RX, RX→TX, GND→GND)
+✓ Try connecting only one servo to eliminate daisy-chain issues
+
+Problem: "Permission denied" when opening /dev/ttyUSB0 (Linux)
+---------------------------------------------------------------
+Solutions:
+✓ Add your user to dialout group:
+    sudo usermod -a -G dialout $USER
+    # Then log out and log back in
+
+✓ Or run with sudo (not recommended):
+    sudo python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --id 100
+
+Problem: Servo moves but position is wrong / jittery
+-----------------------------------------------------
+Solutions:
+✓ Calibrate offsets: python3 scripts/find_hiwonder_offsets.py
+✓ Check voltage - low voltage causes poor performance
+    - Should be 6.0-8.4V
+    - Measure with multimeter at servo VCC pin
+✓ Check mechanical load:
+    - Hiwonder HTD-45H is relatively small (4.5kg-cm torque)
+    - May not have enough torque for heavy joints
+    - Consider HTD-35H or HTD-25H for lighter loads
+✓ Increase movement duration:
+    hwi.servo.move_servo(servo_id, position, duration=1000)  # 1 second
+
+Problem: "Checksum error" messages
+-----------------------------------
+Solutions:
+✓ Bad wiring or electrical noise
+✓ Check all connections are tight
+✓ Shorten cables if possible
+✓ Add ferrite beads to cables
+✓ Keep servo wires away from power wires
+✓ Use shielded cable if available
+
+Problem: Servo doesn't hold position / drifts
+----------------------------------------------
+Solutions:
+✓ HTD-45H has less holding torque than Feetech servos
+✓ For main locomotion joints, might need:
+    - Higher control frequency
+    - Load-appropriate servo selection
+    - External mechanical support
+✓ Check if torque is enabled:
+    hwi.servo.load_servo(servo_id)
+
+Problem: "ModuleNotFoundError: No module named 'mini_bdx_runtime'"
+------------------------------------------------------------------
+Solutions:
+✓ Make sure you're in the project directory:
+    cd ~/Open_Duck_Mini_Runtime
+
+✓ Add path to PYTHONPATH:
+    export PYTHONPATH="${PYTHONPATH}:$(pwd)/mini_bdx_runtime"
+
+✓ Or install in editable mode:
+    pip install -e .
+
+Problem: Scripts work on PC but not on Raspberry Pi
+----------------------------------------------------
+Solutions:
+✓ Port name might be different (check with ls /dev/tty*)
+✓ PySerial might not be installed on Pi:
+    pip install pyserial
+✓ Check if running in correct virtual environment:
+    workon open-duck-mini-runtime
+✓ Make sure control board has power when connected to Pi
+
+Problem: Velocity observations are all zeros
+---------------------------------------------
+This is expected!
+✓ Hiwonder servos do NOT provide velocity feedback
+✓ get_present_velocities() returns zeros by design
+✓ If your RL policy needs velocity:
+    - Estimate from position changes (diff/dt)
+    - Use differentiator filter
+    - Or retrain policy without velocity observations
+
+Problem: Control loop too slow (exceeds 20ms budget)
+-----------------------------------------------------
+Solutions:
+✓ Don't read all servos every frame
+✓ Read servos in rotation (round-robin):
+    Frame 1: Read servos 100-102
+    Frame 2: Read servos 103-105
+    Frame 3: Read servos 100-102 (repeat)
+✓ Increase control loop period (lower frequency):
+    control_freq = 25  # Hz instead of 50
+✓ Implement bulk read commands (future enhancement)
+
+================================================================================
+8. RECOMMENDATIONS
+================================================================================
+
+Best Approach: Start on PC First
+---------------------------------
+Why?
+✓ Easier to debug (no SSH needed)
+✓ Faster to edit code and test
+✓ Can test servos before mounting on robot
+✓ Better error messages visible directly
+
+The servos remember their configuration:
+✓ IDs stored in EEPROM (persistent)
+✓ Offsets stored in EEPROM (persistent)
+✓ Once configured on PC, works same on Pi!
+
+Workflow Summary:
+-----------------
+1. [PC] Configure servo IDs (one at a time)
+2. [PC] Update code (self.joints, self.init_pos)
+3. [PC] Test all servos together
+4. [PC] Do initial offset calibration
+5. [Transfer] Move files to Raspberry Pi
+6. [Pi] Connect control board to Pi
+7. [Pi] Test servos respond correctly
+8. [Pi] Recalibrate offsets if servos are now mounted on robot
+9. [Pi] Integrate with Duck Mini system
+
+ID Convention:
+--------------
+Feetech (existing):
+  - Left leg: 20-24 (hip_yaw, hip_roll, hip_pitch, knee, ankle)
+  - Right leg: 10-14 (hip_yaw, hip_roll, hip_pitch, knee, ankle)
+  - Head: 30-33 (neck_pitch, head_pitch, head_yaw, head_roll)
+
+Hiwonder (recommended):
+  - Use 100-199 range to avoid conflicts
+  - Example: 100, 101, 102, 103, etc.
+
+Never use:
+  - ID 0 (reserved)
+  - ID 254 (broadcast - affects all servos)
+  - IDs 10-33 (conflicts with Feetech)
+
+Position Units:
+---------------
+Hiwonder native: 0-1000 (500 = center, 240° total range)
+  - 0 units = -120° (left limit)
+  - 500 units = 0° (center)
+  - 1000 units = +120° (right limit)
+  - 1 unit ≈ 0.24° or 0.004189 radians
+
+The interface converts automatically to radians:
+  - You work in radians everywhere
+  - hiwonder_hwi.py handles conversion internally
+
+Calibration Notes:
+------------------
+✓ Hardware offsets (EEPROM) are persistent across power cycles
+✓ EEPROM has limited write cycles (~100,000)
+✓ Don't recalibrate unnecessarily
+✓ Software offsets in duck_config.json can supplement hardware offsets
+✓ Calibrate with servos in final mounted position on robot
+
+Performance Notes:
+------------------
+✓ Reading position: ~5ms per servo
+✓ 10 servos = 50ms (exceeds 20ms budget for 50Hz control)
+✓ Plan accordingly - don't read all servos every frame
+✓ Consider lower control frequency if using many Hiwonder servos
+✓ No velocity feedback - returns zeros
+
+Safety Notes:
+-------------
+⚠️ Always have emergency stop ready (Ctrl+C or power switch)
+⚠️ Test new servos with low power first
+⚠️ Start with small movements and slow speeds
+⚠️ Never power servos from USB 5V - use external 6-8.4V supply
+⚠️ Disconnect power when not testing
+⚠️ Mount servos securely before running at full power
+
+================================================================================
+QUICK REFERENCE CHECKLIST
+================================================================================
+
+☐ Hardware Setup:
+  ☐ Control board connected to PC/Pi via USB
+  ☐ External 6-8.4V power supply connected to control board
+  ☐ Servos connected to control board
+  ☐ All connections secure
+
+☐ Software Setup:
+  ☐ PySerial installed: pip install pyserial
+  ☐ Port identified: /dev/ttyUSB0 (or your port)
+  ☐ Scripts executable: ls scripts/configure_hiwonder_motor.py
+
+☐ Configuration (one servo at a time!):
+  ☐ Servo 1: ID 100 configured and tested
+  ☐ Servo 2: ID 101 configured and tested
+  ☐ Servo 3: ID 102 configured and tested
+  ☐ (Repeat for all servos)
+
+☐ Code Update:
+  ☐ mini_bdx_runtime/mini_bdx_runtime/hiwonder_hwi.py edited
+  ☐ self.joints updated with servo IDs
+  ☐ self.init_pos updated with standing positions
+
+☐ Testing:
+  ☐ All servos respond: python3 scripts/check_hiwonder_motors.py
+  ☐ Movement test passed for each servo
+  ☐ Voltage readings look good (6-8.4V range)
+  ☐ Temperature readings normal (<60°C)
+
+☐ Calibration:
+  ☐ Offsets calibrated: python3 scripts/find_hiwonder_offsets.py
+  ☐ Each servo tested after offset applied
+  ☐ Results look mechanically correct
+
+☐ Integration:
+  ☐ Integration approach chosen (A, B, or C)
+  ☐ Code changes made according to approach
+  ☐ Testing with full system successful
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+After completing this guide:
+
+1. Review HIWONDER_INTEGRATION.md for detailed integration options
+2. Review CLAUDE.md for overall project architecture
+3. Test your specific integration approach
+4. Adjust PID gains if needed (see rustypot_position_hwi.py for reference)
+5. Consider adding safety limits in code
+6. Document any project-specific configurations
+
+For Additional Help:
+--------------------
+- HIWONDER_INTEGRATION.md - Complete integration guide with code examples
+- CLAUDE.md - Project architecture and development workflow
+- scripts/configure_hiwonder_motor.py --help - Command line options
+- Hiwonder documentation: https://www.hiwonder.com/
+- LewanSoul protocol: https://github.com/ccourson/LX-16A-Servo
+
+================================================================================
+END OF SETUP GUIDE
+================================================================================

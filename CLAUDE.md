@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Open Duck Mini Runtime is a Python-based control system for a bipedal robot ("Duck Mini") that runs on Raspberry Pi. The system uses reinforcement learning (RL) policies via ONNX models to enable walking, combined with hardware interfaces for motors (Feetech servos via rustypot), IMU, Xbox controller input, and optional expression features (eyes, projector, antennas, speaker).
+Open Duck Mini Runtime is a Python-based control system for a bipedal robot ("Duck Mini") that runs on Raspberry Pi. The system uses reinforcement learning (RL) policies via ONNX models to enable walking, combined with hardware interfaces for motors (Feetech servos via rustypot, or Hiwonder servos via serial), IMU, Xbox controller input, and optional expression features (eyes, projector, antennas, speaker).
 
 **Target platform**: Raspberry Pi Zero 2W or Raspberry Pi 5 (64-bit Raspberry Pi OS Lite)
+
+**Supported servo types**: Feetech STS3215 (primary), Hiwonder HTD-45H (alternative), standard PWM servos (antennas)
 
 ## Installation
 
@@ -60,15 +62,30 @@ python3 scripts/antennas_controller_test.py
 
 ### Motor Configuration
 
+**Feetech servos (default):**
 ```bash
-# Configure all motors at once
+# Configure all Feetech motors at once
 python3 scripts/configure_all_motors.py
 
-# Configure individual motor
-python3 scripts/configure_motor.py
+# Configure individual Feetech motor
+python3 scripts/configure_motor.py --id <desired_id>
 
-# Find joint offsets (calibration procedure)
+# Find joint offsets for Feetech (calibration procedure)
 python3 scripts/find_soft_offsets.py
+```
+
+**Hiwonder servos (alternative):**
+```bash
+# Configure Hiwonder servo ID
+python3 scripts/configure_hiwonder_motor.py --id <desired_id>
+
+# Check all Hiwonder servos
+python3 scripts/check_hiwonder_motors.py
+
+# Find joint offsets for Hiwonder
+python3 scripts/find_hiwonder_offsets.py
+
+# See HIWONDER_INTEGRATION.md for complete guide
 ```
 
 ### Running the Walking Policy
@@ -121,13 +138,30 @@ python3 scripts/plot_recorded_data.py
 
 ### Hardware Interface Layer
 
-**`mini_bdx_runtime/rustypot_position_hwi.py`** - `HWI` class
-- Communicates with Feetech servo motors via the `rustypot` library over serial (`/dev/ttyACM0`)
+The system supports multiple servo types with modular hardware interfaces:
+
+**`mini_bdx_runtime/rustypot_position_hwi.py`** - `HWI` class (Feetech servos - primary)
+- Communicates with Feetech STS3215 servo motors via the `rustypot` library over serial (`/dev/ttyACM0`)
 - Maps 14 DOF joint names to motor IDs (e.g., `left_hip_yaw: 20`, `right_hip_yaw: 10`)
 - Applies per-joint offsets from `duck_config.json`
 - Controls PID gains (kp, kd) per motor
 - Provides position read/write at ~50Hz control frequency
 - `init_pos` defines the standing pose, `zero_pos` is the mechanical zero
+
+**`mini_bdx_runtime/hiwonder_hwi.py`** - `HiwonderHWI` class (Hiwonder servos - alternative)
+- Interfaces with Hiwonder HTD-45H serial bus servos via PySerial
+- Uses LewanSoul/LX protocol (half-duplex UART at 115200 baud)
+- Position range: 0-1000 units (240° total), automatically converts to/from radians
+- Provides position feedback but NOT velocity feedback (returns zeros)
+- Typically connected via USB-to-TTL adapter (`/dev/ttyUSB0`) or GPIO UART
+- Supports hardware-level offset calibration (stored in servo EEPROM)
+- Can be used standalone or mixed with Feetech servos (requires hybrid interface)
+- See `HIWONDER_INTEGRATION.md` for complete integration guide
+
+**`mini_bdx_runtime/antennas.py`** - Standard PWM servos
+- Controls hobby servos via GPIO PWM (50Hz, 1-2ms pulse width)
+- No position feedback (open-loop control)
+- Used for expression features like antennas
 
 ### Control Loop Architecture
 
@@ -217,7 +251,8 @@ The RL policy was trained with a reference periodic motion. The `imitation_phase
 ## File Structure
 
 - `mini_bdx_runtime/mini_bdx_runtime/` - Core library modules
-  - `rustypot_position_hwi.py` - Motor hardware interface
+  - `rustypot_position_hwi.py` - Feetech motor hardware interface
+  - `hiwonder_hwi.py` - Hiwonder motor hardware interface (alternative)
   - `imu.py` - IMU sensor interface
   - `xbox_controller.py` - Controller input
   - `duck_config.py` - Configuration management
@@ -231,9 +266,14 @@ The RL policy was trained with a reference periodic motion. The `imitation_phase
 
 - `scripts/` - Standalone scripts for testing, configuration, and main execution
   - `v2_rl_walk_mujoco.py` - Main walking script
-  - `find_soft_offsets.py` - Joint offset calibration wizard
-  - `check_motors.py` - Motor connectivity test
-  - `configure_motor.py`, `configure_all_motors.py` - Motor ID configuration
+  - Feetech servo scripts:
+    - `find_soft_offsets.py` - Joint offset calibration wizard
+    - `check_motors.py` - Motor connectivity test
+    - `configure_motor.py`, `configure_all_motors.py` - Motor ID configuration
+  - Hiwonder servo scripts:
+    - `configure_hiwonder_motor.py` - Configure Hiwonder servo ID
+    - `check_hiwonder_motors.py` - Check Hiwonder connectivity
+    - `find_hiwonder_offsets.py` - Calibrate Hiwonder offsets
   - `imu_server.py`, `imu_client.py` - Network IMU testing
   - `calibrate_imu.py` - IMU calibration procedure
   - `turn_on.py`, `turn_off.py` - Power management
@@ -242,14 +282,21 @@ The RL policy was trained with a reference periodic motion. The `imitation_phase
 
 ## Important Notes
 
-- **Serial port**: Motors communicate over `/dev/ttyACM0` at 1,000,000 baud. Ensure udev rules are configured (see README for `99-usb-serial.rules`).
+- **Serial ports**:
+  - Feetech motors: `/dev/ttyACM0` at 1,000,000 baud (motor control board)
+  - Hiwonder motors: `/dev/ttyUSB0` at 115200 baud (USB-to-TTL adapter)
+  - Can use both simultaneously on different ports
 - **USB latency**: Set FTDI latency timer to 1ms for low-latency motor communication (see README).
 - **I2C**: IMU requires I2C enabled via `raspi-config`.
 - **GPIO compatibility**: Raspberry Pi 5 requires `lgpio` instead of `RPi.GPIO`.
-- **Motor IDs**: Left leg motors are IDs 20-24, right leg 10-14, head 30-33. Antennas are separate.
+- **Motor IDs**:
+  - Feetech: Left leg 20-24, right leg 10-14, head 30-33
+  - Hiwonder: Recommend 100-199 range to avoid conflicts
+  - Antennas: PWM servos (no IDs, pin-based)
 - **Coordinate frames**: The IMU frame is remapped in software depending on mounting orientation (`imu_upside_down` config).
 - **Policy checkpoints**: ONNX models are trained externally and loaded at runtime. The policy expects a specific observation space (see `get_obs()` in `RLWalk`).
 - **Thread safety**: IMU and Xbox controller run in separate threads with queues for cross-thread communication.
+- **Velocity feedback**: Hiwonder servos do NOT provide velocity feedback. If using Hiwonder for main locomotion, RL policy observations must account for this (zeros returned).
 
 ## Development Workflow
 
