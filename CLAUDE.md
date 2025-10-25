@@ -12,17 +12,36 @@ Open Duck Mini Runtime is a Python-based control system for a bipedal robot ("Du
 
 ## Installation
 
-This is a Python package installed in editable mode:
+This is a Python package installed in editable mode.
+
+### Using pip (traditional method):
 
 ```bash
 # On the Raspberry Pi (with virtual environment activated)
 pip install -e .
 ```
 
+### Using uv (modern, faster method):
+
+```bash
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install the package in editable mode
+uv pip install -e .
+
+# Or create a virtual environment and install
+uv venv
+source .venv/bin/activate  # On Linux/macOS
+uv pip install -e .
+```
+
 For Raspberry Pi 5 specifically:
 ```bash
 pip uninstall -y RPi.GPIO
 pip install lgpio
+# Or with uv:
+uv pip install lgpio
 ```
 
 ## Configuration

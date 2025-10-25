@@ -26,28 +26,42 @@ VIA the Hiwonder Bus Servo Control Board (Serial Bus Servo Tester Board).
 Hardware Architecture:
 ----------------------
     Computer/Raspberry Pi
-        ↓ (USB connection)
-    Hiwonder Bus Servo Control Board  ← Acts as USB-to-Serial converter + power hub
-        ↓ (Serial protocol, daisy-chained)
+        ↓ (USB cable)
+    USB-to-TTL Adapter (CP2102, FT232, CH340, etc.)
+        ↓ (Serial: TX, RX, GND wires)
+    Hiwonder Bus Servo Control Board (serial pins)
+        ↓ (Servo connectors, daisy-chained)
     Servo 1 (ID 100) → Servo 2 (ID 101) → Servo 3 (ID 102) ...
+        ↓ (External 6-8.4V power supply)
 
-What the Hiwonder Bus Servo Control Board Does:
-------------------------------------------------
-✓ USB-to-TTL serial conversion (appears as /dev/ttyUSB0 on Linux)
-✓ Power regulation and distribution to servos
-✓ Sometimes voltage/current monitoring
-✓ Protection circuitry
+Important Connection Detail:
+-----------------------------
+⚠️ The Hiwonder Bus Servo Control Board typically has only a USB-A port (HOST port).
+⚠️ This CANNOT connect directly to Raspberry Pi via USB-to-USB cable!
+⚠️ Instead, you must use the serial pins (TX, RX, GND) on the control board.
+
+What Each Component Does:
+--------------------------
+USB-to-TTL Adapter:
+  ✓ Connects to Raspberry Pi via USB (appears as /dev/ttyUSB0 on Linux)
+  ✓ Provides TTL serial interface (TX, RX, GND pins)
+
+Hiwonder Bus Servo Control Board:
+  ✓ Receives serial commands via TX/RX pins
+  ✓ Power regulation and distribution to servos
+  ✓ Protocol conversion and signal management
+  ✓ Protection circuitry
 
 What hiwonder_hwi.py Does:
 ---------------------------
-✓ Opens the serial port (/dev/ttyUSB0) that the control board creates
-✓ Sends Hiwonder/LewanSoul protocol commands directly to servos
-✓ The board is "transparent" - it just passes serial data through
+✓ Opens the serial port (/dev/ttyUSB0) created by the USB-to-TTL adapter
+✓ Sends Hiwonder/LewanSoul protocol commands through the adapter to the control board
+✓ The control board passes commands to servos (transparent pass-through)
 
-This is similar to how your Feetech servos work with their motor control board!
+This is different from Feetech servos (which have a USB device port on their control board).
 
-Important: This guide assumes you're using the Hiwonder Bus Servo Control Board
-connected via USB. Direct GPIO UART connection is NOT covered in this guide.
+Important: This guide covers connection via USB-to-TTL adapter + control board serial pins.
+Direct GPIO UART connection is NOT recommended and NOT covered in this guide.
 
 ================================================================================
 2. WHERE TO RUN SCRIPTS (PC vs Raspberry Pi)
@@ -60,7 +74,9 @@ Option A: Initial Testing on PC (Recommended First)
 Setup:
     PC (Linux/macOS/Windows)
       ↓ USB cable
-    Hiwonder Bus Servo Control Board
+    USB-to-TTL Adapter (CP2102, FT232, CH340)
+      ↓ Serial wires (TX, RX, GND)
+    Hiwonder Bus Servo Control Board (serial pins)
       ↓ Servo connectors
     Hiwonder Servos (daisy-chained)
       ↓ External power supply (6-8.4V)
@@ -74,15 +90,18 @@ When to use:
 Requirements on PC:
 - Python 3.7+
 - PySerial: pip install pyserial
-- The Hiwonder Bus Servo Control Board connected via USB
+- USB-to-TTL adapter (CP2102, FT232RL, CH340G, etc.)
+- Hiwonder Bus Servo Control Board
 - External power supply for servos (6-8.4V)
 
-Option B: On Raspberry Pi (For Integration)
---------------------------------------------
+Option B: On Raspberry Pi with USB-to-TTL Adapter (For Integration)
+---------------------------------------------------------------------
 Setup:
     Raspberry Pi
       ↓ USB cable
-    Hiwonder Bus Servo Control Board
+    USB-to-TTL Adapter (CP2102, FT232, CH340)
+      ↓ Serial wires (TX, RX, GND)
+    Hiwonder Bus Servo Control Board (serial pins)
       ↓ Servo connectors
     Hiwonder Servos
       ↓ External power supply (6-8.4V)
@@ -95,8 +114,36 @@ When to use:
 Requirements on Raspberry Pi:
 - Same Python packages as PC
 - SSH access (or screen/keyboard)
-- Hiwonder Bus Servo Control Board connected via USB
+- USB-to-TTL adapter (CP2102, FT232RL, CH340G, etc.)
+- Hiwonder Bus Servo Control Board
 - No Bluetooth disabling needed (USB connection doesn't conflict)
+
+Option C: On Raspberry Pi with GPIO UART (Temporary Alternative)
+-----------------------------------------------------------------
+Setup:
+    Raspberry Pi GPIO Pins (14 & 15)
+      ↓ Direct wiring (TX, RX, GND)
+    Hiwonder Bus Servo Control Board (serial pins)
+      ↓ Servo connectors
+    Hiwonder Servos
+      ↓ External power supply (6-8.4V)
+
+When to use:
+- When you don't have a USB-to-TTL adapter temporarily
+- For quick testing without additional hardware
+- TEMPORARY solution only
+
+Requirements on Raspberry Pi:
+- Enable UART via raspi-config
+- DISABLE Bluetooth (required for GPIO UART)
+- ⚠️ Xbox controller won't work over Bluetooth
+- Jumper wires to connect GPIO pins to control board
+- Port will be /dev/serial0 or /dev/ttyAMA0
+
+⚠️ WARNING: This option disables Bluetooth, which means:
+   - Xbox controller cannot connect via Bluetooth
+   - You'll need a USB Xbox controller or wait for a USB-to-TTL adapter
+   - Recommended ONLY as a temporary solution
 
 ================================================================================
 3. PHASE 1: INITIAL SETUP ON PC ⭐ (EASIER FOR TESTING)
@@ -104,24 +151,49 @@ Requirements on Raspberry Pi:
 
 Step 1: Connect Hardware
 ------------------------
-1. Plug Hiwonder Bus Servo Control Board into PC via USB
-2. Connect servos to control board's servo connectors (can daisy-chain multiple servos)
-3. Connect external power supply (6-8.4V) to control board
+You need three main components:
+  a) USB-to-TTL adapter (CP2102, FT232RL, CH340G, etc.)
+  b) Hiwonder Bus Servo Control Board
+  c) Hiwonder servos
+
+Connection sequence:
+
+1. **Connect USB-to-TTL Adapter to Control Board Serial Pins:**
+   - Adapter TX → Control Board RX pin
+   - Adapter RX → Control Board TX pin
+   - Adapter GND → Control Board GND pin
+   - Do NOT connect 5V/VCC between adapter and control board
+
+2. **Connect Servos to Control Board:**
+   - Plug servos into control board's servo connectors (can daisy-chain multiple servos)
+
+3. **Connect Power Supply to Control Board:**
+   - Connect external 6-8.4V power supply to control board
    ⚠️ IMPORTANT: Do NOT power servos from USB 5V - always use external 6-8.4V power supply!
+
+4. **Connect USB-to-TTL Adapter to PC:**
+   - Plug the adapter into your PC's USB port
+
+⚠️ KEY POINT: The control board's USB-A port is NOT used. Use the serial pins (TX, RX, GND)!
 
 Step 2: Find the Serial Port
 -----------------------------
-The Hiwonder Bus Servo Control Board will appear as a USB serial device.
+The USB-to-TTL adapter will appear as a USB serial device on your PC.
 
 On Linux/macOS:
     ls /dev/tty* | grep -E "USB|ACM"
-    # Typically shows: /dev/ttyUSB0 (most common for Hiwonder control board)
-    # Could also be: /dev/ttyUSB1 or /dev/ttyACM0
+    # Typically shows: /dev/ttyUSB0 (most common for CP2102, CH340)
+    #                  /dev/ttyUSB1 (if you have multiple USB serial devices)
+    # FT232 might show as /dev/ttyUSB0 or /dev/cu.usbserial-XXXXXX on macOS
 
 On Windows:
     1. Open Device Manager
     2. Go to: Ports (COM & LPT)
     3. Look for: USB Serial Port (COM3, COM4, etc.)
+    4. The port name depends on which adapter you're using:
+       - CP2102: "Silicon Labs CP210x USB to UART Bridge (COMX)"
+       - CH340: "USB-SERIAL CH340 (COMX)"
+       - FT232: "USB Serial Port (COMX)"
 
 Step 3: Install PySerial (if not already installed)
 ----------------------------------------------------
@@ -293,11 +365,18 @@ Option B: Using scp (if you haven't committed):
 
 Step 2: Connect Hardware to Raspberry Pi
 -----------------------------------------
-1. Unplug Hiwonder Bus Servo Control Board from PC
-2. Plug it into Raspberry Pi USB port
-3. Keep external power supply (6-8.4V) connected to control board
-4. Servos should still be connected (daisy-chained)
-5. The board will appear as /dev/ttyUSB0 on the Raspberry Pi (same as on PC)
+1. Unplug USB-to-TTL adapter from PC
+2. Plug the adapter into Raspberry Pi USB port
+3. Keep the serial wires connected (Adapter TX/RX/GND → Control Board RX/TX/GND)
+4. Keep external power supply (6-8.4V) connected to control board
+5. Servos should still be connected (daisy-chained)
+6. The adapter will appear as /dev/ttyUSB0 on the Raspberry Pi (same as on PC)
+
+⚠️ Remember: The entire chain moves to the Pi together:
+   - USB-to-TTL adapter plugs into Pi
+   - Adapter stays wired to control board serial pins
+   - Control board stays connected to servos
+   - Power supply stays connected to control board
 
 Step 3: Test Connection on Pi
 ------------------------------
@@ -374,16 +453,210 @@ For Hybrid or Replacement:
     python3 scripts/v2_rl_walk_mujoco.py --onnx_model_path <path>
 
 ================================================================================
-5. PORT NAMES REFERENCE
+5. PHASE 3: USING GPIO UART (TEMPORARY ALTERNATIVE) ⚠️
 ================================================================================
 
-Device                                  | Linux/macOS           | Windows      | Notes
+⚠️ IMPORTANT: This option is ONLY recommended if you don't have a USB-to-TTL adapter.
+   It requires disabling Bluetooth, which will break Xbox controller functionality.
+
+When to Use This Option:
+------------------------
+✓ You don't have a USB-to-TTL adapter yet
+✓ You need to test Hiwonder servos immediately
+✓ You have a USB Xbox controller (or don't need controller temporarily)
+
+When NOT to Use This Option:
+-----------------------------
+✗ If you have or can get a USB-to-TTL adapter (~$2-5)
+✗ If you need Bluetooth for Xbox controller
+✗ For permanent installation (use USB-to-TTL adapter instead)
+
+Step 1: Wire GPIO UART to Control Board
+----------------------------------------
+Connection diagram:
+
+Raspberry Pi GPIO Header:
+    Pin 1  [3.3V]     [5V]      Pin 2
+    Pin 3  [GPIO 2]   [5V]      Pin 4
+    Pin 5  [GPIO 3]   [GND] ←── Pin 6  (Connect to Control Board GND)
+    Pin 7  [GPIO 4]   [GPIO 14 - TXD] ← Pin 8  (Connect to Control Board RX)
+    Pin 9  [GND]      [GPIO 15 - RXD] ← Pin 10 (Connect to Control Board TX)
+
+Physical connections:
+1. Pi Pin 8 (GPIO 14, TXD) → Control Board RX pin
+2. Pi Pin 10 (GPIO 15, RXD) → Control Board TX pin
+3. Pi Pin 6 or 9 (GND) → Control Board GND pin
+4. Do NOT connect 3.3V or 5V pins to control board
+5. External 6-8.4V power supply → Control Board power input
+6. Servos → Control Board servo connectors (daisy-chained)
+
+⚠️ Use female-to-female jumper wires for connections
+
+Step 2: Enable UART on Raspberry Pi
+------------------------------------
+SSH into your Raspberry Pi:
+
+    ssh pi@<raspberry_pi_ip>
+    cd ~/Open_Duck_Mini_Runtime
+
+Enable serial hardware:
+
+    sudo raspi-config
+
+    # Navigate using arrow keys:
+    # 3. Interface Options → I6 Serial Port
+    # "Would you like a login shell accessible over serial?" → <No>
+    # "Would you like the serial port hardware enabled?" → <Yes>
+    # Select <Finish>, then reboot when prompted
+
+Step 3: Disable Bluetooth (Required)
+-------------------------------------
+⚠️ THIS WILL DISABLE BLUETOOTH - Xbox controller won't work wirelessly!
+
+Edit boot configuration:
+
+    sudo nano /boot/config.txt
+
+Scroll to the bottom and add these lines:
+
+    # Disable Bluetooth to free up UART for Hiwonder servos
+    dtoverlay=disable-bt
+    enable_uart=1
+
+Save and exit: Ctrl+X, then Y, then Enter
+
+Disable Bluetooth services:
+
+    sudo systemctl disable hciuart.service
+    sudo systemctl disable bluetooth.service
+
+Reboot to apply changes:
+
+    sudo reboot
+
+Step 4: Verify UART Port
+-------------------------
+After reboot, SSH back in and verify the serial port:
+
+    ls -l /dev/serial*
+
+    # Should show something like:
+    # lrwxrwxrwx 1 root root 7 Jan 1 12:00 /dev/serial0 -> ttyAMA0
+    # lrwxrwxrwx 1 root root 7 Jan 1 12:00 /dev/serial1 -> ttyS0
+
+The port you'll use is: /dev/serial0
+
+Also check:
+
+    ls -l /dev/ttyAMA*
+
+    # Should show: /dev/ttyAMA0
+
+You can use either /dev/serial0 or /dev/ttyAMA0 (they point to the same device).
+
+Step 5: Test Connection
+-----------------------
+Test that the Raspberry Pi can communicate with the control board:
+
+    python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
+    s = HiwonderServo('/dev/serial0'); \
+    print('Found servos:', s.scan_servos(max_id=10)); \
+    s.close()"
+
+Expected output:
+    Found servos: [1] (or your configured IDs like [100, 101, 102])
+
+If you see "Found servos: []":
+✓ Check wiring (TX→RX, RX→TX, GND→GND)
+✓ Try swapping TX and RX wires
+✓ Verify power supply is connected to control board
+✓ Check that servos are connected to control board
+
+Step 6: Configure Servos Using GPIO UART
+-----------------------------------------
+Now you can run all the same scripts, but use /dev/serial0 instead of /dev/ttyUSB0:
+
+Configure servo IDs (one at a time):
+    python3 scripts/configure_hiwonder_motor.py --port /dev/serial0 --id 100
+
+Check all servos:
+    python3 scripts/check_hiwonder_motors.py
+    # When prompted, enter: /dev/serial0
+
+Calibrate offsets:
+    python3 scripts/find_hiwonder_offsets.py
+    # When prompted, enter: /dev/serial0
+
+Step 7: Update Code for GPIO UART
+----------------------------------
+If integrating with the main walking system, you'll need to specify the port.
+
+For hybrid interface (mini_bdx_runtime/hybrid_hwi.py):
+
+    # Change this line:
+    self.hiwonder = HiwonderHWI(duck_config, usb_port="/dev/ttyUSB0")
+
+    # To this:
+    self.hiwonder = HiwonderHWI(duck_config, usb_port="/dev/serial0")
+
+Or when running standalone:
+
+    from mini_bdx_runtime.hiwonder_hwi import HiwonderHWI
+    hwi = HiwonderHWI(duck_config, usb_port="/dev/serial0")
+
+Step 8: Re-enabling Bluetooth (When You Get USB-to-TTL Adapter)
+----------------------------------------------------------------
+When you eventually get a USB-to-TTL adapter, you'll want to re-enable Bluetooth:
+
+1. Disconnect GPIO wires from Pi (but keep control board and servos together)
+2. Connect USB-to-TTL adapter:
+   - Adapter → Pi USB port
+   - Adapter TX/RX/GND → Control Board RX/TX/GND (same as before)
+
+3. Re-enable Bluetooth:
+
+    sudo nano /boot/config.txt
+
+    # Comment out or remove these lines:
+    # dtoverlay=disable-bt
+    # enable_uart=1
+
+    # Save and exit (Ctrl+X, Y, Enter)
+
+4. Re-enable Bluetooth services:
+
+    sudo systemctl enable hciuart.service
+    sudo systemctl enable bluetooth.service
+
+5. Reboot:
+
+    sudo reboot
+
+6. Update code to use /dev/ttyUSB0 instead of /dev/serial0
+
+7. Test Xbox controller reconnects over Bluetooth:
+
+    python3 mini_bdx_runtime/mini_bdx_runtime/xbox_controller.py
+
+Summary of Port Changes:
+-------------------------
+GPIO UART (temporary):  /dev/serial0 or /dev/ttyAMA0
+USB-to-TTL adapter:     /dev/ttyUSB0
+
+================================================================================
+6. PORT NAMES REFERENCE
+================================================================================
+
+Device                                  | Linux/Raspberry Pi    | Windows      | Notes
 ----------------------------------------|-----------------------|--------------|------------------
-Hiwonder Bus Servo Control Board        | /dev/ttyUSB0          | COM3, COM4   | Most common for Hiwonder
-                                        | /dev/ttyUSB1          |              | (if multiple USB devices)
+USB-to-TTL Adapter → Hiwonder Board     | /dev/ttyUSB0          | COM3, COM4   | Recommended method
+CP2102/CH340/FT232                      | /dev/ttyUSB1          |              | (if multiple USB devices)
+                                        |                       |              |
+Raspberry Pi GPIO UART → Hiwonder Board | /dev/serial0          | N/A          | Temporary alternative
+                                        | /dev/ttyAMA0          |              | Requires disabling Bluetooth
                                         |                       |              |
 Feetech Motor Control Board             | /dev/ttyACM0          | COM#         | Your existing board
-(for reference)                         |                       |              |
+(has USB device port)                   |                       |              | (connects directly via USB)
 
 How to Find Your Port:
 ----------------------
@@ -399,15 +672,28 @@ Windows:
     3. Look for "USB Serial Port (COM#)"
 
 Raspberry Pi specific:
+    # For USB-to-TTL adapter:
     ls /dev/tty* | grep USB
-    # Hiwonder Bus Servo Control Board: Usually /dev/ttyUSB0
+    # USB-to-TTL adapter (for Hiwonder): Usually /dev/ttyUSB0
     # Feetech Motor Control Board: Usually /dev/ttyACM0
 
+    # For GPIO UART:
+    ls -l /dev/serial*
+    # Should show: /dev/serial0 -> ttyAMA0 (or ttyS0)
+
+    # Both can coexist:
+    # /dev/ttyUSB0 → USB-to-TTL adapter → Hiwonder control board → Hiwonder servos
+    # /dev/ttyACM0 → Feetech control board → Feetech servos
+
+    # Or with GPIO UART (temporary):
+    # /dev/serial0 → GPIO UART → Hiwonder control board → Hiwonder servos
+    # /dev/ttyACM0 → Feetech control board → Feetech servos
+
 ================================================================================
-6. QUICK TEST COMMANDS
+7. QUICK TEST COMMANDS
 ================================================================================
 
-Test on PC (Linux/macOS):
+Test on PC with USB-to-TTL Adapter (Linux/macOS):
 --------------------------
     # Scan for servos
     python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
@@ -428,13 +714,29 @@ Test on PC (Windows):
     # Scan for servos (use your COM port)
     python -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; s = HiwonderServo('COM3'); print('Found servos:', s.scan_servos(max_id=10)); s.close()"
 
-Test on Raspberry Pi (via SSH):
---------------------------------
+Test on Raspberry Pi with USB-to-TTL Adapter (via SSH):
+--------------------------------------------------------
     ssh pi@<raspberry_pi_ip>
 
-    # Same commands as PC
+    # Scan for servos via USB-to-TTL adapter
     python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
     s = HiwonderServo('/dev/ttyUSB0'); \
+    print('Found servos:', s.scan_servos(max_id=120)); \
+    s.close()"
+
+Test on Raspberry Pi with GPIO UART (via SSH):
+-----------------------------------------------
+    ssh pi@<raspberry_pi_ip>
+
+    # Scan for servos via GPIO UART
+    python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
+    s = HiwonderServo('/dev/serial0'); \
+    print('Found servos:', s.scan_servos(max_id=120)); \
+    s.close()"
+
+    # Alternative using ttyAMA0 directly
+    python3 -c "from mini_bdx_runtime.hiwonder_hwi import HiwonderServo; \
+    s = HiwonderServo('/dev/ttyAMA0'); \
     print('Found servos:', s.scan_servos(max_id=120)); \
     s.close()"
 
@@ -445,33 +747,55 @@ Built-in Hardware Test:
 
 Configuration Scripts:
 ----------------------
-    # Configure servo ID
+    # Configure servo ID (USB-to-TTL adapter)
     python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --id 100
 
-    # Check all servos
-    python3 scripts/check_hiwonder_motors.py
-    # (will prompt for port)
+    # Configure servo ID (GPIO UART)
+    python3 scripts/configure_hiwonder_motor.py --port /dev/serial0 --id 100
 
-    # Calibrate offsets
+    # Check all servos (will prompt for port)
+    python3 scripts/check_hiwonder_motors.py
+    # Enter: /dev/ttyUSB0 (for USB-to-TTL adapter)
+    # OR
+    # Enter: /dev/serial0 (for GPIO UART)
+
+    # Calibrate offsets (will prompt for port)
     python3 scripts/find_hiwonder_offsets.py
-    # (will prompt for port)
+    # Enter: /dev/ttyUSB0 (for USB-to-TTL adapter)
+    # OR
+    # Enter: /dev/serial0 (for GPIO UART)
 
 ================================================================================
-7. TROUBLESHOOTING
+8. TROUBLESHOOTING
 ================================================================================
 
 Problem: "No servos found" / scan_servos returns []
 ----------------------------------------------------
 Solutions:
 ✓ Check power supply is connected and turned on (6-8.4V)
-✓ Verify USB cable is properly connected
-✓ Try a different USB port
+✓ Verify USB-to-TTL adapter is properly connected to PC/Pi
+✓ Check serial wiring between adapter and control board:
+    - Adapter TX → Control Board RX
+    - Adapter RX → Control Board TX
+    - Adapter GND → Control Board GND
+✓ Try a different USB port for the adapter
 ✓ Check port name is correct:
     Linux/macOS: ls /dev/tty* | grep USB
     Windows: Check Device Manager
 ✓ Try different baud rates (115200 is default, but some boards use 9600 or 38400)
-✓ Check servo wiring (TX→RX, RX→TX, GND→GND)
+✓ Try swapping TX/RX wires (TX↔RX) if still not working
 ✓ Try connecting only one servo to eliminate daisy-chain issues
+✓ Verify the adapter has TX/RX LEDs blinking when commands are sent
+
+Problem: "I connected the control board's USB-A port to Raspberry Pi but it doesn't work"
+------------------------------------------------------------------------------------------
+Answer:
+⚠️ The USB-A port on the Hiwonder control board is a HOST port, not a device port
+⚠️ It CANNOT be used to connect to a PC or Raspberry Pi
+✓ You MUST use the serial pins (TX, RX, GND) on the control board
+✓ Connect these pins to a USB-to-TTL adapter (CP2102, FT232, CH340)
+✓ Then connect the adapter to your PC/Pi via USB
+✓ See Step 1 in Phase 1 for detailed wiring instructions
 
 Problem: "Permission denied" when opening /dev/ttyUSB0 (Linux)
 ---------------------------------------------------------------
@@ -520,15 +844,29 @@ Solutions:
 
 Problem: "ModuleNotFoundError: No module named 'mini_bdx_runtime'"
 ------------------------------------------------------------------
-Solutions:
-✓ Make sure you're in the project directory:
+This means the Python package is not installed.
+
+Solutions (choose ONE):
+
+Option 1: Install with pip (traditional):
     cd ~/Open_Duck_Mini_Runtime
-
-✓ Add path to PYTHONPATH:
-    export PYTHONPATH="${PYTHONPATH}:$(pwd)/mini_bdx_runtime"
-
-✓ Or install in editable mode:
     pip install -e .
+
+Option 2: Install with uv (faster, modern):
+    cd ~/Open_Duck_Mini_Runtime
+    # Install uv if not already installed:
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Install the package:
+    uv pip install -e .
+
+Option 3: Temporary fix (add to PYTHONPATH):
+    cd ~/Open_Duck_Mini_Runtime
+    export PYTHONPATH="${PYTHONPATH}:$(pwd)/mini_bdx_runtime"
+    # Note: This only lasts for current terminal session
+
+After installing, verify it works:
+    python3 -c "import mini_bdx_runtime; print('Success!')"
 
 Problem: Scripts work on PC but not on Raspberry Pi
 ----------------------------------------------------
@@ -542,12 +880,52 @@ Solutions:
 
 Problem: Do I need to disable Bluetooth on Raspberry Pi?
 ---------------------------------------------------------
-Answer: NO!
-✓ Bluetooth conflicts only occur with GPIO UART (/dev/ttyAMA0)
-✓ The Hiwonder Bus Servo Control Board connects via USB (/dev/ttyUSB0)
-✓ USB serial ports do NOT conflict with Bluetooth
+Answer: IT DEPENDS on your connection method!
+
+If using USB-to-TTL Adapter (Recommended):
+✓ NO - Keep Bluetooth ENABLED
+✓ USB serial ports (/dev/ttyUSB0) do NOT conflict with Bluetooth
 ✓ You NEED Bluetooth enabled for Xbox controller
-✓ Keep Bluetooth enabled - it won't cause any issues
+✓ This is the recommended permanent solution
+
+If using GPIO UART (Temporary):
+✓ YES - You MUST disable Bluetooth
+✓ GPIO UART (/dev/serial0, /dev/ttyAMA0) conflicts with Bluetooth
+✓ Follow Phase 3 instructions to disable Bluetooth properly
+✓ Xbox controller won't work wirelessly (need USB Xbox controller)
+✓ Only use this as a temporary solution
+
+Problem: GPIO UART not working / Permission denied on /dev/serial0
+-------------------------------------------------------------------
+Solutions:
+✓ Check if UART is enabled:
+    ls -l /dev/serial*
+    # Should show /dev/serial0 symlink
+✓ Enable UART via raspi-config (see Phase 3, Step 2)
+✓ Check if Bluetooth is disabled (required):
+    sudo systemctl status bluetooth
+    # Should show: "Loaded: loaded (...; disabled; ...)"
+✓ Verify boot config:
+    grep -E "dtoverlay=disable-bt|enable_uart" /boot/config.txt
+    # Should show both lines uncommented
+✓ Reboot after making changes:
+    sudo reboot
+✓ Add user to dialout group:
+    sudo usermod -a -G dialout $USER
+    # Then log out and log back in
+
+Problem: GPIO UART shows "No servos found" but wiring looks correct
+--------------------------------------------------------------------
+Solutions:
+✓ Try swapping TX and RX wires
+    - Pi GPIO 14 should go to Control Board RX
+    - Pi GPIO 15 should go to Control Board TX
+    - If backwards, swap them
+✓ Verify GND connection is solid
+✓ Check control board has power (6-8.4V)
+✓ Try a different GPIO GND pin (Pin 6, 9, 14, 20, 25, 30, 34, or 39)
+✓ Test with multimeter: measure voltage between Pi 3.3V pin and GND (should be 3.3V)
+✓ Verify servos work by testing on PC first with USB-to-TTL adapter
 
 Problem: Velocity observations are all zeros
 ---------------------------------------------
@@ -572,7 +950,7 @@ Solutions:
 ✓ Implement bulk read commands (future enhancement)
 
 ================================================================================
-8. RECOMMENDATIONS
+9. RECOMMENDATIONS
 ================================================================================
 
 Best Approach: Start on PC First
@@ -588,12 +966,48 @@ The servos and control board remember their configuration:
 ✓ Servo offsets stored in EEPROM (persistent)
 ✓ Once configured on PC, just plug the control board into Pi - it works the same!
 
-Connection Method: USB Only
-----------------------------
-✓ This guide covers ONLY USB connection via Hiwonder Bus Servo Control Board
-✓ Direct GPIO UART connection is NOT recommended and NOT covered
-✓ USB connection is simpler, more reliable, and doesn't conflict with Bluetooth
-✓ No need to disable Bluetooth for Xbox controller
+Connection Method Recommendations
+----------------------------------
+✓ The control board's USB-A port is NOT used (it's a host port, not device port)
+✓ You must use the serial pins (TX, RX, GND) on the control board
+✓ Two options: USB-to-TTL adapter (recommended) OR GPIO UART (temporary)
+
+Option 1: USB-to-TTL Adapter (RECOMMENDED for permanent use)
+-------------------------------------------------------------
+✓ Recommended for permanent installation
+✓ Keeps Bluetooth enabled (Xbox controller works)
+✓ Clean, reliable connection
+✓ Easy to disconnect and reconnect
+✓ No Pi configuration changes needed
+✓ USB-to-TTL adapters are cheap (~$2-5) and widely available
+✓ Recommended adapters: CP2102, FT232RL, CH340G
+✓ Port: /dev/ttyUSB0
+
+Option 2: GPIO UART (TEMPORARY alternative)
+--------------------------------------------
+✓ Use ONLY if you don't have a USB-to-TTL adapter
+✓ Requires disabling Bluetooth (breaks Xbox controller)
+✓ Direct wiring to GPIO pins 14 & 15
+✓ Requires Pi configuration (raspi-config + boot config)
+✓ More prone to wiring errors
+✓ Only recommended as temporary solution until you get adapter
+✓ Port: /dev/serial0 or /dev/ttyAMA0
+
+Hardware Shopping List:
+-----------------------
+For USB-to-TTL Method (Recommended):
+✓ USB-to-TTL adapter with 3.3V/5V TTL levels (CP2102, FT232RL, or CH340G)
+✓ Hiwonder Bus Servo Control Board (you already have this)
+✓ Hiwonder HTD-45H servos
+✓ External 6-8.4V power supply for servos
+✓ Jumper wires (female-to-female) to connect adapter to control board serial pins
+
+For GPIO UART Method (Temporary):
+✓ Hiwonder Bus Servo Control Board (you already have this)
+✓ Hiwonder HTD-45H servos
+✓ External 6-8.4V power supply for servos
+✓ Female-to-female jumper wires (3 wires: TX, RX, GND)
+✓ USB Xbox controller (since Bluetooth will be disabled)
 
 Workflow Summary:
 -----------------
@@ -664,16 +1078,33 @@ Safety Notes:
 QUICK REFERENCE CHECKLIST
 ================================================================================
 
-☐ Hardware Setup:
-  ☐ Hiwonder Bus Servo Control Board connected to PC/Pi via USB
+☐ Hardware Setup (choose ONE connection method):
+
+  Option A: USB-to-TTL Adapter (Recommended):
+  ☐ USB-to-TTL adapter connected to PC/Pi via USB
+  ☐ Adapter serial pins (TX, RX, GND) wired to control board serial pins
   ☐ External 6-8.4V power supply connected to control board
   ☐ Servos connected to control board's servo connectors (daisy-chained)
-  ☐ All connections secure
-  ☐ Bluetooth enabled on Pi (needed for Xbox controller, no conflicts with USB)
+  ☐ All connections secure (check TX→RX, RX→TX, GND→GND)
+  ☐ Control board's USB-A port is NOT used
+  ☐ Bluetooth enabled on Pi (needed for Xbox controller)
+  ☐ Port will be: /dev/ttyUSB0
+
+  Option B: GPIO UART (Temporary):
+  ☐ Pi GPIO 14 (Pin 8) wired to Control Board RX
+  ☐ Pi GPIO 15 (Pin 10) wired to Control Board TX
+  ☐ Pi GND (Pin 6 or 9) wired to Control Board GND
+  ☐ External 6-8.4V power supply connected to control board
+  ☐ Servos connected to control board's servo connectors (daisy-chained)
+  ☐ Control board's USB-A port is NOT used
+  ☐ UART enabled via raspi-config
+  ☐ Bluetooth DISABLED on Pi (required for GPIO UART)
+  ☐ dtoverlay=disable-bt and enable_uart=1 in /boot/config.txt
+  ☐ Port will be: /dev/serial0 or /dev/ttyAMA0
 
 ☐ Software Setup:
   ☐ PySerial installed: pip install pyserial
-  ☐ Port identified: /dev/ttyUSB0 (or your port)
+  ☐ Port identified (see connection method above)
   ☐ Scripts executable: ls scripts/configure_hiwonder_motor.py
 
 ☐ Configuration (one servo at a time!):
