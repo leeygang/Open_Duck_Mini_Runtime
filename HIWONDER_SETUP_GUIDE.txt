@@ -576,8 +576,17 @@ Step 6: Configure Servos Using GPIO UART
 -----------------------------------------
 Now you can run all the same scripts, but use /dev/serial0 instead of /dev/ttyUSB0:
 
+Scan and read servo IDs:
+    python3 scripts/configure_hiwonder_motor.py --port /dev/serial0
+    # This will scan and display all connected servo IDs
+
 Configure servo IDs (one at a time):
     python3 scripts/configure_hiwonder_motor.py --port /dev/serial0 --id 100
+    # This will scan, find the servo, and change its ID to 100
+
+Configure specific servo ID:
+    python3 scripts/configure_hiwonder_motor.py --port /dev/serial0 --current-id 1 --id 100
+    # This will change servo with ID 1 to ID 100
 
 Check all servos:
     python3 scripts/check_hiwonder_motors.py
@@ -747,11 +756,20 @@ Built-in Hardware Test:
 
 Configuration Scripts:
 ----------------------
+    # Scan and read all servo IDs (USB-to-TTL adapter)
+    python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0
+
+    # Scan and read all servo IDs (GPIO UART)
+    python3 scripts/configure_hiwonder_motor.py --port /dev/serial0
+
     # Configure servo ID (USB-to-TTL adapter)
     python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --id 100
 
     # Configure servo ID (GPIO UART)
     python3 scripts/configure_hiwonder_motor.py --port /dev/serial0 --id 100
+
+    # Configure specific servo (if multiple servos connected)
+    python3 scripts/configure_hiwonder_motor.py --port /dev/ttyUSB0 --current-id 1 --id 100
 
     # Check all servos (will prompt for port)
     python3 scripts/check_hiwonder_motors.py

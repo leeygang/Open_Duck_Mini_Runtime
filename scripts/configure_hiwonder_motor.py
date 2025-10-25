@@ -2,9 +2,10 @@
 Configure Hiwonder servo ID and test basic functionality
 
 This script helps you:
-1. Find a servo (scans IDs if needed)
-2. Change its ID
-3. Test movement
+1. Scan and find all connected servos
+2. Read current servo ID and status
+3. Change servo ID if needed
+4. Test movement
 """
 
 import argparse
@@ -19,7 +20,14 @@ from mini_bdx_runtime.hiwonder_hwi import HiwonderServo
 
 DEFAULT_ID = 1  # Brand new Hiwonder servos have ID 1
 
-parser = argparse.ArgumentParser(description="Configure Hiwonder servo ID")
+parser = argparse.ArgumentParser(
+    description="Configure Hiwonder servo ID",
+    epilog="Example usage:\n"
+           "  Read current servo ID:     python3 configure_hiwonder_motor.py --port /dev/serial0\n"
+           "  Change ID to 100:          python3 configure_hiwonder_motor.py --port /dev/serial0 --id 100\n"
+           "  Change specific servo ID:  python3 configure_hiwonder_motor.py --port /dev/serial0 --current-id 1 --id 100",
+    formatter_class=argparse.RawDescriptionHelpFormatter
+)
 parser.add_argument(
     "--port",
     help="Serial port. Default is /dev/ttyUSB0. Use 'ls /dev/tty* | grep USB' to find it.",
@@ -33,9 +41,9 @@ parser.add_argument(
 )
 parser.add_argument(
     "--id",
-    help="New ID to assign to the servo (1-253)",
+    help="New ID to assign to the servo (1-253). If not provided, will only read current ID.",
     type=int,
-    required=True,
+    default=None,
 )
 parser.add_argument(
     "--current-id",
@@ -43,17 +51,26 @@ parser.add_argument(
     type=int,
     default=None,
 )
+parser.add_argument(
+    "--scan-range",
+    help="Max ID to scan when searching for servos (default 20 for quick scan, use 253 for full scan)",
+    type=int,
+    default=20,
+)
 
 args = parser.parse_args()
 
-if args.id < 1 or args.id > 253:
+if args.id is not None and (args.id < 1 or args.id > 253):
     print("Error: ID must be between 1 and 253")
     exit(1)
 
 print("=== Hiwonder Servo Configuration ===")
 print(f"Port: {args.port}")
 print(f"Baudrate: {args.baudrate}")
-print(f"Target ID: {args.id}")
+if args.id is not None:
+    print(f"Target ID: {args.id}")
+else:
+    print("Mode: Read current servo ID")
 print()
 
 try:
@@ -65,27 +82,87 @@ except Exception as e:
 
 current_id = args.current_id
 
-# Try to find the servo
+# Always scan first to show all connected servos
+print(f"Scanning for servos (IDs 1-{args.scan_range})...")
+found_servos = servo.scan_servos(max_id=args.scan_range)
+
+if not found_servos:
+    print("✗ No servos found! Check connections and power.")
+    print()
+    print("Troubleshooting:")
+    print("  1. Verify servo control board has 6-8.4V power supply")
+    print("  2. Check serial wiring (TX→RX, RX→TX, GND→GND)")
+    print("  3. Try a different port (use 'ls /dev/tty* | grep USB')")
+    print("  4. Increase scan range with --scan-range 253")
+    servo.close()
+    exit(1)
+
+print(f"✓ Found {len(found_servos)} servo(s): {found_servos}")
+print()
+
+# If current ID not provided, determine which servo to work with
 if current_id is None:
-    print("No current ID provided. Trying default ID (1)...")
-    pos = servo.read_position(DEFAULT_ID)
-    if pos is not None:
-        current_id = DEFAULT_ID
-        print(f"Found servo with ID {current_id}")
+    if len(found_servos) == 1:
+        current_id = found_servos[0]
+        print(f"Automatically selected servo with ID {current_id}")
     else:
-        print(f"No servo found at ID {DEFAULT_ID}. Scanning...")
-        found = servo.scan_servos(max_id=20)  # Quick scan first 20 IDs
-        if found:
-            current_id = found[0]
-            print(f"Found servo with ID {current_id}")
+        print("Multiple servos found. Please specify which one to configure:")
+        for idx, servo_id in enumerate(found_servos, 1):
+            print(f"  {idx}. Servo ID {servo_id}")
+        print()
+
+        if args.id is None:
+            # If just reading, show all servos
+            print("Reading status of all servos...")
+            current_id = None  # Will read all below
         else:
-            print("No servos found! Check connections and power.")
-            servo.close()
-            exit(1)
+            # If changing ID, need to select one
+            try:
+                choice = input(f"Select servo (1-{len(found_servos)}) or use --current-id flag: ")
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(found_servos):
+                    current_id = found_servos[choice_idx]
+                else:
+                    print("Invalid selection.")
+                    servo.close()
+                    exit(1)
+            except (ValueError, KeyboardInterrupt):
+                print("\nCancelled.")
+                servo.close()
+                exit(1)
+else:
+    if current_id not in found_servos:
+        print(f"⚠ Warning: Specified ID {current_id} not found in scan results: {found_servos}")
+        print("  Continuing anyway in case of scan issues...")
+    else:
+        print(f"Working with servo ID {current_id}")
 
 print()
+
+# If no specific servo selected and just reading, show all
+if current_id is None and args.id is None:
+    for servo_id in found_servos:
+        print(f"--- Servo ID {servo_id} ---")
+        pos = servo.read_position(servo_id)
+        voltage = servo.read_voltage(servo_id)
+        temp = servo.read_temperature(servo_id)
+        offset = servo.read_angle_offset(servo_id)
+
+        print(f"  Position: {pos}")
+        print(f"  Voltage: {voltage/1000:.2f}V" if voltage else "  Voltage: N/A")
+        print(f"  Temperature: {temp}°C" if temp else "  Temperature: N/A")
+        print(f"  Angle offset: {offset}" if offset is not None else "  Angle offset: N/A")
+        print()
+
+    print("=== Scan Complete ===")
+    print(f"Total servos found: {len(found_servos)}")
+    print(f"Servo IDs: {found_servos}")
+    servo.close()
+    exit(0)
+
 print(f"Current servo ID: {current_id}")
-print(f"New servo ID: {args.id}")
+if args.id is not None:
+    print(f"New servo ID: {args.id}")
 print()
 
 # Read current status
@@ -112,6 +189,19 @@ for test_pos in test_positions:
     print(f"    Actual position: {actual}")
 
 print()
+
+# If --id not provided, just show current status and exit
+if args.id is None:
+    print("=== Current Servo Status ===")
+    print(f"Servo ID: {current_id}")
+    print(f"Position: {pos}")
+    print(f"Voltage: {voltage/1000:.2f}V" if voltage else "Voltage: N/A")
+    print(f"Temperature: {temp}°C" if temp else "Temperature: N/A")
+    print(f"Angle offset: {offset}" if offset is not None else "Angle offset: N/A")
+    print()
+    print("To change the ID, run again with --id <new_id>")
+    servo.close()
+    exit(0)
 
 # Confirm ID change
 if current_id != args.id:
