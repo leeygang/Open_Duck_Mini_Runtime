@@ -21,18 +21,18 @@ TABLE OF CONTENTS
 Question: Does hiwonder_hwi control servo through the board or directly?
 
 Answer: THROUGH THE BOARD - The hiwonder_hwi.py sends commands to servos
-VIA the Hiwonder control board.
+VIA the Hiwonder Bus Servo Control Board (Serial Bus Servo Tester Board).
 
 Hardware Architecture:
 ----------------------
     Computer/Raspberry Pi
         ↓ (USB connection)
-    Hiwonder Servo Control Board  ← Acts as USB-to-Serial converter + power hub
+    Hiwonder Bus Servo Control Board  ← Acts as USB-to-Serial converter + power hub
         ↓ (Serial protocol, daisy-chained)
     Servo 1 (ID 100) → Servo 2 (ID 101) → Servo 3 (ID 102) ...
 
-What the Control Board Does:
------------------------------
+What the Hiwonder Bus Servo Control Board Does:
+------------------------------------------------
 ✓ USB-to-TTL serial conversion (appears as /dev/ttyUSB0 on Linux)
 ✓ Power regulation and distribution to servos
 ✓ Sometimes voltage/current monitoring
@@ -46,6 +46,9 @@ What hiwonder_hwi.py Does:
 
 This is similar to how your Feetech servos work with their motor control board!
 
+Important: This guide assumes you're using the Hiwonder Bus Servo Control Board
+connected via USB. Direct GPIO UART connection is NOT covered in this guide.
+
 ================================================================================
 2. WHERE TO RUN SCRIPTS (PC vs Raspberry Pi)
 ================================================================================
@@ -57,7 +60,7 @@ Option A: Initial Testing on PC (Recommended First)
 Setup:
     PC (Linux/macOS/Windows)
       ↓ USB cable
-    Hiwonder Control Board
+    Hiwonder Bus Servo Control Board
       ↓ Servo connectors
     Hiwonder Servos (daisy-chained)
       ↓ External power supply (6-8.4V)
@@ -71,18 +74,18 @@ When to use:
 Requirements on PC:
 - Python 3.7+
 - PySerial: pip install pyserial
-- The servo control board connected via USB
-- External power supply for servos
+- The Hiwonder Bus Servo Control Board connected via USB
+- External power supply for servos (6-8.4V)
 
 Option B: On Raspberry Pi (For Integration)
 --------------------------------------------
 Setup:
     Raspberry Pi
-      ↓ USB cable (or GPIO UART)
-    Hiwonder Control Board
+      ↓ USB cable
+    Hiwonder Bus Servo Control Board
       ↓ Servo connectors
     Hiwonder Servos
-      ↓ External power supply
+      ↓ External power supply (6-8.4V)
 
 When to use:
 - After initial configuration on PC
@@ -92,7 +95,8 @@ When to use:
 Requirements on Raspberry Pi:
 - Same Python packages as PC
 - SSH access (or screen/keyboard)
-- Control board connected via USB
+- Hiwonder Bus Servo Control Board connected via USB
+- No Bluetooth disabling needed (USB connection doesn't conflict)
 
 ================================================================================
 3. PHASE 1: INITIAL SETUP ON PC ⭐ (EASIER FOR TESTING)
@@ -100,16 +104,19 @@ Requirements on Raspberry Pi:
 
 Step 1: Connect Hardware
 ------------------------
-1. Plug Hiwonder control board into PC via USB
-2. Connect servos to control board (can daisy-chain multiple servos)
-3. Connect power supply (6-8.4V) to control board
-   ⚠️ IMPORTANT: Do NOT power servos from USB 5V - use external power!
+1. Plug Hiwonder Bus Servo Control Board into PC via USB
+2. Connect servos to control board's servo connectors (can daisy-chain multiple servos)
+3. Connect external power supply (6-8.4V) to control board
+   ⚠️ IMPORTANT: Do NOT power servos from USB 5V - always use external 6-8.4V power supply!
 
 Step 2: Find the Serial Port
 -----------------------------
+The Hiwonder Bus Servo Control Board will appear as a USB serial device.
+
 On Linux/macOS:
     ls /dev/tty* | grep -E "USB|ACM"
-    # Should show: /dev/ttyUSB0 or /dev/ttyACM0
+    # Typically shows: /dev/ttyUSB0 (most common for Hiwonder control board)
+    # Could also be: /dev/ttyUSB1 or /dev/ttyACM0
 
 On Windows:
     1. Open Device Manager
@@ -286,10 +293,11 @@ Option B: Using scp (if you haven't committed):
 
 Step 2: Connect Hardware to Raspberry Pi
 -----------------------------------------
-1. Unplug Hiwonder control board from PC
+1. Unplug Hiwonder Bus Servo Control Board from PC
 2. Plug it into Raspberry Pi USB port
-3. Keep power supply connected to control board
+3. Keep external power supply (6-8.4V) connected to control board
 4. Servos should still be connected (daisy-chained)
+5. The board will appear as /dev/ttyUSB0 on the Raspberry Pi (same as on PC)
 
 Step 3: Test Connection on Pi
 ------------------------------
@@ -342,8 +350,8 @@ Option A: Standalone Feature (Recommended to start)
 
 Option B: Hybrid Interface
     - Control both Feetech and Hiwonder servos simultaneously
-    - Feetech on /dev/ttyACM0 (motor control board)
-    - Hiwonder on /dev/ttyUSB0 (servo control board)
+    - Feetech motor control board on /dev/ttyACM0
+    - Hiwonder Bus Servo Control Board on /dev/ttyUSB0
     - Requires creating hybrid_hwi.py (code provided in documentation)
 
 Option C: Complete Replacement
@@ -369,19 +377,13 @@ For Hybrid or Replacement:
 5. PORT NAMES REFERENCE
 ================================================================================
 
-Device                          | Linux/macOS           | Windows      | Notes
---------------------------------|-----------------------|--------------|------------------
-Hiwonder Control Board          | /dev/ttyUSB0          | COM3, COM4   | Most common
-                                | /dev/ttyUSB1          |              |
-                                | /dev/ttyACM0          |              | ESP32-based boards
-                                |                       |              |
-CH340/CP2102 USB-TTL adapter    | /dev/ttyUSB0          | COM#         | Generic adapters
-                                |                       |              |
-Raspberry Pi GPIO UART          | /dev/ttyAMA0          | N/A          | Direct wiring
-                                | /dev/serial0          |              | (requires level shifter)
-                                |                       |              |
-Feetech Motor Control Board     | /dev/ttyACM0          | COM#         | Your existing board
-(for reference)                 |                       |              |
+Device                                  | Linux/macOS           | Windows      | Notes
+----------------------------------------|-----------------------|--------------|------------------
+Hiwonder Bus Servo Control Board        | /dev/ttyUSB0          | COM3, COM4   | Most common for Hiwonder
+                                        | /dev/ttyUSB1          |              | (if multiple USB devices)
+                                        |                       |              |
+Feetech Motor Control Board             | /dev/ttyACM0          | COM#         | Your existing board
+(for reference)                         |                       |              |
 
 How to Find Your Port:
 ----------------------
@@ -397,9 +399,9 @@ Windows:
     3. Look for "USB Serial Port (COM#)"
 
 Raspberry Pi specific:
-    ls /dev/tty*
-    # Usually /dev/ttyUSB0 for USB adapters
-    # /dev/ttyAMA0 or /dev/serial0 for GPIO UART
+    ls /dev/tty* | grep USB
+    # Hiwonder Bus Servo Control Board: Usually /dev/ttyUSB0
+    # Feetech Motor Control Board: Usually /dev/ttyACM0
 
 ================================================================================
 6. QUICK TEST COMMANDS
@@ -538,6 +540,15 @@ Solutions:
     workon open-duck-mini-runtime
 ✓ Make sure control board has power when connected to Pi
 
+Problem: Do I need to disable Bluetooth on Raspberry Pi?
+---------------------------------------------------------
+Answer: NO!
+✓ Bluetooth conflicts only occur with GPIO UART (/dev/ttyAMA0)
+✓ The Hiwonder Bus Servo Control Board connects via USB (/dev/ttyUSB0)
+✓ USB serial ports do NOT conflict with Bluetooth
+✓ You NEED Bluetooth enabled for Xbox controller
+✓ Keep Bluetooth enabled - it won't cause any issues
+
 Problem: Velocity observations are all zeros
 ---------------------------------------------
 This is expected!
@@ -572,10 +583,17 @@ Why?
 ✓ Can test servos before mounting on robot
 ✓ Better error messages visible directly
 
-The servos remember their configuration:
-✓ IDs stored in EEPROM (persistent)
-✓ Offsets stored in EEPROM (persistent)
-✓ Once configured on PC, works same on Pi!
+The servos and control board remember their configuration:
+✓ Servo IDs stored in EEPROM (persistent)
+✓ Servo offsets stored in EEPROM (persistent)
+✓ Once configured on PC, just plug the control board into Pi - it works the same!
+
+Connection Method: USB Only
+----------------------------
+✓ This guide covers ONLY USB connection via Hiwonder Bus Servo Control Board
+✓ Direct GPIO UART connection is NOT recommended and NOT covered
+✓ USB connection is simpler, more reliable, and doesn't conflict with Bluetooth
+✓ No need to disable Bluetooth for Xbox controller
 
 Workflow Summary:
 -----------------
@@ -647,10 +665,11 @@ QUICK REFERENCE CHECKLIST
 ================================================================================
 
 ☐ Hardware Setup:
-  ☐ Control board connected to PC/Pi via USB
+  ☐ Hiwonder Bus Servo Control Board connected to PC/Pi via USB
   ☐ External 6-8.4V power supply connected to control board
-  ☐ Servos connected to control board
+  ☐ Servos connected to control board's servo connectors (daisy-chained)
   ☐ All connections secure
+  ☐ Bluetooth enabled on Pi (needed for Xbox controller, no conflicts with USB)
 
 ☐ Software Setup:
   ☐ PySerial installed: pip install pyserial

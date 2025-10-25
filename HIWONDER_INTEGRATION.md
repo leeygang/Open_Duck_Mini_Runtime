@@ -15,43 +15,36 @@ This guide explains how to integrate and calibrate Hiwonder HTD-45H serial bus s
 
 ## Physical Connection
 
-### Option 1: USB-to-TTL Adapter (Recommended for Testing)
+### Using Hiwonder Bus Servo Control Board (Required)
 
-Connect a USB-to-TTL adapter (CP2102, FT232, etc.) to the Hiwonder servo:
-- Adapter TX → Servo RX (yellow wire)
-- Adapter RX → Servo TX (green wire)
-- Adapter GND → Servo GND (black wire)
-- External 6-8.4V power → Servo VCC (red wire)
+The Hiwonder servos must be connected through a **Hiwonder Bus Servo Controller** board (Serial Bus Servo Tester Board). This board acts as a USB-to-Serial converter and power hub.
 
-**Important:** Do NOT power the servo from the USB adapter's 5V - use a separate power supply!
-
-The servo will appear as `/dev/ttyUSB0` (or `/dev/ttyUSB1`, etc.)
-
-### Option 2: Raspberry Pi GPIO UART
-
-Connect directly to Raspberry Pi UART pins:
-- GPIO 14 (TXD) → Servo RX/TX (requires level shifter or buffer IC)
-- GPIO 15 (RXD) → Servo RX/TX (requires level shifter or buffer IC)
-- Pi GND → Servo GND
-- External 6-8.4V power → Servo VCC
-
-**Note:** Hiwonder uses 5V logic, Raspberry Pi uses 3.3V. You need a level shifter or a half-duplex buffer IC (like SN74LVC1G126).
-
-Enable serial port:
-```bash
-sudo raspi-config
-# Interface Options → Serial Port
-# "Would you like a login shell accessible over serial?" → No
-# "Would you like the serial port hardware enabled?" → Yes
+**Hardware Architecture:**
+```
+Raspberry Pi
+    ↓ (USB cable)
+Hiwonder Bus Servo Control Board
+    ↓ (Servo connectors - daisy-chained)
+Hiwonder Servos (ID 100, 101, 102, ...)
+    ↓ (External 6-8.4V power supply)
 ```
 
-The servo will appear as `/dev/ttyAMA0` or `/dev/serial0`
+**Connection Steps:**
+1. Connect the Hiwonder Bus Servo Control Board to Raspberry Pi via USB
+2. Daisy-chain your Hiwonder servos to the control board's servo connectors
+3. Connect external 6-8.4V power supply to the control board
+4. The control board will appear as `/dev/ttyUSB0` (or `/dev/ttyUSB1`, etc.) on your Pi
 
-### Option 3: Mixed with Feetech Servos
+**Important Notes:**
+- Do NOT power servos from USB 5V - always use an external 6-8.4V power supply
+- The control board is "transparent" - it passes serial commands directly to servos
+- No special configuration needed on the Pi (no GPIO UART setup, no Bluetooth disabling)
+
+### Mixed with Feetech Servos
 
 If using both Feetech and Hiwonder servos:
-- Feetech servos → `/dev/ttyACM0` (motor control board)
-- Hiwonder servos → `/dev/ttyUSB0` (USB-to-TTL adapter)
+- Feetech servos → `/dev/ttyACM0` (Feetech motor control board)
+- Hiwonder servos → `/dev/ttyUSB0` (Hiwonder Bus Servo Control Board)
 
 Keep them on separate serial buses to avoid protocol conflicts.
 
@@ -238,10 +231,10 @@ class HybridHWI:
     """Control both Feetech and Hiwonder servos"""
 
     def __init__(self, duck_config):
-        # Feetech on /dev/ttyACM0
+        # Feetech motor control board on /dev/ttyACM0
         self.feetech = FeetechHWI(duck_config, usb_port="/dev/ttyACM0")
 
-        # Hiwonder on /dev/ttyUSB0
+        # Hiwonder Bus Servo Control Board on /dev/ttyUSB0
         self.hiwonder = HiwonderHWI(duck_config, usb_port="/dev/ttyUSB0")
 
         # Combined joints
