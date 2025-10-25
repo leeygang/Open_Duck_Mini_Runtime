@@ -40,14 +40,16 @@ class HiwonderBoardController:
     HEADER = [0x55, 0x55]           # Protocol header
     BOARD_ID = 0xFE                 # Board ID (different from servo IDs)
 
-    def __init__(self, port="/dev/ttyUSB0", baudrate=115200, timeout=0.5):
+    def __init__(self, port="/dev/ttyUSB0", baudrate=9600, timeout=0.5):
         """
         Initialize connection to Hiwonder Bus Servo Controller board
 
         Args:
             port: Serial port (e.g., /dev/ttyUSB0, /dev/serial0)
-            baudrate: Communication speed (default 115200)
+            baudrate: Communication speed (default 9600 for board commands)
             timeout: Serial read timeout in seconds
+
+        Note: The board uses 9600 baud for board commands, while servos use 115200 baud
         """
         try:
             self.serial = serial.Serial(

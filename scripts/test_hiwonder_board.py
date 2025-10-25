@@ -23,9 +23,9 @@ parser.add_argument(
 )
 parser.add_argument(
     "--baudrate",
-    help="Baudrate (default 115200)",
+    help="Baudrate (default 9600 for board commands)",
     type=int,
-    default=115200,
+    default=9600,
 )
 
 args = parser.parse_args()
