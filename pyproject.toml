@@ -10,7 +10,7 @@ readme = "README.md"
 authors = [
     {name = "Antoine Pirrone", email = "antoine.pirrone@gmail.com"}
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "rustypot==0.1.0",
     "onnxruntime==1.18.1",
