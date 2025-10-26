@@ -40,7 +40,11 @@ class HiwonderBoardController:
     CMD_MULT_SERVO_POS_READ = 0x15     # Read multiple servo positions
 
     HEADER = [0x55, 0x55]              # Protocol header
-    BOARD_ID = 0xFE                    # Board ID for board commands
+
+    class receivedResponse(object):
+        def __init__(self, cmd : int):
+            self.cmd = cmd
+            self.data = list()
 
     def __init__(self, port="/dev/ttyUSB0", baudrate=115200, timeout=0.5):
         """
@@ -68,13 +72,6 @@ class HiwonderBoardController:
         except Exception as e:
             raise Exception(f"Failed to open serial port {port}: {e}")
 
-    def _checksum(self, data: List[int]) -> int:
-        """
-        Calculate checksum for protocol
-
-        Checksum = ~(ID + Length + Command + Param1 + ... + ParamN) & 0xFF
-        """
-        return (~sum(data)) & 0xFF
 
     def _send_command(self, command: int, params: List[int] = None) -> None:
         """
@@ -87,15 +84,12 @@ class HiwonderBoardController:
         if params is None:
             params = []
 
-        # Length = ID + Length + Command + Params
-        length = 3 + len(params)
+        # Length = Params + 2
+        length = 2 + len(params)
 
         # Build packet
-        packet = self.HEADER + [self.BOARD_ID, length, command] + params
-
-        # Calculate checksum (from ID to end of params)
-        checksum = self._checksum(packet[2:])
-        packet.append(checksum)
+        packet = self.HEADER + [length, command] + params
+        print(f"   TX: {' '.join(f'{b:02X}' for b in packet)}")
 
         # Send
         self.serial.write(bytes(packet))
@@ -109,7 +103,7 @@ class HiwonderBoardController:
             timeout: Optional timeout override
 
         Returns:
-            List of [board_id, command, param1, ..., paramN] or None if error
+            List of [head, length, command, param1, ..., paramN] or None if error
         """
         if timeout is not None:
             old_timeout = self.serial.timeout
@@ -117,35 +111,37 @@ class HiwonderBoardController:
 
         try:
             # Read header
-            header = self.serial.read(2)
-            if len(header) != 2 or list(header) != self.HEADER:
+            while(True):
+                h = self.serial.read(1)
+                if (len(h) == 0):
+                    print("Timeout waiting for header")
+                    return None
+                elif h != b'\x55':
+                    print(f"Waiting for header... but read ({h:02X}), continue")
+                    continue
+                else:
+                    break
+            # read first header.
+            header = self.serial.read(1) 
+            if (header != b'\x55'):
+                print(f"Header error: expected 2nd 0x55, got: {header:02X}")
                 return None
 
-            # Read ID, length, command
-            metadata = self.serial.read(3)
-            if len(metadata) != 3:
+            # length, command
+            metadata = self.serial.read(2)
+            if len(metadata) != 2:
+                print("Failed to read length and command byte")
                 return None
-
-            board_id, length, command = metadata
-
-            # Read parameters and checksum
-            # Length includes ID, Length, Command, Params, Checksum
-            remaining = length - 3
+            length, command = metadata
+            # Read parameters
+            remaining = length - 2
             data = self.serial.read(remaining)
             if len(data) != remaining:
+                print(f"Failed to read data bytes: expected {remaining}, got: {' '.join(f'{b:02X}' for b in data)}")
                 return None
-
-            # Verify checksum
-            params = list(data[:-1])
-            received_checksum = data[-1]
-            calculated_checksum = self._checksum([board_id, length, command] + params)
-
-            if received_checksum != calculated_checksum:
-                print(f"Checksum error: expected {calculated_checksum:02X}, got {received_checksum:02X}")
-                return None
-
-            return [board_id, command] + params
-
+            ret = [length, command] + list(data)
+            print(f"Response: {' '.join(f'{b:02X}' for b in ret)}")
+            return ret
         finally:
             if timeout is not None:
                 self.serial.timeout = old_timeout
@@ -157,7 +153,7 @@ class HiwonderBoardController:
         Move multiple servos simultaneously (CMD_SERVO_MOVE = 0x03)
 
         Frame format:
-        [0x55][0x55][0xFE][Length][0x03][Count][ID1][Pos1_L][Pos1_H][Time1_L][Time1_H]...[Checksum]
+        [0x55][0x55][Length][0x03][number of Servos][ID1][Pos1_L][Pos1_H][Time1_L][Time1_H]...
 
         Args:
             servo_commands: List of (servo_id, position, time_ms) tuples
@@ -192,8 +188,8 @@ class HiwonderBoardController:
         Read board battery voltage (CMD_GET_BATTERY_VOLTAGE = 0x0F)
 
         Frame format:
-        Send: [0x55][0x55][0xFE][0x03][0x0F][Checksum]
-        Receive: [0x55][0x55][0xFE][0x04][0x0F][Voltage_L][Voltage_H][Checksum]
+        Send: [0x55][0x55][0x02][0x0F]
+        Receive: [0x55][0x55][0x04][0x0F][Voltage_L][Voltage_H]
 
         Returns:
             Voltage in volts, or None if error
@@ -205,8 +201,8 @@ class HiwonderBoardController:
         self._send_command(self.CMD_GET_BATTERY_VOLTAGE)
         response = self._read_response(timeout=1.0)
 
-        if response and len(response) >= 4:
-            # Response: [board_id, command, voltage_low, voltage_high]
+        if response and response[1] == self.CMD_GET_BATTERY_VOLTAGE and response[0] == 4:
+            # Response: [length, command, voltage_low, voltage_high]
             # Voltage in millivolts (little-endian)
             voltage_mv = response[2] | (response[3] << 8)
             return voltage_mv / 1000.0
@@ -217,7 +213,7 @@ class HiwonderBoardController:
         Unload (disable torque) multiple servos (CMD_MULT_SERVO_UNLOAD = 0x14)
 
         Frame format:
-        [0x55][0x55][0xFE][Length][0x14][Count][ID1][ID2]...[IDn][Checksum]
+        [0x55][0x55][Length][0x14][Number of Servos][ID1][ID2]...[IDn]
 
         Args:
             servo_ids: List of servo IDs to unload (1-253)
@@ -237,8 +233,8 @@ class HiwonderBoardController:
         Read positions of multiple servos (CMD_MULT_SERVO_POS_READ = 0x15)
 
         Frame format:
-        Send: [0x55][0x55][0xFE][Length][0x15][Count][ID1][ID2]...[IDn][Checksum]
-        Receive: [0x55][0x55][0xFE][Length][0x15][Count][ID1][Pos1_L][Pos1_H][ID2][Pos2_L][Pos2_H]...[Checksum]
+        Send: [0x55][0x55][Length][0x15][Count][ID1][ID2]...[IDn]
+        Receive: [0x55][0x55][0xFE][Length][0x15][Count][ID1][Pos1_L][Pos1_H][ID2][Pos2_L][Pos2_H]...
 
         Args:
             servo_ids: List of servo IDs to read (1-253)
@@ -278,7 +274,7 @@ class HiwonderBoardController:
         if self.serial and self.serial.is_open:
             self.serial.close()
             print("Board controller connection closed")
-
+ 
 
 # Example usage
 if __name__ == "__main__":
