@@ -1,251 +1,291 @@
-# Hiwonder Bus Servo Controller Board Commands
+# Hiwonder Bus Servo Controller - Board Commands
 
-This document explains the difference between **board commands** and **servo commands**, and how to use both.
+This document explains the 4 board-level commands from the official Hiwonder Bus Servo Controller protocol and how to use them.
 
-## Understanding the System
+## Protocol Overview
 
-The Hiwonder Bus Servo Controller system has **two levels of control**:
+The Hiwonder Bus Servo Controller uses a simple serial protocol to control multiple servos simultaneously.
+
+### Frame Format
 
 ```
-Your Computer
-    ↓ (Serial Commands)
-┌─────────────────────────────────────┐
-│ Hiwonder Bus Servo Controller Board │ ← Board-level commands
-│  - Power management                 │
-│  - Multi-servo synchronization      │
-│  - Board status/voltage             │
-└─────────────────────────────────────┘
-    ↓ (Servo Protocol)
-Hiwonder Servos (ID 1, 2, 3, ...)    ← Servo-level commands
+[0x55][0x55][ID][Length][Command][Param1]...[ParamN][Checksum]
 ```
 
-## Two Types of Commands
+- **Header**: `0x55 0x55` (fixed)
+- **ID**: `0xFE` for board commands
+- **Length**: Number of bytes from ID to Checksum (inclusive)
+- **Command**: Command code (see below)
+- **Params**: Variable length parameters
+- **Checksum**: `~(ID + Length + Command + Param1 + ... + ParamN) & 0xFF`
 
-### 1. Board Commands (hiwonder_board_controller.py)
+### Connection
 
-These commands control the **board itself**, not individual servos:
+- **Baudrate**: 115200
+- **Port**: `/dev/ttyUSB0` (USB-to-TTL adapter) or `/dev/serial0` (GPIO UART)
+- **Board ID**: `0xFE` (fixed for board commands)
 
-- **Get board information** - Firmware version, board type
-- **Power management** - Turn servo power on/off
-- **Read board voltage** - Monitor input voltage
-- **Multi-servo sync** - Move multiple servos simultaneously
-- **Board reset** - Reset the controller board
+## The 4 Board Commands
 
-**Usage:**
+### 1. CMD_SERVO_MOVE (0x03)
+
+Move multiple servos simultaneously to specified positions.
+
+**Command Frame:**
+```
+[0x55][0x55][0xFE][Length][0x03][Count][ID1][Pos1_L][Pos1_H][Time1_L][Time1_H]...[Checksum]
+```
+
+**Parameters:**
+- `Count`: Number of servos to move
+- For each servo:
+  - `ID`: Servo ID (1-253)
+  - `Pos_L`, `Pos_H`: Target position (0-1000, little-endian)
+  - `Time_L`, `Time_H`: Movement time in milliseconds (little-endian)
+
+**Python Usage:**
 ```python
 from mini_bdx_runtime.hiwonder_board_controller import HiwonderBoardController
 
 board = HiwonderBoardController(port="/dev/ttyUSB0")
 
-# Get board info
-info = board.get_board_info()
-print(f"Firmware: {info['firmware_version']}")
-
-# Read voltage
-voltage = board.read_board_voltage()
-print(f"Voltage: {voltage:.2f}V")
-
-# Control power
-board.set_servo_power(True)  # Turn on
-board.set_servo_power(False) # Turn off
-
-# Move multiple servos at once (synchronized)
-board.multi_servo_move([
-    (1, 500, 1000),  # Servo 1 to position 500 in 1000ms
-    (2, 600, 1000),  # Servo 2 to position 600 in 1000ms
-    (3, 400, 1000),  # Servo 3 to position 400 in 1000ms
+# Move servos 1, 2, 3 to center position (500) in 1000ms
+board.move_servos([
+    (1, 500, 1000),  # Servo 1
+    (2, 500, 1000),  # Servo 2
+    (3, 500, 1000),  # Servo 3
 ])
-
-board.close()
 ```
 
-### 2. Servo Commands (hiwonder_hwi.py)
+### 2. CMD_GET_BATTERY_VOLTAGE (0x0F)
 
-These commands communicate directly with **individual servos** through the board:
+Read the board's battery voltage.
 
-- **Read/write position** - Control servo position
-- **Read voltage/temperature** - Monitor servo status
-- **Set servo ID** - Configure servo ID
-- **Set angle offset** - Calibrate servo zero position
-- **Control torque** - Enable/disable servo torque
+**Command Frame (Send):**
+```
+[0x55][0x55][0xFE][0x03][0x0F][Checksum]
+```
 
-**Usage:**
+**Response Frame:**
+```
+[0x55][0x55][0xFE][0x04][0x0F][Voltage_L][Voltage_H][Checksum]
+```
+
+**Response:**
+- `Voltage_L`, `Voltage_H`: Voltage in millivolts (little-endian)
+
+**Python Usage:**
 ```python
-from mini_bdx_runtime.hiwonder_hwi import HiwonderServo
-
-servo = HiwonderServo(port="/dev/ttyUSB0")
-
-# Move single servo
-servo.move_servo(servo_id=1, position=500, duration=1000)
-
-# Read position
-pos = servo.read_position(servo_id=1)
-
-# Read voltage and temperature
-voltage = servo.read_voltage(servo_id=1)
-temp = servo.read_temperature(servo_id=1)
-
-# Change servo ID
-servo.set_servo_id(old_id=1, new_id=100)
-
-servo.close()
+voltage = board.get_battery_voltage()
+if voltage is not None:
+    print(f"Battery: {voltage:.2f}V")
 ```
 
-## When to Use Which
+### 3. CMD_MULT_SERVO_UNLOAD (0x14)
 
-### Use Board Commands When:
-- ✅ You need to control power to all servos at once
-- ✅ You want to move multiple servos simultaneously (synchronized)
-- ✅ You need to check board voltage/status
-- ✅ You're doing board-level management
+Disable torque on multiple servos (servos become freely movable).
 
-### Use Servo Commands When:
-- ✅ You need to control individual servos
-- ✅ You want to read servo-specific data (position, temp, voltage)
-- ✅ You're configuring servo IDs or offsets
-- ✅ You're doing normal servo operation
-
-## Testing Board Commands
-
-Test if your board supports board-level commands:
-
-```bash
-# Test board commands
-python3 scripts/test_hiwonder_board.py --port /dev/ttyUSB0
-
-# Or with GPIO UART
-python3 scripts/test_hiwonder_board.py --port /dev/serial0
+**Command Frame:**
+```
+[0x55][0x55][0xFE][Length][0x14][Count][ID1][ID2]...[IDn][Checksum]
 ```
 
-**Note:** Some Hiwonder control boards may act as **transparent pass-through only** and might not support all board-level commands. In that case, just use the servo commands (hiwonder_hwi.py) which will work through the board.
+**Parameters:**
+- `Count`: Number of servos to unload
+- `ID1`, `ID2`, ...: Servo IDs (1-253)
 
-## Protocol Details
-
-### Board Command Frame Format:
-```
-Header(2) + Board_ID(1) + Length(1) + CMD(1) + Params(n) + Checksum(1)
-
-Header:   0x55 0x55
-Board_ID: 0xFE (fixed, different from servo IDs 0x01-0xFD)
-Length:   Number of bytes from ID to checksum
-CMD:      Command byte
-Params:   Command parameters (variable length)
-Checksum: (~sum(ID to Params)) & 0xFF
+**Python Usage:**
+```python
+# Disable torque on servos 1, 2, 3
+board.unload_servos([1, 2, 3])
 ```
 
-### Servo Command Frame Format:
+**Note:** To re-enable torque, send a `move_servos` command.
+
+### 4. CMD_MULT_SERVO_POS_READ (0x15)
+
+Read current positions of multiple servos.
+
+**Command Frame (Send):**
 ```
-Header(2) + Servo_ID(1) + Length(1) + CMD(1) + Params(n) + Checksum(1)
-
-Header:    0x55 0x55
-Servo_ID:  0x01-0xFD (specific servo), 0xFE (broadcast)
-Length:    Number of bytes from ID to checksum
-CMD:       Command byte
-Params:    Command parameters (variable length)
-Checksum:  (~sum(ID to Params)) & 0xFF
+[0x55][0x55][0xFE][Length][0x15][Count][ID1][ID2]...[IDn][Checksum]
 ```
 
-**Key Difference:** Board commands use ID `0xFE`, servo commands use IDs `0x01-0xFD`.
+**Response Frame:**
+```
+[0x55][0x55][0xFE][Length][0x15][Count][ID1][Pos1_L][Pos1_H][ID2][Pos2_L][Pos2_H]...[Checksum]
+```
 
-## Available Board Commands
+**Response:**
+- `Count`: Number of servos
+- For each servo:
+  - `ID`: Servo ID
+  - `Pos_L`, `Pos_H`: Current position (0-1000, little-endian)
 
-| Command | Code | Description |
-|---------|------|-------------|
-| Get Board Info | 0x01 | Query firmware version |
-| Set Servo Power | 0x02 | Turn servo power on/off |
-| Get Servo Power | 0x03 | Query power status |
-| Set Servo Offset | 0x04 | Set servo offset |
-| Get Servo Offset | 0x05 | Read servo offset |
-| Save Offset | 0x06 | Save offset to EEPROM |
-| Read Voltage | 0x07 | Read board voltage |
-| Multi Servo Move | 0x08 | Synchronized multi-servo move |
-| Multi Servo Unload | 0x09 | Disable multiple servos |
-| Servo Mode | 0x0A | Set position/rotation mode |
-| Reset Board | 0xFF | Reset controller board |
+**Python Usage:**
+```python
+positions = board.read_servo_positions([1, 2, 3])
+if positions:
+    for servo_id, position in positions:
+        print(f"Servo {servo_id}: position {position}")
+```
 
-## Troubleshooting
-
-### "Could not read board info/voltage/power"
-
-This likely means:
-1. Your board version might not support these specific commands
-2. The board is acting as a transparent pass-through only
-3. Different protocol version or variant
-
-**Solution:** Just use the servo commands (`hiwonder_hwi.py`) which work through the board regardless of board command support.
-
-### Board commands work but servo commands don't
-
-Make sure:
-1. Servo power is enabled: `board.set_servo_power(True)`
-2. Servos are properly connected to the board
-3. External power supply (6-8.4V) is connected
-
-### Both board and servo commands fail
-
-Check:
-1. Serial port is correct (`/dev/ttyUSB0` or `/dev/serial0`)
-2. Board is powered and connected
-3. Baud rate is correct (115200 is standard)
-4. No permission issues (`sudo usermod -a -G dialout $USER`)
-
-## Examples
-
-### Complete Example: Power On and Move Servos
+## Complete Example
 
 ```python
 from mini_bdx_runtime.hiwonder_board_controller import HiwonderBoardController
-from mini_bdx_runtime.hiwonder_hwi import HiwonderServo
 import time
 
 # Initialize board controller
-board = HiwonderBoardController(port="/dev/ttyUSB0")
+board = HiwonderBoardController(port="/dev/ttyUSB0", baudrate=115200)
 
-# Turn on servo power
-print("Turning on servo power...")
-board.set_servo_power(True)
-time.sleep(0.5)
+try:
+    # 1. Check battery voltage
+    voltage = board.get_battery_voltage()
+    print(f"Battery: {voltage:.2f}V")
 
-# Check voltage
-voltage = board.read_board_voltage()
-print(f"Board voltage: {voltage:.2f}V")
+    # 2. Read initial positions
+    positions = board.read_servo_positions([1, 2, 3])
+    print("Initial positions:")
+    for servo_id, position in positions:
+        print(f"  Servo {servo_id}: {position}")
 
-# Now use servo interface for individual servo control
-servo = HiwonderServo(port="/dev/ttyUSB0")
+    # 3. Move servos to center
+    print("\nMoving servos to center (500)...")
+    board.move_servos([
+        (1, 500, 1000),
+        (2, 500, 1000),
+        (3, 500, 1000),
+    ])
+    time.sleep(1.5)
 
-# Move servos
-print("Moving servos...")
-servo.move_servo(1, 500, 1000)
-servo.move_servo(2, 600, 1000)
+    # 4. Read positions after movement
+    positions = board.read_servo_positions([1, 2, 3])
+    print("After movement:")
+    for servo_id, position in positions:
+        print(f"  Servo {servo_id}: {position}")
 
-time.sleep(2)
+    # 5. Unload servos (disable torque)
+    print("\nUnloading servos...")
+    board.unload_servos([1, 2, 3])
+    print("Servos can now be moved manually")
 
-# Clean up
-servo.close()
-board.close()
+finally:
+    board.close()
 ```
 
-### Synchronized Multi-Servo Move
+## Testing
 
-```python
-from mini_bdx_runtime.hiwonder_board_controller import HiwonderBoardController
+Test your setup with the provided test script:
 
-board = HiwonderBoardController(port="/dev/ttyUSB0")
+```bash
+# Test with USB-to-TTL adapter
+python3 scripts/test_hiwonder_board.py --port /dev/ttyUSB0
 
-# Move multiple servos simultaneously (perfectly synchronized)
-board.multi_servo_move([
-    (1, 400, 1500),   # Servo 1: position 400, 1500ms
-    (2, 500, 1500),   # Servo 2: position 500, 1500ms
-    (3, 600, 1500),   # Servo 3: position 600, 1500ms
-    (4, 700, 1500),   # Servo 4: position 700, 1500ms
-])
+# Test with GPIO UART
+python3 scripts/test_hiwonder_board.py --port /dev/serial0
 
-board.close()
+# Test specific servo IDs
+python3 scripts/test_hiwonder_board.py --port /dev/ttyUSB0 --servo-ids 1,2,3
 ```
+
+The test script will:
+1. Read battery voltage
+2. Read servo positions
+3. Test servo movement (optional)
+4. Test servo unload (optional)
+5. Test coordinated movement patterns (optional)
+
+## Position Units
+
+Hiwonder servos use a position range of **0-1000** units:
+- `0` = -120° (left limit)
+- `500` = 0° (center)
+- `1000` = +120° (right limit)
+- Total range: 240°
+- 1 unit ≈ 0.24°
+
+## Connection Methods
+
+### Option 1: USB-to-TTL Adapter (Recommended)
+
+```
+Raspberry Pi
+    ↓ (USB cable)
+USB-to-TTL Adapter (CP2102, FT232, CH340)
+    ↓ (Serial wires: TX, RX, GND)
+Hiwonder Bus Servo Control Board (serial pins)
+    ↓ (Servo connectors)
+Hiwonder Servos (daisy-chained)
+    ↓ (External power: 6-8.4V)
+```
+
+**Settings:**
+- Port: `/dev/ttyUSB0`
+- Baudrate: `115200`
+- Bluetooth: Keep enabled (no conflict)
+
+### Option 2: GPIO UART (Temporary)
+
+```
+Raspberry Pi GPIO Pins (14 & 15)
+    ↓ (Direct wiring: TX, RX, GND)
+Hiwonder Bus Servo Control Board (serial pins)
+    ↓ (Servo connectors)
+Hiwonder Servos (daisy-chained)
+    ↓ (External power: 6-8.4V)
+```
+
+**Settings:**
+- Port: `/dev/serial0` or `/dev/ttyAMA0`
+- Baudrate: `115200`
+- Bluetooth: Must be disabled (conflicts with GPIO UART)
+
+**Wiring:**
+- Pi GPIO 14 (Pin 8) → Board RX
+- Pi GPIO 15 (Pin 10) → Board TX
+- Pi GND (Pin 6 or 9) → Board GND
+
+## Troubleshooting
+
+### "Could not read voltage"
+- Check board is powered on
+- Verify serial connection (TX→RX, RX→TX, GND→GND)
+- Check baudrate is 115200
+- Verify port is correct (`/dev/ttyUSB0` or `/dev/serial0`)
+
+### "Could not read positions"
+- Check servos are connected and powered (6-8.4V external supply)
+- Verify servo IDs are correct
+- Ensure servos are not in unloaded state
+- Check battery voltage is sufficient (>6V)
+
+### "Checksum error"
+- Electrical noise or poor connections
+- Cable too long or poor quality
+- Try shielded cables or shorter cables
+- Add ferrite beads
+
+### Servos don't move
+- Check external power supply (6-8.4V)
+- Verify servos are loaded (not unloaded)
+- Check servo IDs are correct
+- Verify battery voltage is sufficient
+
+## Command Reference Summary
+
+| Command | Code | Description | Response |
+|---------|------|-------------|----------|
+| CMD_SERVO_MOVE | 0x03 | Move multiple servos | No response |
+| CMD_GET_BATTERY_VOLTAGE | 0x0F | Read battery voltage | Voltage (mV) |
+| CMD_MULT_SERVO_UNLOAD | 0x14 | Unload multiple servos | No response |
+| CMD_MULT_SERVO_POS_READ | 0x15 | Read multiple servo positions | Positions |
 
 ## Reference
 
-- **Hiwonder Documentation:** https://docs.hiwonder.com/projects/Bus-Servo-Controller/en/latest/index.html
-- **Section 2.1:** Control Board Protocol
-- **Python Module:** `mini_bdx_runtime/hiwonder_board_controller.py`
-- **Test Script:** `scripts/test_hiwonder_board.py`
+- **Protocol Document**: `Bus Servo Controller Communication Protocol.pdf`
+- **Python Module**: `mini_bdx_runtime/hiwonder_board_controller.py`
+- **Test Script**: `scripts/test_hiwonder_board.py`
+- **Setup Guide**: `HIWONDER_SETUP_GUIDE.txt`
+- **Integration Guide**: `HIWONDER_INTEGRATION.md`
+- **Official Documentation**: https://docs.hiwonder.com/

@@ -2,7 +2,11 @@
 """
 Test script for Hiwonder Bus Servo Controller board commands
 
-This script tests board-level commands (not direct servo commands)
+Tests the 4 board-level commands from the official protocol:
+- CMD_SERVO_MOVE (0x03): Move multiple servos
+- CMD_GET_BATTERY_VOLTAGE (0x0F): Read battery voltage
+- CMD_MULT_SERVO_UNLOAD (0x14): Unload multiple servos
+- CMD_MULT_SERVO_POS_READ (0x15): Read multiple servo positions
 """
 
 import sys
@@ -23,116 +27,175 @@ parser.add_argument(
 )
 parser.add_argument(
     "--baudrate",
-    help="Baudrate (default 9600 for board commands)",
+    help="Baudrate (default 115200)",
     type=int,
-    default=9600,
+    default=115200,
+)
+parser.add_argument(
+    "--servo-ids",
+    help="Comma-separated list of servo IDs to test (e.g., 1,2,3)",
+    default="1,2,3",
 )
 
 args = parser.parse_args()
 
-print("=== Hiwonder Bus Servo Controller Board Test ===")
+# Parse servo IDs
+try:
+    servo_ids = [int(x.strip()) for x in args.servo_ids.split(',')]
+except ValueError:
+    print(f"Error: Invalid servo IDs: {args.servo_ids}")
+    print("Example: --servo-ids 1,2,3")
+    sys.exit(1)
+
+print("=== Hiwonder Bus Servo Controller Test ===")
 print(f"Port: {args.port}")
 print(f"Baudrate: {args.baudrate}")
+print(f"Testing servo IDs: {servo_ids}")
+print()
+print("Commands tested:")
+print("  - CMD_SERVO_MOVE (0x03)")
+print("  - CMD_GET_BATTERY_VOLTAGE (0x0F)")
+print("  - CMD_MULT_SERVO_UNLOAD (0x14)")
+print("  - CMD_MULT_SERVO_POS_READ (0x15)")
 print()
 
 try:
     board = HiwonderBoardController(port=args.port, baudrate=args.baudrate)
 
-    # Test 1: Get board information
-    print("Test 1: Get Board Information")
+    # Test 1: Get battery voltage
+    print("Test 1: CMD_GET_BATTERY_VOLTAGE (0x0F)")
     print("-" * 40)
-    info = board.get_board_info()
-    if info:
-        print(f"✓ Board Type: {info['board_type']}")
-        print(f"✓ Firmware Version: {info['firmware_version']}")
-    else:
-        print("✗ Could not read board info")
-        print("  Note: Board might not support this command")
-    print()
-
-    # Test 2: Read board voltage
-    print("Test 2: Read Board Voltage")
-    print("-" * 40)
-    voltage = board.read_board_voltage()
-    if voltage:
-        print(f"✓ Board Voltage: {voltage:.2f}V")
+    voltage = board.get_battery_voltage()
+    if voltage is not None:
+        print(f"✓ Battery voltage: {voltage:.2f}V")
         if voltage < 6.0:
             print("  ⚠ Warning: Voltage is low (should be 6-8.4V)")
         elif voltage > 8.5:
             print("  ⚠ Warning: Voltage is high (should be 6-8.4V)")
     else:
         print("✗ Could not read voltage")
-        print("  Note: Board might not support this command")
+        print("  Check:")
+        print("  1. Board is powered on")
+        print("  2. Serial connection is correct")
+        print("  3. Board supports this command")
     print()
 
-    # Test 3: Check servo power status
-    print("Test 3: Check Servo Power Status")
+    # Test 2: Read servo positions
+    print(f"Test 2: CMD_MULT_SERVO_POS_READ (0x15)")
     print("-" * 40)
-    power = board.get_servo_power()
-    if power is not None:
-        status = "ON" if power else "OFF"
-        print(f"✓ Servo Power: {status}")
+    print(f"Reading positions of servos {servo_ids}...")
+    positions = board.read_servo_positions(servo_ids)
+    if positions:
+        print(f"✓ Read {len(positions)} servo positions:")
+        for servo_id, position in positions:
+            print(f"  Servo {servo_id}: position {position}")
     else:
-        print("✗ Could not read power status")
-        print("  Note: Board might not support this command")
+        print("✗ Could not read positions")
+        print("  Check:")
+        print("  1. Servos are connected and powered")
+        print("  2. Servo IDs are correct")
+        print("  3. External power supply (6-8.4V) is connected")
     print()
 
-    # Test 4: Toggle servo power (optional, with user confirmation)
-    print("Test 4: Servo Power Control (optional)")
+    # Test 3: Move servos (optional)
+    print("Test 3: CMD_SERVO_MOVE (0x03) - optional")
     print("-" * 40)
-    response = input("Do you want to test power control? (y/N): ").lower()
+    response = input("Do you want to test servo movement? (y/N): ").lower()
     if response == 'y':
-        print("Turning servo power OFF...")
-        if board.set_servo_power(False):
-            print("✓ Power turned OFF")
-            time.sleep(1)
+        print(f"Moving servos {servo_ids} to center position (500) in 1000ms...")
+        servo_commands = [(sid, 500, 1000) for sid in servo_ids]
+        board.move_servos(servo_commands)
+        print("✓ Command sent")
 
-            print("Turning servo power ON...")
-            if board.set_servo_power(True):
-                print("✓ Power turned ON")
-            else:
-                print("✗ Failed to turn power ON")
+        time.sleep(1.5)
+
+        # Read positions after movement
+        print("\nReading positions after movement...")
+        positions = board.read_servo_positions(servo_ids)
+        if positions:
+            for servo_id, position in positions:
+                print(f"  Servo {servo_id}: position {position}")
+                if abs(position - 500) < 20:
+                    print(f"    ✓ Close to target (500)")
+                else:
+                    print(f"    ⚠ Differs from target (expected ~500, got {position})")
         else:
-            print("✗ Failed to turn power OFF")
+            print("  Could not read positions")
     else:
-        print("Skipped power control test")
+        print("Skipped movement test")
     print()
 
-    # Test 5: Multi-servo move command
-    print("Test 5: Multi-Servo Move Command (optional)")
+    # Test 4: Unload servos (optional)
+    print("Test 4: CMD_MULT_SERVO_UNLOAD (0x14) - optional")
     print("-" * 40)
-    response = input("Do you want to test multi-servo move? (y/N): ").lower()
+    response = input("Do you want to test servo unload (disable torque)? (y/N): ").lower()
     if response == 'y':
-        servo_ids = input("Enter servo IDs to test (comma-separated, e.g., 1,2,3): ")
-        try:
-            ids = [int(x.strip()) for x in servo_ids.split(',')]
-            print(f"Moving servos {ids} to center position (500)...")
+        print(f"Unloading servos {servo_ids}...")
+        board.unload_servos(servo_ids)
+        print("✓ Command sent")
+        print("  Servos should now be movable manually (torque disabled)")
+        print()
 
-            commands = [(servo_id, 500, 1000) for servo_id in ids]
-            board.multi_servo_move(commands)
-            print("✓ Multi-servo move command sent")
-            print("  (Check if servos moved)")
-        except ValueError:
-            print("✗ Invalid servo IDs")
+        input("Press Enter to continue (servos will remain unloaded)...")
+
+        # Note: To re-enable torque, you would need to send a load command
+        # or send a move command which will automatically re-enable torque
+        print("\nNote: To re-enable torque, send a move command")
     else:
-        print("Skipped multi-servo move test")
+        print("Skipped unload test")
     print()
+
+    # Test 5: Additional movement patterns (optional)
+    if len(servo_ids) >= 2:
+        print("Test 5: Multi-Servo Coordinated Movement - optional")
+        print("-" * 40)
+        response = input("Do you want to test coordinated movement patterns? (y/N): ").lower()
+        if response == 'y':
+            print("\nPattern 1: All servos to position 400")
+            board.move_servos([(sid, 400, 1000) for sid in servo_ids])
+            time.sleep(1.5)
+
+            print("Pattern 2: All servos to position 600")
+            board.move_servos([(sid, 600, 1000) for sid in servo_ids])
+            time.sleep(1.5)
+
+            print("Pattern 3: Back to center (500)")
+            board.move_servos([(sid, 500, 1000) for sid in servo_ids])
+            time.sleep(1.5)
+
+            print("✓ Movement patterns complete")
+
+            # Read final positions
+            positions = board.read_servo_positions(servo_ids)
+            if positions:
+                print("\nFinal positions:")
+                for servo_id, position in positions:
+                    print(f"  Servo {servo_id}: {position}")
+        else:
+            print("Skipped coordinated movement test")
+        print()
 
     print("=== Test Complete ===")
     print()
     print("Summary:")
-    print("  If commands returned 'Could not read', the board might:")
-    print("  1. Not support these specific board commands")
-    print("  2. Be acting as a transparent pass-through only")
-    print("  3. Use a different protocol version")
+    print(f"  Port: {args.port}")
+    print(f"  Baudrate: {args.baudrate}")
+    print(f"  Tested servos: {servo_ids}")
+    print(f"  Battery voltage: {voltage:.2f}V" if voltage else "  Battery voltage: N/A")
     print()
-    print("  In that case, use direct servo commands (hiwonder_hwi.py)")
-    print("  which work with servos through the board.")
+    print("Commands tested:")
+    print("  ✓ CMD_SERVO_MOVE (0x03) - Move multiple servos")
+    print("  ✓ CMD_GET_BATTERY_VOLTAGE (0x0F) - Read battery voltage")
+    print("  ✓ CMD_MULT_SERVO_UNLOAD (0x14) - Unload multiple servos")
+    print("  ✓ CMD_MULT_SERVO_POS_READ (0x15) - Read multiple servo positions")
 
     board.close()
 
+except KeyboardInterrupt:
+    print("\n\nTest interrupted by user")
+    sys.exit(0)
 except Exception as e:
-    print(f"Error: {e}")
+    print(f"\nError: {e}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
