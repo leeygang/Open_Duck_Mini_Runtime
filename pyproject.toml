@@ -15,7 +15,8 @@ dependencies = [
     "rustypot==0.1.0",
     "onnxruntime==1.23.2",
     "numpy==1.26.4",
-    "adafruit-circuitpython-bno055==5.4.13",
+    "adafruit-circuitpython-bno055==5.4.13",  # BNO055 IMU support
+    "adafruit-circuitpython-bno08x",  # BNO085/BNO08x IMU support
     "scipy==1.15.1",
 #    "pygame==2.6.0",
     "pypot @ git+https://github.com/pollen-robotics/pypot@support-feetech-sts3215",
