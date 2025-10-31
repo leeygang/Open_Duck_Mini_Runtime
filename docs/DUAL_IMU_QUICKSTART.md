@@ -111,7 +111,7 @@ Done! 🎉
 
 ## Comparison Test
 
-Want to see how both IMUs compare?
+Want to see how both IMUs perform? (Only meaningful if both mounted at same location)
 
 ```bash
 # Run both simultaneously for 30 seconds
@@ -123,9 +123,11 @@ This will show:
 - Roll/Pitch/Yaw differences
 - Mean/Max error statistics
 
-**Expected results:**
+**Expected results (when both at same location):**
 - Roll/Pitch error: < 5° (excellent), < 10° (acceptable)
 - Yaw error: < 15° (ICM45686 drifts without mag)
+
+**Note:** If IMUs are at different body locations, large differences are normal and expected!
 
 ## Switching Between IMUs
 
@@ -184,14 +186,14 @@ Use BNO085 if you need accurate heading!
 ## Next Steps
 
 - Read [full multi-IMU guide](MULTI_IMU_SETUP.md) for advanced features
-- Experiment with sensor fusion between both IMUs
-- Add failover logic (auto-switch if one fails)
-- Use both for redundancy in production
+- Mount IMUs at different body locations for independent orientation measurements
+- Add failover logic (auto-switch if one fails) if both IMUs measure the same body part
+- Use both for redundancy in production (same location) or multi-point sensing (different locations)
 
 ## Common Questions
 
 **Q: Can I use both at the same time?**
-A: Yes! See `test_dual_imu.py --compare` for example code.
+A: Yes! You can read both simultaneously. Use `test_dual_imu.py --compare` if they measure the same body part, or read them independently if they're at different locations (e.g., torso + leg).
 
 **Q: Which is better?**
 A: BNO085 for ease of use, ICM45686 for performance. Both excellent.

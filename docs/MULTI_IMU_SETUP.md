@@ -4,10 +4,11 @@
 
 This guide explains how to connect and use multiple IMUs (BNO085 + ICM45686) with the Duck Mini robot using a PCA9548A I2C multiplexer. This setup enables:
 
-- **Redundancy**: Fallback to secondary IMU if primary fails
-- **Sensor fusion**: Combine data from multiple IMUs for improved accuracy
+- **Multiple measurement points**: Connect IMUs at different body locations to measure independent orientations
+- **Alternative configurations**: Switch between IMU types in software without rewiring
+- **Redundancy**: Fallback to secondary IMU if primary fails (when mounted at same location)
 - **Comparison**: Validate IMU readings against each other
-- **Flexibility**: Switch between IMUs without rewiring
+- **Expandability**: Add up to 8 I2C devices on separate channels
 
 ## Supported Configurations
 
@@ -357,8 +358,10 @@ Expected output:
 
 ### Comparison Test
 
+**Note:** This test is only meaningful when both IMUs are mounted at the same location measuring the same orientation. If IMUs are at different body parts, skip this test.
+
 ```bash
-# Run both IMUs simultaneously
+# Run both IMUs simultaneously (only if both at same location)
 python3 scripts/test_dual_imu.py --compare --duration 30
 ```
 
@@ -368,9 +371,11 @@ This will:
 - Report mean/max/std errors
 - Validate agreement within tolerance
 
-**Expected Results**:
+**Expected Results (same location only)**:
 - Roll/Pitch error: < 5° (good), < 10° (acceptable)
 - Yaw error: < 15° (ICM45686 drifts without magnetometer)
+
+**If IMUs at different locations:** Large differences are normal and expected - they're measuring different orientations!
 
 ### Walking Policy Test
 
@@ -404,10 +409,14 @@ The policy will use whichever IMU is specified in `duck_config.json`.
 
 ### IMUs Show Different Orientations
 
-**Symptom**: Comparison test shows high disagreement (>10°)
+**Important:** First check if your IMUs are at the same location or different locations!
+- **Different locations (torso vs leg)**: Large orientation differences are NORMAL and EXPECTED
+- **Same location**: If comparison test shows high disagreement (>10°), follow solutions below
+
+**Symptom**: Comparison test shows high disagreement (>10°) when both IMUs at same location
 
 **Solutions**:
-1. Check mounting orientations match
+1. Verify both IMUs are actually at the same location with same mounting orientation
 2. Calibrate ICM45686: `python3 scripts/calibrate_icm45686.py`
 3. Allow BNO085 to calibrate (move through orientations)
 4. Verify `upside_down` setting matches physical mounting
@@ -460,36 +469,6 @@ With both IMUs at 50 Hz:
 - Plenty of headroom for additional devices
 
 ## Advanced Topics
-
-### Sensor Fusion Between IMUs
-
-For advanced users, you can fuse data from both IMUs:
-
-```python
-def fuse_imu_data(icm_quat, bno_quat, icm_weight=0.5):
-    """
-    Simple weighted quaternion fusion.
-
-    Args:
-        icm_quat: ICM45686 quaternion
-        bno_quat: BNO085 quaternion
-        icm_weight: Weight for ICM (0-1)
-
-    Returns:
-        Fused quaternion
-    """
-    from scipy.spatial.transform import Rotation as R
-
-    # Convert to Rotation objects
-    icm_rot = R.from_quat(icm_quat)
-    bno_rot = R.from_quat(bno_quat)
-
-    # SLERP interpolation
-    slerp = R.from_quat([icm_rot, bno_rot])
-    fused = slerp([icm_weight])[0]
-
-    return fused.as_quat()
-```
 
 ### Adding More IMUs
 
@@ -549,7 +528,8 @@ print(f"Found BNO085 on channels: {bno_channels}")
 - **Navigation**: BNO085 (magnetometer for heading)
 - **General Walking**: Either works great!
 - **Production**: BNO085 (automatic calibration, easier for users)
-- **Research**: Both (compare algorithms, redundancy)
+- **Multi-body sensing**: Both at different locations (e.g., torso + leg orientation)
+- **Research/Comparison**: Both at same location (compare algorithms, validate, redundancy)
 
 ## References
 

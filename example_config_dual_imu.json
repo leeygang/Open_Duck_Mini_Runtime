@@ -1,12 +1,14 @@
 {
     "_comment": "Duck Mini Configuration with Dual IMU Setup (BNO085 + ICM45686)",
     "_hardware": "PCA9548A multiplexer at 0x70, BNO085 on channel 1, ICM45686 on channel 0",
+    "_use_case": "IMUs can be at different body locations (torso, leg, etc.) for independent measurements, or at same location for redundancy/comparison",
 
     "start_paused": false,
 
-    "_imu_selection": "Choose 'bno085' or 'icm45686' or 'bno055' (legacy)",
+    "_imu_selection": "Choose 'bno085' or 'icm45686' or 'bno055' (legacy) - specify which IMU to use as primary",
     "imu_type": "bno085",
-    "imu_fallback": "icm45686",
+    "_fallback_note": "imu_fallback is optional - only used for automatic failover if both IMUs measure the same body part",
+    "imu_fallback": null,
     "imu_upside_down": false,
 
     "phase_frequency_factor_offset": 0.0,
@@ -75,9 +77,10 @@
     },
 
     "_usage_examples": {
-        "use_bno085_primary": "Set imu_type to 'bno085' and imu_fallback to 'icm45686'",
-        "use_icm45686_primary": "Set imu_type to 'icm45686' and imu_fallback to 'bno085'",
-        "no_fallback": "Remove or set imu_fallback to null",
-        "test_both": "python3 scripts/test_dual_imu.py --compare"
+        "use_bno085": "Set imu_type to 'bno085' to use BNO085 IMU",
+        "use_icm45686": "Set imu_type to 'icm45686' to use ICM45686 IMU",
+        "test_hardware": "python3 scripts/test_dual_imu.py",
+        "compare_both": "python3 scripts/test_dual_imu.py --compare (only if both measure same body part)",
+        "multiple_locations": "Connect each IMU to different channels, read independently in your code"
     }
 }
