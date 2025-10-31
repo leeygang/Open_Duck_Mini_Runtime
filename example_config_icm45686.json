@@ -1,6 +1,7 @@
 {
+    "comment": "Example configuration for Duck Mini with ICM45686 IMU",
     "start_paused": false,
-    "imu_type": "bno055",
+    "imu_type": "icm45686",
     "imu_upside_down": false,
     "phase_frequency_factor_offset": 0.0,
     "expression_features": {
@@ -12,6 +13,7 @@
         "camera": false
     },
     "icm45686_config": {
+        "comment": "ICM45686-specific configuration",
         "i2c_bus": 1,
         "imu_address": "0x68",
         "mux_address": "0x70",
@@ -21,17 +23,20 @@
         "sample_rate": 100,
         "madgwick_beta": 0.1,
         "axis_remap": {
+            "comment": "Maps physical axes to desired coordinate frame",
             "x": "y",
             "y": "x",
             "z": "z"
         },
         "axis_sign": {
+            "comment": "Flip axis direction if needed (+1 or -1)",
             "x": -1,
             "y": 1,
             "z": 1
         }
     },
     "joints_offsets": {
+        "comment": "Calibration offsets in radians - run find_soft_offsets.py to find these",
         "left_hip_yaw": 0.0,
         "left_hip_roll": 0.0,
         "left_hip_pitch": 0.0,

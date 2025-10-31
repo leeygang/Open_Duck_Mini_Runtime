@@ -1,0 +1,83 @@
+{
+    "_comment": "Duck Mini Configuration with Dual IMU Setup (BNO085 + ICM45686)",
+    "_hardware": "PCA9548A multiplexer at 0x70, BNO085 on channel 1, ICM45686 on channel 0",
+
+    "start_paused": false,
+
+    "_imu_selection": "Choose 'bno085' or 'icm45686' or 'bno055' (legacy)",
+    "imu_type": "bno085",
+    "imu_fallback": "icm45686",
+    "imu_upside_down": false,
+
+    "phase_frequency_factor_offset": 0.0,
+
+    "expression_features": {
+        "eyes": false,
+        "projector": false,
+        "antennas": false,
+        "speaker": false,
+        "microphone": false,
+        "camera": false
+    },
+
+    "_bno085_configuration": "BNO085 9-axis IMU with automatic calibration",
+    "bno085_config": {
+        "i2c_bus": 1,
+        "imu_address": "0x4A",
+        "mux_address": "0x70",
+        "mux_channel": 1,
+        "upside_down": false,
+        "_comment": "BNO085 uses automatic dynamic calibration - no manual calibration needed"
+    },
+
+    "_icm45686_configuration": "ICM45686 6-axis IMU with Madgwick sensor fusion",
+    "icm45686_config": {
+        "i2c_bus": 1,
+        "imu_address": "0x68",
+        "mux_address": "0x70",
+        "mux_channel": 0,
+        "gyro_range": 1000,
+        "accel_range": 4,
+        "sample_rate": 100,
+        "madgwick_beta": 0.1,
+        "axis_remap": {
+            "_comment": "Remap axes if IMU mounted in different orientation",
+            "x": "y",
+            "y": "x",
+            "z": "z"
+        },
+        "axis_sign": {
+            "_comment": "Flip axis direction (+1 or -1)",
+            "x": -1,
+            "y": 1,
+            "z": 1
+        },
+        "_calibration_comment": "Run: python3 scripts/calibrate_icm45686.py"
+    },
+
+    "_servo_configuration": "Motor calibration offsets in radians",
+    "joints_offsets": {
+        "_comment": "Run scripts/find_soft_offsets.py to calibrate these values",
+        "left_hip_yaw": 0.0,
+        "left_hip_roll": 0.0,
+        "left_hip_pitch": 0.0,
+        "left_knee": 0.0,
+        "left_ankle": 0.0,
+        "neck_pitch": 0.0,
+        "head_pitch": 0.0,
+        "head_yaw": 0.0,
+        "head_roll": 0.00,
+        "right_hip_yaw": 0.0,
+        "right_hip_roll": 0.0,
+        "right_hip_pitch": 0.0,
+        "right_knee": 0.0,
+        "right_ankle": 0.0
+    },
+
+    "_usage_examples": {
+        "use_bno085_primary": "Set imu_type to 'bno085' and imu_fallback to 'icm45686'",
+        "use_icm45686_primary": "Set imu_type to 'icm45686' and imu_fallback to 'bno085'",
+        "no_fallback": "Remove or set imu_fallback to null",
+        "test_both": "python3 scripts/test_dual_imu.py --compare"
+    }
+}
