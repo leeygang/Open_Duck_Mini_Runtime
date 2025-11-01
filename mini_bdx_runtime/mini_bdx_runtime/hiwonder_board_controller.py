@@ -172,14 +172,12 @@ class HiwonderBoardController:
         """
         # Build parameter list: count + (id + pos_low + pos_high + time_low + time_high) * count
         params = [len(servo_commands)]
-        print(f"time_L {(time_ms & 0xFF) : 02X}, time_H: {((time_ms >> 8) & 0xFF):02X}")
         params.append(time_ms & 0xFF)            # Time low byte
         params.append((time_ms >> 8) & 0xFF)     # Time high byte
         for servo_id, position in servo_commands:
             params.append(servo_id)
             params.append(position & 0xFF)           # Position low byte
             params.append((position >> 8) & 0xFF)    # Position high byte
-            print(f"servo id {servo_id : 02X}, pos_L: {(position & 0xFF) : 02X} pos_H: {((position >> 8) & 0xFF):02X}")
 
         self._send_command(self.CMD_SERVO_MOVE, params)
         return True
