@@ -26,7 +26,7 @@ from mini_bdx_runtime.pca9548a import PCA9548A
 class ICM45686Registers:
     """ICM45686 register addresses."""
     # Device identification
-    WHO_AM_I = 0x75  # Should return 0xE9
+    WHO_AM_I = 0x72  # Should return 0xE9
 
     # Power management
     PWR_MGMT0 = 0x1F  # Power management 0
