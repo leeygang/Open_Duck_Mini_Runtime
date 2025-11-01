@@ -148,12 +148,12 @@ class HiwonderBoardController:
 
     # Command implementations
 
-    def move_servos(self, servo_commands: List[Tuple[int, int, int]]) -> bool:
+    def move_servos(self, servo_commands: List[Tuple[int, int]], time_ms: int) -> bool:
         """
         Move multiple servos simultaneously (CMD_SERVO_MOVE = 0x03)
 
         Frame format:
-        [0x55][0x55][Length][0x03][number of Servos][ID1][Pos1_L][Pos1_H][Time1_L][Time1_H]...
+        [0x55][0x55][Length][0x03][number of Servos][Time low byte][Time high byte][ID1][Pos1_L][Pos1_H]...
 
         Args:
             servo_commands: List of (servo_id, position, time_ms) tuples
@@ -166,19 +166,20 @@ class HiwonderBoardController:
 
         Example:
             controller.move_servos([
-                (1, 500, 1000),  # Servo 1 to position 500 in 1000ms
-                (2, 600, 1000),  # Servo 2 to position 600 in 1000ms
-            ])
+                (1, 500),  # Servo 1 to position 500 in 1000ms
+                (2, 600),  # Servo 2 to position 600 in 1000ms
+            ], 1000)
         """
         # Build parameter list: count + (id + pos_low + pos_high + time_low + time_high) * count
         params = [len(servo_commands)]
-
-        for servo_id, position, time_ms in servo_commands:
+        print(f"time_L {(time_ms & 0xFF) : 02X}, time_H: {((time_ms >> 8) & 0xFF):02X}")
+        params.append(time_ms & 0xFF)            # Time low byte
+        params.append((time_ms >> 8) & 0xFF)     # Time high byte
+        for servo_id, position in servo_commands:
             params.append(servo_id)
             params.append(position & 0xFF)           # Position low byte
             params.append((position >> 8) & 0xFF)    # Position high byte
-            params.append(time_ms & 0xFF)            # Time low byte
-            params.append((time_ms >> 8) & 0xFF)     # Time high byte
+            print(f"servo id {servo_id : 02X}, pos_L: {(position & 0xFF) : 02X} pos_H: {((position >> 8) & 0xFF):02X}")
 
         self._send_command(self.CMD_SERVO_MOVE, params)
         return True

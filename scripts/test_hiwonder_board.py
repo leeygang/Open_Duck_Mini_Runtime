@@ -103,8 +103,8 @@ try:
     response = input("Do you want to test servo movement? (y/N): ").lower()
     if response == 'y':
         print(f"Moving servos {servo_ids} to center position (500) in 1000ms...")
-        servo_commands = [(sid, 500, 1000) for sid in servo_ids]
-        board.move_servos(servo_commands)
+        servo_commands = [(sid, 800) for sid in servo_ids]
+        board.move_servos(servo_commands, 1000)
         print("✓ Command sent")
 
         time.sleep(1.5)
