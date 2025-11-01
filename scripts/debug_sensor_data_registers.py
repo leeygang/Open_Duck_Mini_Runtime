@@ -11,10 +11,15 @@ import sys
 
 BUS = 1
 IMU_ADDR = 0x68
+MUX_ADDR = 0x70
+MUX_CHANNEL = 0
 
 def read_sensor_burst():
     """Read 14-byte sensor data burst like the driver does."""
     with SMBus(BUS) as bus:
+        # Enable multiplexer channel
+        bus.write_byte(MUX_ADDR, 1 << MUX_CHANNEL)
+
         # Read 14 bytes starting at 0x09 (TEMP_DATA1)
         data = bytes(bus.read_i2c_block_data(IMU_ADDR, 0x09, 14))
 
