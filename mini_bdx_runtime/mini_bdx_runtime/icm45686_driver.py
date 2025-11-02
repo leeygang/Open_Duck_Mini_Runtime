@@ -22,42 +22,42 @@ from dataclasses import dataclass
 from mini_bdx_runtime.pca9548a import PCA9548A
 
 
-# ICM45686 Register Map (Bank 0)
+# ICM45686 Register Map (v1.2 variant - Taobao version)
 class ICM45686Registers:
-    """ICM45686 register addresses."""
+    """ICM45686 v1.2 register addresses."""
     # Device identification
     WHO_AM_I = 0x72  # Should return 0xE9
 
     # Power management
-    PWR_MGMT0 = 0x1F  # Power management 0
+    PWR_MGMT0 = 0x10  # Power management 0
 
     # Gyroscope configuration
-    GYRO_CONFIG0 = 0x20  # Gyro ODR and full scale
-    GYRO_CONFIG1 = 0x21  # Gyro filters
+    GYRO_CONFIG0 = 0x1C  # Gyro ODR and full scale
+    IPREG_SYS1_REG_172 = 0xAC  # Gyro low-pass filter bandwidth
 
     # Accelerometer configuration
-    ACCEL_CONFIG0 = 0x21  # Accel ODR and full scale
-    ACCEL_CONFIG1 = 0x24  # Accel filters
+    ACCEL_CONFIG0 = 0x1B  # Accel ODR and full scale
+    IPREG_SYS2_REG_131 = 0x83  # Accel low-pass filter bandwidth
+
+    # Accelerometer data (little-endian: LSB first, MSB second)
+    ACCEL_DATA_X0 = 0x00  # Accel X LSB
+    ACCEL_DATA_X1 = 0x01  # Accel X MSB
+    ACCEL_DATA_Y0 = 0x02  # Accel Y LSB
+    ACCEL_DATA_Y1 = 0x03  # Accel Y MSB
+    ACCEL_DATA_Z0 = 0x04  # Accel Z LSB
+    ACCEL_DATA_Z1 = 0x05  # Accel Z MSB
+
+    # Gyroscope data (little-endian: LSB first, MSB second)
+    GYRO_DATA_X0 = 0x06  # Gyro X LSB
+    GYRO_DATA_X1 = 0x07  # Gyro X MSB
+    GYRO_DATA_Y0 = 0x08  # Gyro Y LSB
+    GYRO_DATA_Y1 = 0x09  # Gyro Y MSB
+    GYRO_DATA_Z0 = 0x0A  # Gyro Z LSB
+    GYRO_DATA_Z1 = 0x0B  # Gyro Z MSB
 
     # Temperature sensor
-    TEMP_DATA1 = 0x09  # Temperature MSB
-    TEMP_DATA0 = 0x0A  # Temperature LSB
-
-    # Accelerometer data
-    ACCEL_DATA_X1 = 0x0B  # Accel X MSB
-    ACCEL_DATA_X0 = 0x0C  # Accel X LSB
-    ACCEL_DATA_Y1 = 0x0D  # Accel Y MSB
-    ACCEL_DATA_Y0 = 0x0E  # Accel Y LSB
-    ACCEL_DATA_Z1 = 0x0F  # Accel Z MSB
-    ACCEL_DATA_Z0 = 0x10  # Accel Z LSB
-
-    # Gyroscope data
-    GYRO_DATA_X1 = 0x11  # Gyro X MSB
-    GYRO_DATA_X0 = 0x12  # Gyro X LSB
-    GYRO_DATA_Y1 = 0x13  # Gyro Y MSB
-    GYRO_DATA_Y0 = 0x14  # Gyro Y LSB
-    GYRO_DATA_Z1 = 0x15  # Gyro Z MSB
-    GYRO_DATA_Z0 = 0x16  # Gyro Z LSB
+    TEMP_DATA0 = 0x0C  # Temperature LSB
+    TEMP_DATA1 = 0x0D  # Temperature MSB
 
     # Signal path reset
     SIGNAL_PATH_RESET = 0x02
@@ -184,7 +184,7 @@ class ICM45686Driver:
         return bytes(self.smbus.read_i2c_block_data(self.address, register, length))
 
     def _initialize(self) -> None:
-        """Initialize and configure the ICM45686."""
+        """Initialize and configure the ICM45686 v1.2."""
         # Verify device ID
         device_id = self._read_register(ICM45686Registers.WHO_AM_I)
         if device_id != self.DEVICE_ID:
@@ -193,24 +193,28 @@ class ICM45686Driver:
                 f"got 0x{device_id:02X}"
             )
 
-        # Software reset
-        self._write_register(ICM45686Registers.SIGNAL_PATH_RESET, 0x02)
-        time.sleep(0.1)  # Wait for reset
-
         # Wake up device (exit sleep mode)
-        # PWR_MGMT0: Enable gyro and accel in low noise mode
+        # PWR_MGMT0: Enable gyro and accel in low noise mode (0x0F)
         self._write_register(ICM45686Registers.PWR_MGMT0, 0x0F)
         time.sleep(0.05)
 
-        # Configure gyroscope
-        gyro_fs_sel = {250: 0, 500: 1, 1000: 2, 2000: 3}[self.gyro_range]
-        # GYRO_CONFIG0: ODR=1kHz (0x06), FS=gyro_fs_sel
-        self._write_register(ICM45686Registers.GYRO_CONFIG0, (0x06 << 4) | gyro_fs_sel)
-
         # Configure accelerometer
         accel_fs_sel = {2: 0, 4: 1, 8: 2, 16: 3}[self.accel_range]
-        # ACCEL_CONFIG0: ODR=1kHz (0x06), FS=accel_fs_sel
-        self._write_register(ICM45686Registers.ACCEL_CONFIG0, (0x06 << 4) | accel_fs_sel)
+        # ACCEL_CONFIG0: ODR=200Hz (0x03), FS=accel_fs_sel
+        # ODR bits: 0x03=200Hz, 0x06=1kHz
+        self._write_register(ICM45686Registers.ACCEL_CONFIG0, (0x03 << 4) | (accel_fs_sel << 2))
+
+        # Set accel low-pass filter: ODR/128 bandwidth
+        self._write_register(ICM45686Registers.IPREG_SYS2_REG_131, 0x06)
+
+        # Configure gyroscope
+        gyro_fs_sel = {250: 0, 500: 1, 1000: 2, 2000: 3}[self.gyro_range]
+        # GYRO_CONFIG0: ODR=200Hz (0x02), FS=gyro_fs_sel
+        # ODR bits for gyro: 0x02=200Hz, 0x06=1kHz
+        self._write_register(ICM45686Registers.GYRO_CONFIG0, (0x02 << 4) | (gyro_fs_sel << 2))
+
+        # Set gyro low-pass filter: ODR/128 bandwidth
+        self._write_register(ICM45686Registers.IPREG_SYS1_REG_172, 0x06)
 
         time.sleep(0.05)  # Wait for configuration to take effect
 
@@ -221,18 +225,18 @@ class ICM45686Driver:
         Returns:
             Tuple of (accel_xyz, gyro_xyz, temp) as 16-bit signed integers
         """
-        # Read all sensor data in one burst (14 bytes)
-        # Order: TEMP(2) + ACCEL_XYZ(6) + GYRO_XYZ(6)
-        data = self._read_registers(ICM45686Registers.TEMP_DATA1, 14)
+        # Read all sensor data in one burst (14 bytes starting at 0x00)
+        # Order: ACCEL_XYZ(6) + GYRO_XYZ(6) + TEMP(2)
+        data = self._read_registers(ICM45686Registers.ACCEL_DATA_X0, 14)
 
-        # Parse data (big-endian 16-bit signed)
-        temp_raw = struct.unpack('>h', data[0:2])[0]
-        accel_x = struct.unpack('>h', data[2:4])[0]
-        accel_y = struct.unpack('>h', data[4:6])[0]
-        accel_z = struct.unpack('>h', data[6:8])[0]
-        gyro_x = struct.unpack('>h', data[8:10])[0]
-        gyro_y = struct.unpack('>h', data[10:12])[0]
-        gyro_z = struct.unpack('>h', data[12:14])[0]
+        # Parse data (little-endian 16-bit signed: LSB first, MSB second)
+        accel_x = struct.unpack('<h', data[0:2])[0]
+        accel_y = struct.unpack('<h', data[2:4])[0]
+        accel_z = struct.unpack('<h', data[4:6])[0]
+        gyro_x = struct.unpack('<h', data[6:8])[0]
+        gyro_y = struct.unpack('<h', data[8:10])[0]
+        gyro_z = struct.unpack('<h', data[10:12])[0]
+        temp_raw = struct.unpack('<h', data[12:14])[0]
 
         return (accel_x, accel_y, accel_z), (gyro_x, gyro_y, gyro_z), temp_raw
 

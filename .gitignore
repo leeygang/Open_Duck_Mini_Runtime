@@ -3,3 +3,4 @@ mini_bdx_runtime.egg-info/
 build
 dist
 uv.lock
+.DS_Store
