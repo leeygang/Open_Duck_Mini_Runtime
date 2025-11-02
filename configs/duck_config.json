@@ -1,0 +1,50 @@
+{
+    "start_paused": false,
+    "imu_type": "icm45686",
+    "imu_upside_down": false,
+    "phase_frequency_factor_offset": 0.0,
+    "expression_features": {
+        "eyes": false,
+        "projector": false,
+        "antennas": false,
+        "speaker": false,
+        "microphone": false,
+        "camera": false
+    },
+    "icm45686_config": {
+        "i2c_bus": 1,
+        "imu_address": "0x68",
+        "mux_address": "0x70",
+        "mux_channel": 0,
+        "gyro_range": 1000,
+        "accel_range": 4,
+        "sample_rate": 100,
+        "madgwick_beta": 0.1,
+        "axis_remap": {
+            "x": "y",
+            "y": "x",
+            "z": "z"
+        },
+        "axis_sign": {
+            "x": -1,
+            "y": 1,
+            "z": 1
+        }
+    },
+    "joints_offsets": {
+        "left_hip_yaw": 0.0,
+        "left_hip_roll": 0.0,
+        "left_hip_pitch": 0.0,
+        "left_knee": 0.0,
+        "left_ankle": 0.0,
+        "neck_pitch": 0.0,
+        "head_pitch": 0.0,
+        "head_yaw": 0.0,
+        "head_roll": 0.00,
+        "right_hip_yaw": 0.0,
+        "right_hip_roll": 0.0,
+        "right_hip_pitch": 0.0,
+        "right_knee": 0.0,
+        "right_ankle": 0.0
+    }
+}
